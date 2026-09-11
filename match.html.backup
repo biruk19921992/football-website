@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Match Details - FootballXtra</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    body {
+      background:#07110d;
+      color:white;
+      min-height:100vh;
+    }
+
+    .glass {
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      backdrop-filter:blur(12px);
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="sticky top-0 z-50 glass">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+
+    <a href="scores.html"
+       class="text-gray-300 hover:text-green-400">
+      <i class="fa-solid fa-arrow-left mr-2"></i>
+      Live Scores
+    </a>
+
+    <div class="font-black text-xl">
+      <span class="text-green-400">Football</span>Xtra
+    </div>
+
+  </div>
+</header>
+
+
+<main class="max-w-6xl mx-auto px-4 py-6">
+
+  <div id="loading"
+       class="glass rounded-3xl p-12 text-center">
+
+    <i class="fa-solid fa-spinner fa-spin text-green-400 text-3xl mb-4"></i>
+
+    <p class="font-bold">
+      Loading match...
+    </p>
+
+  </div>
+
+
+  <div id="error"
+       class="hidden glass rounded-3xl p-10 text-center">
+
+    <i class="fa-solid fa-circle-exclamation text-red-400 text-3xl mb-4"></i>
+
+    <p id="errorText"
+       class="font-bold text-gray-300">
+    </p>
+
+  </div>
+
+
+  <div id="content"
+       class="hidden">
+
+
+    <!-- MATCH HEADER -->
+
+    <section class="glass rounded-3xl p-6 md:p-10">
+
+      <div class="text-center mb-8">
+
+        <p id="league"
+           class="text-green-400 font-black text-lg">
+        </p>
+
+        <p id="country"
+           class="text-gray-500 text-sm mt-1">
+        </p>
+
+        <div id="status"
+             class="inline-block mt-4 px-4 py-2 rounded-full bg-red-500/10 text-red-400 text-xs font-black">
+        </div>
+
+      </div>
+
+
+      <div class="grid grid-cols-3 items-center gap-3">
+
+
+        <!-- HOME -->
+
+        <div class="text-center">
+
+          <img id="homeLogo"
+               class="w-20 h-20 md:w-28 md:h-28 object-contain mx-auto"
+               alt="Home">
+
+          <h2 id="homeName"
+              class="font-black text-base md:text-2xl mt-4">
+          </h2>
+
+        </div>
+
+
+        <!-- SCORE -->
+
+        <div class="text-center">
+
+          <div id="score"
+               class="text-4xl md:text-6xl font-black">
+            0 - 0
+          </div>
+
+          <p id="time"
+             class="text-gray-500 text-sm mt-2">
+          </p>
+
+        </div>
+
+
+        <!-- AWAY -->
+
+        <div class="text-center">
+
+          <img id="awayLogo"
+               class="w-20 h-20 md:w-28 md:h-28 object-contain mx-auto"
+               alt="Away">
+
+          <h2 id="awayName"
+              class="font-black text-base md:text-2xl mt-4">
+          </h2>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- VENUE -->
+
+    <section class="glass rounded-2xl p-5 mt-5">
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+
+        <div>
+
+          <p class="text-xs text-gray-500">
+            Venue
+          </p>
+
+          <p id="venue"
+             class="font-bold mt-1">
+          </p>
+
+        </div>
+
+
+        <div>
+
+          <p class="text-xs text-gray-500">
+            Round
+          </p>
+
+          <p id="round"
+             class="font-bold mt-1">
+          </p>
+
+        </div>
+
+
+        <div>
+
+          <p class="text-xs text-gray-500">
+            Referee
+          </p>
+
+          <p id="referee"
+             class="font-bold mt-1">
+          </p>
+
+        </div>
+
+
+        <div>
+
+          <p class="text-xs text-gray-500">
+            Date
+          </p>
+
+          <p id="date"
+             class="font-bold mt-1">
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- EVENTS -->
+
+    <section class="mt-8">
+
+      <h2 class="text-xl font-black mb-4">
+
+        <i class="fa-solid fa-bolt text-yellow-400 mr-2"></i>
+
+        Match Events
+
+      </h2>
+
+
+      <div id="events"
+           class="glass rounded-2xl p-5">
+      </div>
+
+    </section>
+
+
+    <!-- LINEUPS -->
+
+    <section class="mt-8">
+
+      <h2 class="text-xl font-black mb-4">
+
+        <i class="fa-solid fa-users text-blue-400 mr-2"></i>
+
+        Lineups
+
+      </h2>
+
+
+      <div id="lineups"
+           class="grid md:grid-cols-2 gap-5">
+      </div>
+
+    </section>
+
+
+  </div>
+
+</main>
+
+
+<script>
+
+const API_BASE = "http://localhost:3000";
+const params = new URLSearchParams(window.location.search);
+
+const fixtureId = params.get("fixture") || new URLSearchParams(window.location.hash.slice(1)).get("fixture") || window.location.pathname.split("/").filter(Boolean).pop();
+
+console.log("MATCH URL:", window.location.href, "FIXTURE:", fixtureId);
+
+
+const loading =
+  document.getElementById("loading");
+
+const errorBox =
+  document.getElementById("error");
+
+const errorText =
+  document.getElementById("errorText");
+
+const content =
+  document.getElementById("content");
+
+
+function escapeHTML(value = "") {
+
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+function showError(message) {
+
+  loading.classList.add("hidden");
+
+  content.classList.add("hidden");
+
+  errorBox.classList.remove("hidden");
+
+  errorText.textContent = message;
+
+}
+
+
+async function loadMatch() {
+
+  if (!fixtureId) {
+
+    showError("No fixture ID found.");
+
+    return;
+
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        `${API_BASE}/api/matches/${encodeURIComponent(fixtureId)}`,
+        { cache:"no-store" }
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+
+    }
+
+
+    const data =
+      await response.json();
+
+
+    if (!data.success || !data.match) {
+
+      throw new Error(
+        "Match data unavailable"
+      );
+
+    }
+
+
+    const match =
+      data.match;
+
+
+    const fixture =
+      match.fixture || {};
+
+
+    const teams =
+      match.teams || {};
+
+
+    const home =
+      teams.home || {};
+
+
+    const away =
+      teams.away || {};
+
+
+    const league =
+      match.league || {};
+
+
+    const goals =
+      match.goals || {};
+
+
+    const matchStatus =
+      fixture.status || {};
+
+
+    document.getElementById("league").textContent =
+      league.name || "Football";
+
+
+    document.getElementById("country").textContent =
+      league.country || "";
+
+
+    document.getElementById("homeName").textContent =
+      home.name || "Home";
+
+
+    document.getElementById("awayName").textContent =
+      away.name || "Away";
+
+
+    document.getElementById("homeLogo").src =
+      home.logo || "";
+
+
+    document.getElementById("awayLogo").src =
+      away.logo || "";
+
+
+    document.getElementById("homeLogo").onerror =
+      function() {
+        this.style.display="none";
+      };
+
+
+    document.getElementById("awayLogo").onerror =
+      function() {
+        this.style.display="none";
+      };
+
+
+    document.getElementById("score").textContent =
+      `${goals.home ?? 0} - ${goals.away ?? 0}`;
+
+
+    document.getElementById("status").textContent =
+      matchStatus.long ||
+      matchStatus.short ||
+      "MATCH";
+
+
+    document.getElementById("time").textContent =
+      matchStatus.elapsed != null
+        ? `${matchStatus.elapsed}'`
+        : "";
+
+
+    document.getElementById("venue").textContent =
+      fixture.venue?.name || "Unknown";
+
+
+    document.getElementById("round").textContent =
+      league.round || "-";
+
+
+    document.getElementById("referee").textContent =
+      fixture.referee || "Unknown";
+
+
+    document.getElementById("date").textContent =
+      fixture.date
+        ? new Date(fixture.date).toLocaleString()
+        : "-";
+
+
+    loading.classList.add("hidden");
+
+    errorBox.classList.add("hidden");
+
+    content.classList.remove("hidden");
+
+
+    await Promise.all([
+      loadEvents(),
+      loadLineups()
+    ]);
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    showError(
+      "Unable to load match details."
+    );
+
+  }
+
+}
+
+
+async function loadEvents() {
+
+  const container =
+    document.getElementById("events");
+
+
+  try {
+
+    const response =
+      await fetch(
+        `${API_BASE}/api/matches/${encodeURIComponent(fixtureId)}/events`,
+        { cache:"no-store" }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    const events =
+      Array.isArray(data.events)
+        ? data.events
+        : [];
+
+
+    if (!events.length) {
+
+      container.innerHTML = `
+        <div class="text-center py-6 text-gray-500">
+          No events available
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    container.innerHTML =
+      events.map(event => {
+
+        const minute =
+          event.time?.elapsed != null
+            ? `${event.time.elapsed}'`
+            : "";
+
+
+        const player =
+          event.player?.name || "";
+
+
+        const team =
+          event.team?.name || "";
+
+
+        const type =
+          event.type || "";
+
+
+        const detail =
+          event.detail || "";
+
+
+        const comments =
+          event.comments || "";
+
+
+        let icon = "⚽";
+
+
+        if (
+          type.toLowerCase() === "card"
+        ) {
+
+          if (
+            detail.toLowerCase().includes("red")
+          ) {
+
+            icon = "🟥";
+
+          } else {
+
+            icon = "🟨";
+
+          }
+
+        }
+
+
+        if (
+          type.toLowerCase().includes("subst")
+        ) {
+
+          icon = "🔄";
+
+        }
+
+
+        return `
+
+          <div class="flex items-center gap-4 py-4 border-b border-white/5 last:border-0">
+
+            <div class="w-12 text-center text-sm text-gray-500 font-bold">
+              ${escapeHTML(minute)}
+            </div>
+
+            <div class="text-2xl">
+              ${icon}
+            </div>
+
+            <div class="flex-1">
+
+              <p class="font-black">
+                ${escapeHTML(player || type)}
+              </p>
+
+              <p class="text-xs text-green-400">
+                ${escapeHTML(team)}
+              </p>
+
+              <p class="text-xs text-gray-500">
+                ${escapeHTML(detail)}
+                ${comments ? ` · ${escapeHTML(comments)}` : ""}
+              </p>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }).join("");
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    container.innerHTML = `
+      <div class="text-center py-6 text-red-400">
+        Unable to load events
+      </div>
+    `;
+
+  }
+
+}
+
+
+async function loadLineups() {
+
+  const container =
+    document.getElementById("lineups");
+
+
+  try {
+
+    const response =
+      await fetch(
+        `${API_BASE}/api/matches/${encodeURIComponent(fixtureId)}/lineups`,
+        { cache:"no-store" }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    const lineups =
+      Array.isArray(data.lineups)
+        ? data.lineups
+        : [];
+
+
+    if (!lineups.length) {
+
+      container.innerHTML = `
+        <div class="md:col-span-2 glass rounded-2xl p-6 text-center text-gray-500">
+          Lineups not available
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    container.innerHTML =
+      lineups.map(lineup => {
+
+        const team =
+          lineup.team || {};
+
+
+        const coach =
+          lineup.coach || {};
+
+
+        const starters =
+          Array.isArray(lineup.startXI)
+            ? lineup.startXI
+            : [];
+
+
+        const substitutes =
+          Array.isArray(lineup.substitutes)
+            ? lineup.substitutes
+            : [];
+
+
+        return `
+
+          <div class="glass rounded-2xl p-5">
+
+            <div class="flex items-center gap-3 mb-4">
+
+              <img
+                src="${escapeHTML(team.logo || "")}"
+                class="w-12 h-12 object-contain"
+                onerror="this.style.display='none'"
+              >
+
+              <div>
+
+                <h3 class="font-black text-lg">
+                  ${escapeHTML(team.name || "Team")}
+                </h3>
+
+                <p class="text-xs text-green-400">
+                  Formation:
+                  ${escapeHTML(lineup.formation || "-")}
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="mb-5">
+
+              <p class="text-xs text-gray-500 font-bold mb-2">
+                COACH
+              </p>
+
+              <p class="font-bold">
+                ${escapeHTML(coach.name || "-")}
+              </p>
+
+            </div>
+
+
+            <div>
+
+              <p class="text-xs text-gray-500 font-bold mb-2">
+                STARTING XI
+              </p>
+
+
+              ${
+                starters.length
+                  ? starters.map(item => {
+
+                      const player =
+                        item.player || {};
+
+
+                      return `
+
+                        <div class="flex items-center justify-between py-2 border-b border-white/5">
+
+                          <span class="text-sm font-semibold">
+                            ${escapeHTML(player.name || "Player")}
+                          </span>
+
+                          <span class="text-xs text-gray-500">
+                            #${escapeHTML(player.number ?? "")}
+                            ${escapeHTML(player.pos || "")}
+                          </span>
+
+                        </div>
+
+                      `;
+
+                    }).join("")
+                  : `
+                      <p class="text-sm text-gray-500">
+                        No starting XI
+                      </p>
+                    `
+              }
+
+            </div>
+
+
+            <div class="mt-5">
+
+              <p class="text-xs text-gray-500 font-bold mb-2">
+                SUBSTITUTES
+              </p>
+
+
+              ${
+                substitutes.length
+                  ? substitutes.map(item => {
+
+                      const player =
+                        item.player || {};
+
+
+                      return `
+
+                        <div class="flex items-center justify-between py-2 border-b border-white/5">
+
+                          <span class="text-sm">
+                            ${escapeHTML(player.name || "Player")}
+                          </span>
+
+                          <span class="text-xs text-gray-500">
+                            #${escapeHTML(player.number ?? "")}
+                            ${escapeHTML(player.pos || "")}
+                          </span>
+
+                        </div>
+
+                      `;
+
+                    }).join("")
+                  : `
+                      <p class="text-sm text-gray-500">
+                        No substitutes
+                      </p>
+                    `
+              }
+
+            </div>
+
+          </div>
+
+        `;
+
+      }).join("");
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    container.innerHTML = `
+      <div class="md:col-span-2 glass rounded-2xl p-6 text-center text-red-400">
+        Unable to load lineups
+      </div>
+    `;
+
+  }
+
+}
+
+
+loadMatch();
+
+
+setInterval(
+  loadMatch,
+  60000
+);
+
+</script>
+
+</body>
+</html>
+

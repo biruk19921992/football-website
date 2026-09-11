@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FootballXtra - League Tables</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      background: #050505;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .glass {
+      background: rgba(18, 18, 18, 0.92);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    select {
+      background: #111;
+      color: white;
+    }
+
+    select option {
+      background: #111;
+      color: white;
+    }
+
+    .team-logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+
+    .loading {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      50% { opacity: .45; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-black/95 border-b border-white/10">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="index.html"
+         class="text-gray-300 hover:text-white font-semibold">
+        ← FootballXtra
+      </a>
+
+      <div class="font-black tracking-wider">
+        LEAGUE TABLES
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-3 sm:px-5 py-6">
+
+    <!-- Title -->
+    <div class="mb-5">
+      <p class="text-green-400 text-xs font-bold uppercase tracking-widest">
+        Live Standings
+      </p>
+
+      <h1 id="leagueTitle"
+          class="text-2xl sm:text-3xl font-black mt-1">
+        Premier League
+      </h1>
+
+      <p id="tableStatus"
+         class="text-gray-400 text-sm mt-2">
+        Loading table...
+      </p>
+    </div>
+
+    <!-- League Selector -->
+    <div class="glass rounded-2xl p-4 mb-5">
+      <label for="leagueSelect"
+             class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+        Select League
+      </label>
+
+      <select id="leagueSelect"
+              class="w-full rounded-xl border border-white/10 px-4 py-3 outline-none focus:border-green-500">
+        <option value="premier-league">Premier League</option>
+        <option value="laliga">LaLiga</option>
+        <option value="bundesliga">Bundesliga</option>
+        <option value="serie-a">Serie A</option>
+        <option value="ligue-1">Ligue 1</option>
+        <option value="champions-league">Champions League</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="glass rounded-2xl overflow-hidden">
+
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[650px] text-sm">
+
+          <thead class="bg-white/5 border-b border-white/10">
+            <tr class="text-gray-400 text-xs uppercase">
+              <th class="px-3 py-4 text-center">#</th>
+              <th class="px-3 py-4 text-left">Team</th>
+              <th class="px-3 py-4 text-center">P</th>
+              <th class="px-3 py-4 text-center">W</th>
+              <th class="px-3 py-4 text-center">D</th>
+              <th class="px-3 py-4 text-center">L</th>
+              <th class="px-3 py-4 text-center">GD</th>
+              <th class="px-3 py-4 text-center">PTS</th>
+            </tr>
+          </thead>
+
+          <tbody id="standingsBody">
+            <tr>
+              <td colspan="8"
+                  class="px-4 py-10 text-center text-gray-400 loading">
+                Loading standings...
+              </td>
+            </tr>
+          </tbody>
+
+        </table>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    const API_BASE = "http://localhost:3000/api/standings/";
+
+    const LEAGUES = {
+      "premier-league": "Premier League",
+      "laliga": "LaLiga",
+      "bundesliga": "Bundesliga",
+      "serie-a": "Serie A",
+      "ligue-1": "Ligue 1",
+      "champions-league": "Champions League"
+    };
+
+    const leagueSelect = document.getElementById("leagueSelect");
+    const standingsBody = document.getElementById("standingsBody");
+    const leagueTitle = document.getElementById("leagueTitle");
+    const tableStatus = document.getElementById("tableStatus");
+
+    async function loadStandings() {
+
+      const league = leagueSelect.value;
+      const leagueName = LEAGUES[league] || "League";
+
+      leagueTitle.textContent = leagueName;
+      tableStatus.textContent = "Loading " + leagueName + "...";
+
+      standingsBody.innerHTML = `
+        <tr>
+          <td colspan="8"
+              class="px-4 py-10 text-center text-gray-400 loading">
+            Loading ${leagueName}...
+          </td>
+        </tr>
+      `;
+
+      try {
+
+        const response = await fetch(
+          API_BASE + encodeURIComponent(league),
+          {
+            cache: "no-store"
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+
+        const data = await response.json();
+
+        if (!data.success || !Array.isArray(data.standings)) {
+          throw new Error(data.message || "Invalid standings data");
+        }
+
+        if (!data.standings.length) {
+          throw new Error("No standings available");
+        }
+
+        standingsBody.innerHTML = data.standings.map((item, index) => {
+
+          const team = item.team || {};
+
+          return `
+            <tr class="border-b border-white/5 hover:bg-white/[0.04]">
+
+              <td class="px-3 py-4 text-center font-bold text-gray-400">
+                ${item.rank || index + 1}
+              </td>
+
+              <td class="px-3 py-4">
+                <div class="flex items-center gap-3">
+
+                  ${
+                    team.logo
+                      ? `<img
+                          src="${team.logo}"
+                          alt=""
+                          class="team-logo"
+                          onerror="this.style.display='none'"
+                        >`
+                      : `<div class="team-logo"></div>`
+                  }
+
+                  <span class="font-semibold whitespace-nowrap">
+                    ${escapeHtml(team.name || "Unknown")}
+                  </span>
+
+                </div>
+              </td>
+
+              <td class="px-3 py-4 text-center">
+                ${item.played ?? 0}
+              </td>
+
+              <td class="px-3 py-4 text-center text-green-400 font-semibold">
+                ${item.wins ?? 0}
+              </td>
+
+              <td class="px-3 py-4 text-center text-gray-300">
+                ${item.draws ?? 0}
+              </td>
+
+              <td class="px-3 py-4 text-center text-red-400">
+                ${item.losses ?? 0}
+              </td>
+
+              <td class="px-3 py-4 text-center font-semibold">
+                ${formatGD(item.goalDifference)}
+              </td>
+
+              <td class="px-3 py-4 text-center font-black text-white">
+                ${item.points ?? 0}
+              </td>
+
+            </tr>
+          `;
+
+        }).join("");
+
+        const season = data.season ? ` • ${data.season}` : "";
+
+        tableStatus.textContent =
+          `${data.count || data.standings.length} teams${season} • Updated just now`;
+
+      } catch (error) {
+
+        console.error("Standings error:", error);
+
+        standingsBody.innerHTML = `
+          <tr>
+            <td colspan="8"
+                class="px-4 py-12 text-center">
+
+              <div class="text-red-400 font-bold mb-2">
+                Unable to load standings
+              </div>
+
+              <div class="text-gray-500 text-sm">
+                ${escapeHtml(error.message)}
+              </div>
+
+            </td>
+          </tr>
+        `;
+
+        tableStatus.textContent =
+          "Backend connection failed";
+      }
+    }
+
+    function formatGD(value) {
+
+      const number = Number(value || 0);
+
+      if (number > 0) return "+" + number;
+
+      return String(number);
+    }
+
+    function escapeHtml(value) {
+
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    leagueSelect.addEventListener("change", loadStandings);
+
+    loadStandings();
+
+    setInterval(loadStandings, 60000);
+  </script>
+
+</body>
+</html>

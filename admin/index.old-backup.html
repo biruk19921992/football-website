@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FootballXtra Admin</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      background: #050807;
+      color: white;
+    }
+
+    .glass {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(12px);
+    }
+
+    input, textarea, select {
+      background: #111715 !important;
+      color: white !important;
+      border: 1px solid #26332e !important;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: #22c55e !important;
+      outline: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="border-b border-white/10 sticky top-0 bg-black/80 backdrop-blur-xl z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+
+      <a href="../index.html"
+         class="font-black text-xl tracking-tight">
+        FOOTBALL<span class="text-green-400">XTRA</span>
+      </a>
+
+      <div class="flex items-center gap-3">
+        <span id="adminName" class="text-sm text-gray-400"></span>
+
+        <a href="../index.html"
+           class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-sm">
+          <i class="fa-solid fa-house mr-1"></i>
+          Home
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+
+  <main class="max-w-4xl mx-auto px-4 py-8">
+
+    <div class="mb-8">
+      <p class="text-green-400 text-xs font-black tracking-widest">
+        FOOTBALLXTRA ADMIN
+      </p>
+
+      <h1 class="text-3xl md:text-4xl font-black mt-2">
+        Create Post
+      </h1>
+
+      <p class="text-gray-500 mt-2">
+        Publish football news and videos to the community feed.
+      </p>
+    </div>
+
+
+    <!-- LOGIN / ACCESS -->
+    <div id="accessMessage"
+         class="glass rounded-2xl p-8 text-center hidden">
+
+      <i class="fa-solid fa-lock text-4xl text-red-400 mb-4"></i>
+
+      <h2 class="text-xl font-bold">
+        Admin Access Required
+      </h2>
+
+      <p class="text-gray-500 mt-2 mb-5">
+        Please login with an authorized admin account.
+      </p>
+
+      <a href="../login.html"
+         class="inline-block bg-green-500 hover:bg-green-400 text-black font-bold px-6 py-3 rounded-xl">
+        Login
+      </a>
+
+    </div>
+
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" class="hidden">
+
+      <form id="postForm" class="space-y-6">
+
+
+        <!-- POST TYPE -->
+
+        <div class="glass rounded-2xl p-5">
+
+          <label class="block text-sm font-bold mb-3">
+            Post Type
+          </label>
+
+          <div class="grid grid-cols-2 gap-3">
+
+            <button type="button"
+                    data-type="news"
+                    class="typeBtn active-type p-4 rounded-xl border border-green-500 bg-green-500/10">
+              <i class="fa-solid fa-newspaper text-xl text-green-400"></i>
+              <div class="font-bold mt-2">News</div>
+            </button>
+
+            <button type="button"
+                    data-type="video"
+                    class="typeBtn p-4 rounded-xl border border-white/10">
+              <i class="fa-solid fa-video text-xl text-red-400"></i>
+              <div class="font-bold mt-2">Video</div>
+            </button>
+
+          </div>
+
+          <input type="hidden" id="postType" value="news">
+
+        </div>
+
+
+        <!-- TITLE -->
+
+        <div class="glass rounded-2xl p-5">
+
+          <label class="block text-sm font-bold mb-2">
+            Title
+          </label>
+
+          <input
+            id="postTitle"
+            type="text"
+            required
+            maxlength="200"
+            placeholder="Manchester United sign new player..."
+            class="w-full px-4 py-3 rounded-xl">
+
+        </div>
+
+
+        <!-- CONTENT -->
+
+        <div class="glass rounded-2xl p-5">
+
+          <label class="block text-sm font-bold mb-2">
+            Content
+          </label>
+
+          <textarea
+            id="postContent"
+            rows="7"
+            required
+            placeholder="Write your football news here..."
+            class="w-full px-4 py-3 rounded-xl resize-none"></textarea>
+
+        </div>
+
+
+        <!-- MEDIA URL -->
+
+        <div class="glass rounded-2xl p-5">
+
+          <label class="block text-sm font-bold mb-2">
+            Image / Video URL
+          </label>
+
+          <input
+            id="mediaUrl"
+            type="url"
+            placeholder="https://..."
+            class="w-full px-4 py-3 rounded-xl">
+
+          <p id="mediaHelp"
+             class="text-xs text-gray-500 mt-2">
+            Add an image URL for the news post.
+          </p>
+
+        </div>
+
+
+        <!-- THUMBNAIL -->
+
+        <div id="thumbnailBox"
+             class="glass rounded-2xl p-5">
+
+          <label class="block text-sm font-bold mb-2">
+            Thumbnail URL
+          </label>
+
+          <input
+            id="thumbnailUrl"
+            type="url"
+            placeholder="https://..."
+            class="w-full px-4 py-3 rounded-xl">
+
+          <p class="text-xs text-gray-500 mt-2">
+            Optional video thumbnail.
+          </p>
+
+        </div>
+
+
+        <!-- PREVIEW -->
+
+        <div class="glass rounded-2xl p-5">
+
+          <h3 class="font-bold mb-4">
+            <i class="fa-solid fa-eye text-green-400 mr-2"></i>
+            Preview
+          </h3>
+
+          <div id="preview"
+               class="rounded-xl bg-black/40 p-5 text-gray-500 text-sm">
+            Your post preview will appear here.
+          </div>
+
+        </div>
+
+
+        <!-- PUBLISH -->
+
+        <button
+          id="publishBtn"
+          type="submit"
+          class="w-full py-4 rounded-xl bg-green-500 hover:bg-green-400 text-black font-black text-lg">
+
+          <i class="fa-solid fa-paper-plane mr-2"></i>
+          Publish Post
+
+        </button>
+
+        <div id="status"
+             class="hidden text-center text-sm rounded-xl p-4"></div>
+
+      </form>
+
+    </div>
+
+  </main>
+
+
+  <script type="module">
+
+    import { auth, db } from "../js/firebase.js";
+
+    import {
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+    import {
+      doc,
+      getDoc,
+      addDoc,
+      collection,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+    /*
+      IMPORTANT:
+
+      For now admin access is controlled by the Firestore users/{uid}
+      document.
+
+      The user's document must contain:
+
+      role: "admin"
+    */
+
+
+    const accessMessage = document.getElementById("accessMessage");
+    const adminPanel = document.getElementById("adminPanel");
+    const adminName = document.getElementById("adminName");
+
+    const postForm = document.getElementById("postForm");
+    const publishBtn = document.getElementById("publishBtn");
+    const statusBox = document.getElementById("status");
+
+    const postType = document.getElementById("postType");
+    const postTitle = document.getElementById("postTitle");
+    const postContent = document.getElementById("postContent");
+    const mediaUrl = document.getElementById("mediaUrl");
+    const thumbnailUrl = document.getElementById("thumbnailUrl");
+
+    const thumbnailBox = document.getElementById("thumbnailBox");
+    const mediaHelp = document.getElementById("mediaHelp");
+
+    const preview = document.getElementById("preview");
+
+    let currentUser = null;
+    let currentProfile = null;
+
+
+    // =========================
+    // AUTH + ADMIN CHECK
+    // =========================
+
+    onAuthStateChanged(auth, async (user) => {
+
+      if (!user) {
+        accessMessage.classList.remove("hidden");
+        adminPanel.classList.add("hidden");
+        return;
+      }
+
+      currentUser = user;
+
+      try {
+
+        const userSnap =
+          await getDoc(doc(db, "users", user.uid));
+
+        if (!userSnap.exists()) {
+          accessMessage.classList.remove("hidden");
+          return;
+        }
+
+        const profile = userSnap.data();
+
+        currentProfile = profile;
+
+        if (profile.role !== "admin") {
+
+          accessMessage.classList.remove("hidden");
+          adminPanel.classList.add("hidden");
+
+          return;
+        }
+
+        adminName.textContent =
+          profile.name || user.displayName || "Admin";
+
+        adminPanel.classList.remove("hidden");
+        accessMessage.classList.add("hidden");
+
+      } catch (error) {
+
+        console.error(error);
+
+        accessMessage.classList.remove("hidden");
+        adminPanel.classList.add("hidden");
+
+      }
+
+    });
+
+
+    // =========================
+    // POST TYPE
+    // =========================
+
+    document.querySelectorAll(".typeBtn").forEach(button => {
+
+      button.addEventListener("click", () => {
+
+        document.querySelectorAll(".typeBtn").forEach(btn => {
+
+          btn.classList.remove(
+            "active-type",
+            "border-green-500",
+            "bg-green-500/10"
+          );
+
+          btn.classList.add("border-white/10");
+
+        });
+
+        button.classList.add(
+          "active-type",
+          "border-green-500",
+          "bg-green-500/10"
+        );
+
+        button.classList.remove("border-white/10");
+
+        const type = button.dataset.type;
+
+        postType.value = type;
+
+        if (type === "video") {
+
+          thumbnailBox.classList.remove("hidden");
+
+          mediaHelp.textContent =
+            "Add the direct video URL. Example: MP4 video URL.";
+
+        } else {
+
+          thumbnailBox.classList.remove("hidden");
+
+          mediaHelp.textContent =
+            "Add an image URL for the news post.";
+
+        }
+
+        updatePreview();
+
+      });
+
+    });
+
+
+    // =========================
+    // PREVIEW
+    // =========================
+
+    [
+      postTitle,
+      postContent,
+      mediaUrl,
+      thumbnailUrl
+    ].forEach(input => {
+
+      input.addEventListener("input", updatePreview);
+
+    });
+
+
+    function escapeHTML(value = "") {
+
+      return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+    }
+
+
+    function updatePreview() {
+
+      const type = postType.value;
+
+      const title = escapeHTML(postTitle.value);
+      const content = escapeHTML(postContent.value);
+      const media = escapeHTML(mediaUrl.value);
+      const thumb = escapeHTML(thumbnailUrl.value);
+
+      let mediaHTML = "";
+
+      if (media) {
+
+        if (type === "video") {
+
+          mediaHTML = `
+            <div class="mt-4 rounded-xl overflow-hidden bg-black aspect-video relative">
+              ${
+                thumb
+                  ? `<img src="${thumb}" class="w-full h-full object-cover">`
+                  : ""
+              }
+
+              <div class="absolute inset-0 flex items-center justify-center">
+                <div class="w-14 h-14 rounded-full bg-green-500 text-black flex items-center justify-center">
+                  <i class="fa-solid fa-play"></i>
+                </div>
+              </div>
+            </div>
+          `;
+
+        } else {
+
+          mediaHTML = `
+            <img
+              src="${media}"
+              class="mt-4 w-full rounded-xl max-h-80 object-cover"
+              onerror="this.style.display='none'">
+          `;
+
+        }
+
+      }
+
+      preview.innerHTML = `
+
+        <div>
+
+          <div class="flex items-center gap-3">
+
+            <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+              <i class="fa-solid fa-user text-green-400"></i>
+            </div>
+
+            <div>
+              <div class="font-bold text-white">
+                ${escapeHTML(
+                  currentProfile?.name ||
+                  currentUser?.displayName ||
+                  "FootballXtra"
+                )}
+              </div>
+
+              <div class="text-xs text-gray-500">
+                @footballxtra
+              </div>
+            </div>
+
+          </div>
+
+          <h3 class="font-black text-lg text-white mt-4">
+            ${title || "Post title"}
+          </h3>
+
+          <p class="text-gray-400 mt-2 whitespace-pre-wrap">
+            ${content || "Post content..."}
+          </p>
+
+          ${mediaHTML}
+
+        </div>
+
+      `;
+
+    }
+
+
+    // =========================
+    // PUBLISH
+    // =========================
+
+    postForm.addEventListener("submit", async (event) => {
+
+      event.preventDefault();
+
+      if (!currentUser || !currentProfile) {
+
+        showStatus(
+          "You must be logged in as an admin.",
+          false
+        );
+
+        return;
+
+      }
+
+      if (currentProfile.role !== "admin") {
+
+        showStatus(
+          "Admin access required.",
+          false
+        );
+
+        return;
+
+      }
+
+      const type = postType.value;
+      const title = postTitle.value.trim();
+      const content = postContent.value.trim();
+      const media = mediaUrl.value.trim();
+      const thumbnail = thumbnailUrl.value.trim();
+
+      if (!title || !content) {
+
+        showStatus(
+          "Title and content are required.",
+          false
+        );
+
+        return;
+
+      }
+
+      publishBtn.disabled = true;
+
+      publishBtn.innerHTML = `
+        <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+        Publishing...
+      `;
+
+      try {
+
+        const postData = {
+
+          authorId: currentUser.uid,
+
+          authorName:
+            currentProfile.name ||
+            currentUser.displayName ||
+            "FootballXtra",
+
+          authorPhoto:
+            currentProfile.photoURL ||
+            currentUser.photoURL ||
+            "",
+
+          authorUsername:
+            currentProfile.username ||
+            "footballxtra",
+
+          authorVerified:
+            currentProfile.verified === true ||
+            currentProfile.role === "admin",
+
+          type,
+
+          title,
+
+          content,
+
+          image:
+            type === "news"
+              ? media
+              : "",
+
+          mediaUrl:
+            type === "video"
+              ? media
+              : "",
+
+          thumbnailUrl:
+            type === "video"
+              ? thumbnail
+              : "",
+
+          createdAt: serverTimestamp(),
+
+          likesCount: 0,
+          commentsCount: 0,
+          repostsCount: 0
+
+        };
+
+
+        const postRef =
+          await addDoc(
+            collection(db, "posts"),
+            postData
+          );
+
+
+        console.log(
+          "Post published:",
+          postRef.id
+        );
+
+
+        showStatus(
+          "Post published successfully! ⚽🔥",
+          true
+        );
+
+
+        postForm.reset();
+
+        postType.value = "news";
+
+        document.querySelectorAll(".typeBtn").forEach(btn => {
+
+          btn.classList.remove(
+            "active-type",
+            "border-green-500",
+            "bg-green-500/10"
+          );
+
+          btn.classList.add("border-white/10");
+
+        });
+
+        const newsBtn =
+          document.querySelector('[data-type="news"]');
+
+        newsBtn.classList.add(
+          "active-type",
+          "border-green-500",
+          "bg-green-500/10"
+        );
+
+        newsBtn.classList.remove("border-white/10");
+
+        updatePreview();
+
+
+      } catch (error) {
+
+        console.error(
+          "Publish error:",
+          error
+        );
+
+        showStatus(
+          "Failed to publish: " + error.message,
+          false
+        );
+
+      } finally {
+
+        publishBtn.disabled = false;
+
+        publishBtn.innerHTML = `
+          <i class="fa-solid fa-paper-plane mr-2"></i>
+          Publish Post
+        `;
+
+      }
+
+    });
+
+
+    function showStatus(message, success) {
+
+      statusBox.textContent = message;
+
+      statusBox.classList.remove(
+        "hidden",
+        "bg-green-500/10",
+        "text-green-400",
+        "bg-red-500/10",
+        "text-red-400"
+      );
+
+      if (success) {
+
+        statusBox.classList.add(
+          "bg-green-500/10",
+          "text-green-400"
+        );
+
+      } else {
+
+        statusBox.classList.add(
+          "bg-red-500/10",
+          "text-red-400"
+        );
+
+      }
+
+      setTimeout(() => {
+
+        statusBox.classList.add("hidden");
+
+      }, 5000);
+
+    }
+
+
+    updatePreview();
+
+  </script>
+
+
+<!-- ================= FULL ADMIN DASHBOARD ================= -->
+<section id="fullAdminDashboard" class="hidden fixed inset-0 z-[9999] bg-[#050807] text-white overflow-auto">
+
+  <div class="min-h-screen">
+
+    <!-- TOP BAR -->
+    <header class="sticky top-0 z-50 bg-[#07100c]/95 backdrop-blur-xl border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+            <i class="fa-solid fa-futbol text-green-400"></i>
+          </div>
+
+          <div>
+            <h1 class="font-black text-lg">FOOTBALLXTRA</h1>
+            <p class="text-[10px] text-green-400 font-bold tracking-widest">
+              ADMIN CONTROL CENTER
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div id="adminDashboardUser" class="hidden sm:block text-right">
+            <p class="text-sm font-bold">Admin</p>
+            <p class="text-xs text-gray-500">Administrator</p>
+          </div>
+
+          <button id="adminDashboardLogout"
+            class="w-10 h-10 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+
+      <!-- WELCOME -->
+      <div class="mb-8">
+        <p class="text-green-400 text-xs font-black tracking-widest mb-1">
+          CONTROL CENTER
+        </p>
+
+        <h2 class="text-3xl md:text-4xl font-black">
+          Admin Dashboard
+        </h2>
+
+        <p class="text-gray-500 mt-2">
+          Manage FootballXtra content, users, matches and monetization.
+        </p>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <i class="fa-solid fa-users text-blue-400 mb-3"></i>
+          <p class="text-2xl font-black" id="statUsers">0</p>
+          <p class="text-xs text-gray-500">Users</p>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <i class="fa-solid fa-layer-group text-purple-400 mb-3"></i>
+          <p class="text-2xl font-black" id="statPosts">0</p>
+          <p class="text-xs text-gray-500">Posts</p>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <i class="fa-solid fa-newspaper text-green-400 mb-3"></i>
+          <p class="text-2xl font-black" id="statNews">0</p>
+          <p class="text-xs text-gray-500">News</p>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <i class="fa-solid fa-video text-red-400 mb-3"></i>
+          <p class="text-2xl font-black" id="statVideos">0</p>
+          <p class="text-xs text-gray-500">Videos</p>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <i class="fa-solid fa-futbol text-yellow-400 mb-3"></i>
+          <p class="text-2xl font-black" id="statMatches">0</p>
+          <p class="text-xs text-gray-500">Matches</p>
+        </div>
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+          <i class="fa-solid fa-flag text-orange-400 mb-3"></i>
+          <p class="text-2xl font-black" id="statReports">0</p>
+          <p class="text-xs text-gray-500">Reports</p>
+        </div>
+
+      </div>
+
+      <!-- DASHBOARD GRID -->
+      <div class="grid lg:grid-cols-3 gap-6">
+
+        <!-- CONTENT MANAGEMENT -->
+        <div class="lg:col-span-2">
+
+          <div class="bg-white/5 border border-white/10 rounded-3xl p-5">
+
+            <div class="flex items-center justify-between mb-5">
+              <div>
+                <h3 class="text-xl font-black">Content Management</h3>
+                <p class="text-xs text-gray-500 mt-1">
+                  Manage FootballXtra content
+                </p>
+              </div>
+
+              <i class="fa-solid fa-pen-to-square text-green-400 text-xl"></i>
+            </div>
+
+            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+
+              <button data-admin-module="news"
+                class="admin-module bg-black/30 hover:bg-green-500/10 border border-white/10 rounded-2xl p-5 text-left">
+                <i class="fa-solid fa-newspaper text-green-400 text-xl"></i>
+                <p class="font-bold mt-3">News</p>
+                <p class="text-xs text-gray-500 mt-1">Create & manage news</p>
+              </button>
+
+              <button data-admin-module="transfers"
+                class="admin-module bg-black/30 hover:bg-green-500/10 border border-white/10 rounded-2xl p-5 text-left">
+                <i class="fa-solid fa-right-left text-blue-400 text-xl"></i>
+                <p class="font-bold mt-3">Transfers</p>
+                <p class="text-xs text-gray-500 mt-1">Transfer information</p>
+              </button>
+
+              <button data-admin-module="gallery"
+                class="admin-module bg-black/30 hover:bg-green-500/10 border border-white/10 rounded-2xl p-5 text-left">
+                <i class="fa-solid fa-images text-purple-400 text-xl"></i>
+                <p class="font-bold mt-3">Gallery</p>
+                <p class="text-xs text-gray-500 mt-1">Photo galleries</p>
+              </button>
+
+              <button data-admin-module="videos"
+                class="admin-module bg-black/30 hover:bg-green-500/10 border border-white/10 rounded-2xl p-5 text-left">
+                <i class="fa-solid fa-video text-red-400 text-xl"></i>
+                <p class="font-bold mt-3">Videos</p>
+                <p class="text-xs text-gray-500 mt-1">Football videos</p>
+              </button>
+
+              <button data-admin-module="highlights"
+                class="admin-module bg-black/30 hover:bg-green-500/10 border border-white/10 rounded-2xl p-5 text-left">
+                <i class="fa-solid fa-play text-yellow-400 text-xl"></i>
+                <p class="font-bold mt-3">Highlights</p>
+                <p class="text-xs text-gray-500 mt-1">Match highlights</p>
+              </button>
+
+              <button data-admin-module="youtube"
+                class="admin-module bg-black/30 hover:bg-green-500/10 border border-white/10 rounded-2xl p-5 text-left">
+                <i class="fa-brands fa-youtube text-red-500 text-xl"></i>
+                <p class="font-bold mt-3">YouTube</p>
+                <p class="text-xs text-gray-500 mt-1">YouTube content</p>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- MATCH CENTER -->
+          <div class="bg-white/5 border border-white/10 rounded-3xl p-5 mt-6">
+
+            <div class="flex items-center justify-between mb-5">
+              <div>
+                <h3 class="text-xl font-black">Match Center</h3>
+                <p class="text-xs text-gray-500 mt-1">
+                  Manage football data
+                </p>
+              </div>
+
+              <i class="fa-solid fa-futbol text-yellow-400 text-xl"></i>
+            </div>
+
+            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+
+              <button data-admin-module="matches"
+                class="admin-module bg-black/30 hover:bg-green-500/10 border border-white/10 rounded-2xl p-5 text-left">
+                <i class="fa-solid fa-calendar-days text-blue-400"></i>
+                <p class="font-bold mt-3">Matches</p>
+                <p class="text-xs text-gray-500">Fixtures & results</p>
+              </button>
+
+              <button data-admin-module="live_scores"
+                class="admin-module bg-black/30 hover:bg-green-500/10 border border-white/10 rounded-2xl p-5 text-left">
+                <i class="fa-solid fa-tower-broadcast text-red-400"></i>
+                <p class="font-bold mt-3">Live Scores</p>
+                <p class="text-xs text-gray-500">Live match updates</p>
+              </button>
+
+              <button data-admin-module="lineups"
+                class="admin-module bg-black/30 hover:bg-green-500/10 border border-white/10 rounded-2xl p-5 text-left">
+                <i class="fa-solid fa-users-line text-green-400"></i>
+                <p class="font-bold mt-3">Lineups</p>
+                <p class="text-xs text-gray-500">Team lineups</p>
+              </button>
+
+              <button data-admin-module="league_tables"
+                class="admin-module bg-black/30 hover:bg-green-500/10 border border-white/10 rounded-2xl p-5 text-left">
+                <i class="fa-solid fa-trophy text-yellow-400"></i>
+                <p class="font-bold mt-3">League Tables</p>
+                <p class="text-xs text-gray-500">Standings</p>
+              </button>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="space-y-6">
+
+          <!-- COMMUNITY -->
+          <div class="bg-white/5 border border-white/10 rounded-3xl p-5">
+
+            <h3 class="text-xl font-black mb-1">Community</h3>
+            <p class="text-xs text-gray-500 mb-5">
+              Protect and manage the community
+            </p>
+
+            <div class="space-y-3">
+
+              <button data-admin-module="community"
+                class="admin-module w-full flex items-center gap-3 bg-black/30 border border-white/10 rounded-2xl p-4 text-left">
+                <i class="fa-solid fa-people-group text-green-400"></i>
+                <span>
+                  <b class="block">Community</b>
+                  <small class="text-gray-500">Manage users</small>
+                </span>
+              </button>
+
+              <button data-admin-module="comments"
+                class="admin-module w-full flex items-center gap-3 bg-black/30 border border-white/10 rounded-2xl p-4 text-left">
+                <i class="fa-solid fa-comments text-blue-400"></i>
+                <span>
+                  <b class="block">Comments</b>
+                  <small class="text-gray-500">Moderate comments</small>
+                </span>
+              </button>
+
+              <button data-admin-module="reports"
+                class="admin-module w-full flex items-center gap-3 bg-black/30 border border-white/10 rounded-2xl p-4 text-left">
+                <i class="fa-solid fa-triangle-exclamation text-orange-400"></i>
+                <span>
+                  <b class="block">Reports</b>
+                  <small class="text-gray-500">Review reports</small>
+                </span>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- MONETIZATION -->
+          <div class="bg-white/5 border border-white/10 rounded-3xl p-5">
+
+            <h3 class="text-xl font-black mb-1">Monetization</h3>
+            <p class="text-xs text-gray-500 mb-5">
+              Manage FootballXtra revenue
+            </p>
+
+            <div class="space-y-3">
+
+              <button data-admin-module="advertisements"
+                class="admin-module w-full flex items-center gap-3 bg-black/30 border border-white/10 rounded-2xl p-4 text-left">
+                <i class="fa-solid fa-rectangle-ad text-green-400"></i>
+                <span>
+                  <b class="block">Advertisements</b>
+                  <small class="text-gray-500">AdSense / Ezoic</small>
+                </span>
+              </button>
+
+              <button data-admin-module="sponsors"
+                class="admin-module w-full flex items-center gap-3 bg-black/30 border border-white/10 rounded-2xl p-4 text-left">
+                <i class="fa-solid fa-handshake text-blue-400"></i>
+                <span>
+                  <b class="block">Sponsors</b>
+                  <small class="text-gray-500">Direct sponsors</small>
+                </span>
+              </button>
+
+              <button data-admin-module="premium"
+                class="admin-module w-full flex items-center gap-3 bg-black/30 border border-white/10 rounded-2xl p-4 text-left">
+                <i class="fa-solid fa-star text-yellow-400"></i>
+                <span>
+                  <b class="block">Premium</b>
+                  <small class="text-gray-500">VIP membership</small>
+                </span>
+              </button>
+
+              <button data-admin-module="affiliates"
+                class="admin-module w-full flex items-center gap-3 bg-black/30 border border-white/10 rounded-2xl p-4 text-left">
+                <i class="fa-solid fa-link text-purple-400"></i>
+                <span>
+                  <b class="block">Affiliates</b>
+                  <small class="text-gray-500">Affiliate links</small>
+                </span>
+              </button>
+
+              <button data-admin-module="revenue"
+                class="admin-module w-full flex items-center gap-3 bg-black/30 border border-white/10 rounded-2xl p-4 text-left">
+                <i class="fa-solid fa-chart-line text-green-400"></i>
+                <span>
+                  <b class="block">Revenue</b>
+                  <small class="text-gray-500">Revenue overview</small>
+                </span>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- ADMIN MANAGEMENT -->
+          <div class="bg-white/5 border border-white/10 rounded-3xl p-5">
+
+            <h3 class="text-xl font-black mb-1">Admin Management</h3>
+            <p class="text-xs text-gray-500 mb-5">
+              Manage administrators
+            </p>
+
+            <div class="space-y-3">
+
+              <button data-admin-module="add_admin"
+                class="admin-module w-full bg-green-500 hover:bg-green-400 text-black font-black rounded-2xl p-4">
+                <i class="fa-solid fa-user-plus mr-2"></i>
+                Add New Admin
+              </button>
+
+              <button data-admin-module="admin_users"
+                class="admin-module w-full bg-black/30 border border-white/10 rounded-2xl p-4 text-left">
+                <i class="fa-solid fa-user-shield text-blue-400 mr-2"></i>
+                Admin Users
+              </button>
+
+              <button data-admin-module="permissions"
+                class="admin-module w-full bg-black/30 border border-white/10 rounded-2xl p-4 text-left">
+                <i class="fa-solid fa-key text-yellow-400 mr-2"></i>
+                Roles & Permissions
+              </button>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="bg-white/5 border border-white/10 rounded-3xl p-5 mt-6">
+
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h3 class="text-xl font-black">System Settings</h3>
+            <p class="text-xs text-gray-500 mt-1">
+              Configure FootballXtra
+            </p>
+          </div>
+
+          <i class="fa-solid fa-gear text-gray-400 text-xl"></i>
+        </div>
+
+        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+
+          <button data-admin-module="settings"
+            class="admin-module bg-black/30 border border-white/10 rounded-2xl p-5 text-left">
+            <i class="fa-solid fa-globe text-green-400 text-xl"></i>
+            <p class="font-bold mt-3">Site Settings</p>
+            <p class="text-xs text-gray-500">Website configuration</p>
+          </button>
+
+          <button data-admin-module="notifications"
+            class="admin-module bg-black/30 border border-white/10 rounded-2xl p-5 text-left">
+            <i class="fa-solid fa-bell text-yellow-400 text-xl"></i>
+            <p class="font-bold mt-3">Notifications</p>
+            <p class="text-xs text-gray-500">Notification settings</p>
+          </button>
+
+          <button data-admin-module="security"
+            class="admin-module bg-black/30 border border-white/10 rounded-2xl p-5 text-left">
+            <i class="fa-solid fa-shield-halved text-red-400 text-xl"></i>
+            <p class="font-bold mt-3">Security</p>
+            <p class="text-xs text-gray-500">Security controls</p>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- MODULE MESSAGE -->
+      <div id="adminModuleMessage"
+        class="hidden mt-6 bg-green-500/10 border border-green-500/20 rounded-2xl p-5">
+        <div class="flex gap-3">
+          <i class="fa-solid fa-circle-info text-green-400 mt-1"></i>
+          <div>
+            <h3 class="font-black" id="adminModuleTitle">Module</h3>
+            <p class="text-sm text-gray-400 mt-1" id="adminModuleText">
+              Module selected.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <footer class="text-center text-xs text-gray-600 py-10">
+        FOOTBALLXTRA ADMIN • Control Center
+      </footer>
+
+    </div>
+  </div>
+</section>
+
+<script type="module">
+import { watchAuth, logout } from "../js/auth.js";
+import { db } from "../js/firebase.js";
+import {
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+import {
+  refreshDashboard
+} from "./js/dashboard.js";
+
+import {
+  requireAdmin,
+  applyRolePermissions,
+  getRoleName
+} from "./js/roles.js";
+
+const dashboard = document.getElementById("fullAdminDashboard");
+
+async function startDashboard(user) {
+
+  if (!user) {
+    dashboard.classList.add("hidden");
+    return;
+  }
+
+  const admin = await requireAdmin();
+
+  if (!admin.authorized) {
+    dashboard.classList.add("hidden");
+    console.warn("Admin access denied:", admin.reason);
+    return;
+  }
+
+  dashboard.classList.remove("hidden");
+
+  const userBox = document.getElementById("adminDashboardUser");
+
+  if (userBox) {
+    userBox.innerHTML = `
+      <p class="text-sm font-bold">${admin.name}</p>
+      <p class="text-xs text-green-400">${admin.roleName}</p>
+    `;
+  }
+
+  applyRolePermissions(admin);
+
+  await refreshDashboard();
+}
+
+watchAuth(startDashboard);
+
+document.getElementById("adminDashboardLogout")?.addEventListener("click", async () => {
+  await logout();
+  sessionStorage.removeItem("footballxtra_admin");
+  location.href = "../login.html";
+});
+
+document.querySelectorAll(".admin-module").forEach(button => {
+
+  button.addEventListener("click", () => {
+
+    const module = button.dataset.adminModule || "module";
+
+    const title = document.getElementById("adminModuleTitle");
+    const text = document.getElementById("adminModuleText");
+    const box = document.getElementById("adminModuleMessage");
+
+    if (title) {
+      title.textContent =
+        module.replaceAll("_", " ").replace(/\b\w/g, x => x.toUpperCase());
+    }
+
+    if (text) {
+      text.textContent =
+        "The " + module.replaceAll("_", " ") +
+        " management module is ready to connect to Firebase.";
+    }
+
+    box?.classList.remove("hidden");
+
+    box?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  });
+
+});
+</script>
+<!-- ================= END FULL ADMIN DASHBOARD ================= -->
+\n</body>
+</html>

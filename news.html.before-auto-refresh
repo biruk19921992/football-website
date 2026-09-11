@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Xtra | News</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: #07090d;
+      color: white;
+    }
+
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .news-card {
+      transition: 0.25s ease;
+    }
+
+    .news-card:hover {
+      transform: translateY(-4px);
+    }
+  </style>
+</head>
+
+<body class="pb-20">
+
+<header class="sticky top-0 z-50 border-b border-white/10 bg-[#07090d]/90 backdrop-blur-xl">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="h-16 flex items-center justify-between">
+
+      <a href="index.html" class="flex items-center gap-2">
+        <div class="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center">
+          <i class="fa-solid fa-futbol text-black text-xl"></i>
+        </div>
+
+        <div>
+          <h1 class="font-black text-xl tracking-tight">
+            FOOTBALL<span class="text-green-400">XTRA</span>
+          </h1>
+          <p class="text-[9px] text-gray-500 tracking-[3px]">
+            FOOTBALL MEDIA
+          </p>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-7 text-sm font-semibold">
+        <a href="index.html" class="text-gray-300 hover:text-green-400">Home</a>
+        <a href="news.html" class="text-green-400">News</a>
+        <a href="scores.html" class="text-gray-300 hover:text-green-400">Scores</a>
+        <a href="fixtures.html" class="text-gray-300 hover:text-green-400">Fixtures</a>
+        <a href="#" class="text-gray-300 hover:text-green-400">Transfers</a>
+        <a href="#" class="text-gray-300 hover:text-green-400">Videos</a>
+      </nav>
+
+      <a href="login.html"
+         class="bg-green-500 hover:bg-green-400 text-black px-4 py-2.5 rounded-xl font-bold text-sm">
+        Login
+      </a>
+
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-10">
+
+  <div class="mb-8">
+    <p class="text-green-400 text-xs font-black tracking-widest uppercase">
+      Stay updated
+    </p>
+
+    <h2 class="text-3xl md:text-4xl font-black mt-1">
+      Latest News
+    </h2>
+
+    <p class="text-gray-500 mt-2">
+      The latest football news, transfer updates and stories.
+    </p>
+  </div>
+
+  <div id="newsList"
+       class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+    <div class="col-span-full glass rounded-2xl p-10 text-center text-gray-500">
+      <i class="fa-solid fa-spinner fa-spin text-green-400 text-2xl mb-3"></i>
+      <p>Loading news...</p>
+    </div>
+
+  </div>
+
+</main>
+
+<script type="module">
+  import { db } from "./js/firebase.js";
+
+  import {
+    collection,
+    query,
+    orderBy,
+    getDocs
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+  const newsList = document.getElementById("newsList");
+
+  function escapeHTML(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function timeAgo(timestamp) {
+    if (!timestamp) return "Recently";
+
+    const date = timestamp.toDate
+      ? timestamp.toDate()
+      : new Date(timestamp);
+
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+
+    if (seconds < 60) return "Just now";
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} min ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hours ago`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} days ago`;
+
+    return date.toLocaleDateString();
+  }
+
+  async function loadNews() {
+    try {
+      const postsQuery = query(
+        collection(db, "news"),
+        orderBy("createdAt", "desc")
+      );
+
+      const snapshot = await getDocs(postsQuery);
+
+      const news = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(item => item.type === "news");
+
+      if (!news.length) {
+        newsList.innerHTML = `
+          <div class="col-span-full glass rounded-2xl p-10 text-center text-gray-500">
+            <i class="fa-regular fa-newspaper text-3xl mb-3"></i>
+            <p>No news published yet.</p>
+          </div>
+        `;
+        return;
+      }
+
+      newsList.innerHTML = news.map(item => `
+        <a
+          href="article.html?id=${encodeURIComponent(item.id)}"
+          class="news-card block group"
+          aria-label="Read ${escapeHTML(item.title || "football news")}"
+        >
+          <div class="relative overflow-hidden rounded-2xl bg-white/5">
+            ${
+              item.image
+                ? `
+                  <img
+                    src="${escapeHTML(item.image)}"
+                    alt="${escapeHTML(item.title)}"
+                    class="w-full h-52 object-cover transition duration-300 group-hover:scale-105">
+                `
+                : `
+                  <div class="w-full h-52 flex items-center justify-center text-green-400">
+                    <i class="fa-regular fa-newspaper text-4xl"></i>
+                  </div>
+                `
+            }
+
+            <span class="absolute top-3 left-3 bg-green-500 text-black text-[10px] font-black px-2.5 py-1 rounded-md uppercase">
+              ${escapeHTML(item.category || "Football")}
+            </span>
+
+            ${
+              String(item.source || "").toLowerCase() === "espn"
+                ? `
+                  <span class="absolute top-3 right-3 bg-white text-black text-[10px] font-black px-2.5 py-1 rounded-md uppercase shadow-lg">
+                    ESPN
+                  </span>
+                `
+                : ""
+            }
+          </div>
+
+          <div class="pt-4">
+            <h3 class="font-bold text-base leading-6 group-hover:text-green-400 transition">
+              ${escapeHTML(item.title || "Untitled news")}
+            </h3>
+
+            <p class="text-xs text-gray-500 mt-2">
+              ${timeAgo(item.createdAt)}
+              · ${Number(item.commentsCount || 0)} comments
+            </p>
+
+            <div class="flex items-center justify-between gap-3 mt-4">
+              <span class="inline-flex items-center gap-2 text-sm font-bold text-green-400">
+                Read full story
+                <span class="transition-transform duration-200 group-hover:translate-x-1">→</span>
+              </span>
+
+              ${
+                String(item.source || "").toLowerCase() === "espn" && item.sourceUrl
+                  ? `
+                    <span class="text-[10px] font-bold text-gray-500 uppercase">
+                      Source: ESPN
+                    </span>
+                  `
+                  : ""
+              }
+            </div>
+          </div>
+      `).join("");
+
+
+
+    } catch (error) {
+      console.error("News loading error:", error);
+
+      newsList.innerHTML = `
+        <div class="col-span-full glass rounded-2xl p-10 text-center text-red-400">
+          <i class="fa-solid fa-triangle-exclamation text-2xl mb-3"></i>
+          <p>Failed to load news.</p>
+          <p class="text-xs text-gray-500 mt-2">
+            Check the browser console for details.
+          </p>
+        </div>
+      `;
+    }
+  }
+
+  loadNews();
+</script>
+
+<nav class="bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0b0f15]/95 backdrop-blur-xl border-t border-white/10">
+  <div class="grid grid-cols-5 h-16">
+    <a href="index.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-solid fa-house"></i><span class="text-[9px] mt-1">Home</span></a>
+    <a href="news.html" class="flex flex-col items-center justify-center text-green-400"><i class="fa-regular fa-newspaper"></i><span class="text-[9px] mt-1">News</span></a>
+    <a href="scores.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-solid fa-futbol"></i><span class="text-[9px] mt-1">Scores</span></a>
+    <a href="videos.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-brands fa-youtube"></i><span class="text-[9px] mt-1">Videos</span></a><a href="profile.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-regular fa-user"></i><span class="text-[9px] mt-1">Profile</span></a>
+  </div>
+</nav>
+</body>
+</html>

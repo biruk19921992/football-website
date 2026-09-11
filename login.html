@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Login - FOOTBALLXTRA</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(circle at top, #182033 0%, #080b12 45%, #05070b 100%);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen text-white">
+
+  <!-- Header -->
+  <header class="border-b border-white/10 bg-black/30 backdrop-blur-xl">
+    <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
+
+      <a href="index.html"
+         class="text-2xl font-black tracking-tight">
+        FOOTBALL<span class="text-green-400">XTRA</span>
+      </a>
+
+      <a href="signup.html"
+         class="text-sm text-gray-300 hover:text-white">
+        Create Account
+      </a>
+
+    </div>
+  </header>
+
+
+  <!-- Login -->
+  <main class="min-h-[calc(100vh-73px)] flex items-center justify-center px-5 py-10">
+
+    <div class="w-full max-w-md">
+
+      <!-- Icon -->
+      <div class="text-center mb-8">
+
+        <div class="mx-auto mb-5 w-16 h-16 rounded-2xl
+                    bg-green-400/10 border border-green-400/20
+                    flex items-center justify-center">
+
+          <i class="fa-solid fa-futbol text-3xl text-green-400"></i>
+
+        </div>
+
+        <h1 class="text-3xl font-black">
+          Welcome Back
+        </h1>
+
+        <p class="text-gray-400 mt-2">
+          Login to your FOOTBALLXTRA account
+        </p>
+
+      </div>
+
+
+      <!-- Card -->
+      <div class="bg-white/[0.06] border border-white/10
+                  rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+
+        <form id="loginForm" class="space-y-5">
+
+          <!-- Email -->
+          <div>
+
+            <label class="block text-sm font-semibold mb-2">
+              Email
+            </label>
+
+            <div class="relative">
+
+              <i class="fa-solid fa-envelope
+                        absolute left-4 top-1/2
+                        -translate-y-1/2 text-gray-500"></i>
+
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+                class="w-full bg-black/30 border border-white/10
+                       rounded-xl py-3.5 pl-11 pr-4
+                       outline-none focus:border-green-400
+                       transition">
+
+            </div>
+
+          </div>
+
+
+          <!-- Password -->
+          <div>
+
+            <div class="flex items-center justify-between mb-2">
+
+              <label class="text-sm font-semibold">
+                Password
+              </label>
+
+              <button
+                type="button"
+                id="forgotPassword"
+                class="text-xs text-green-400 hover:text-green-300">
+
+                Forgot password?
+
+              </button>
+
+            </div>
+
+            <div class="relative">
+
+              <i class="fa-solid fa-lock
+                        absolute left-4 top-1/2
+                        -translate-y-1/2 text-gray-500"></i>
+
+              <input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                required
+                class="w-full bg-black/30 border border-white/10
+                       rounded-xl py-3.5 pl-11 pr-12
+                       outline-none focus:border-green-400
+                       transition">
+
+              <button
+                type="button"
+                id="togglePassword"
+                class="absolute right-4 top-1/2
+                       -translate-y-1/2 text-gray-500">
+
+                <i class="fa-solid fa-eye"></i>
+
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- Error -->
+          <div id="errorBox"
+               class="hidden rounded-xl
+                      bg-red-500/10 border border-red-500/20
+                      text-red-300 text-sm p-3">
+          </div>
+
+
+          <!-- Success -->
+          <div id="successBox"
+               class="hidden rounded-xl
+                      bg-green-500/10 border border-green-500/20
+                      text-green-300 text-sm p-3">
+          </div>
+
+
+          <!-- Login Button -->
+          <button
+            id="loginButton"
+            type="submit"
+            class="w-full bg-green-400 hover:bg-green-300
+                   text-black font-black py-3.5 rounded-xl
+                   transition active:scale-[0.98]">
+
+            <span id="buttonText">
+              Login
+            </span>
+
+          </button>
+
+        </form>
+
+
+        <div class="flex items-center gap-3 my-6">
+
+          <div class="h-px bg-white/10 flex-1"></div>
+
+          <span class="text-xs text-gray-500">
+            OR
+          </span>
+
+          <div class="h-px bg-white/10 flex-1"></div>
+
+        </div>
+
+
+        <p class="text-center text-sm text-gray-400">
+
+          Don't have an account?
+
+          <a href="signup.html"
+             class="text-green-400 font-bold hover:text-green-300">
+
+            Create Account
+
+          </a>
+
+        </p>
+
+      </div>
+
+
+      <p class="text-center text-xs text-gray-600 mt-6">
+        © 2026 FOOTBALLXTRA. All rights reserved.
+      </p>
+
+    </div>
+
+  </main>
+
+
+  <!-- Firebase Login -->
+  <script type="module">
+
+    import {
+      login
+    } from "./js/auth.js";
+
+    import {
+      sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+    import {
+      auth
+    } from "./js/firebase.js";
+
+
+    const form =
+      document.getElementById("loginForm");
+
+    const emailInput =
+      document.getElementById("email");
+
+    const passwordInput =
+      document.getElementById("password");
+
+    const errorBox =
+      document.getElementById("errorBox");
+
+    const successBox =
+      document.getElementById("successBox");
+
+    const loginButton =
+      document.getElementById("loginButton");
+
+    const buttonText =
+      document.getElementById("buttonText");
+
+    const togglePassword =
+      document.getElementById("togglePassword");
+
+    const forgotPassword =
+      document.getElementById("forgotPassword");
+
+
+    // Show / hide password
+    togglePassword.addEventListener("click", () => {
+
+      if (passwordInput.type === "password") {
+
+        passwordInput.type = "text";
+
+        togglePassword.innerHTML =
+          '<i class="fa-solid fa-eye-slash"></i>';
+
+      } else {
+
+        passwordInput.type = "password";
+
+        togglePassword.innerHTML =
+          '<i class="fa-solid fa-eye"></i>';
+
+      }
+
+    });
+
+
+    // Login
+    form.addEventListener("submit", async (e) => {
+
+      e.preventDefault();
+
+      errorBox.classList.add("hidden");
+      successBox.classList.add("hidden");
+
+      const email =
+        emailInput.value.trim();
+
+      const password =
+        passwordInput.value;
+
+
+      loginButton.disabled = true;
+
+      buttonText.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Logging in...';
+
+
+      const result =
+        await login(email, password);
+
+
+      // ==============================
+      // LOGIN SUCCESS
+      // ==============================
+      if (result.success) {
+
+        successBox.textContent =
+          "Login successful! Opening FOOTBALLXTRA...";
+
+        successBox.classList.remove("hidden");
+
+        setTimeout(() => {
+          window.location.replace("./index.html");
+        }, 500);
+
+      } else {
+
+        let message =
+          "Login failed. Please try again.";
+
+        if (
+          result.error?.code ===
+          "auth/invalid-credential"
+        ) {
+
+          message =
+            "Incorrect email or password.";
+
+        } else if (
+          result.error?.code ===
+          "auth/user-not-found"
+        ) {
+
+          message =
+            "No account found with this email.";
+
+        } else if (
+          result.error?.code ===
+          "auth/wrong-password"
+        ) {
+
+          message =
+            "Incorrect password.";
+
+        } else if (
+          result.error?.code ===
+          "auth/invalid-email"
+        ) {
+
+          message =
+            "Please enter a valid email.";
+
+        }
+
+        errorBox.textContent =
+          message;
+
+        errorBox.classList.remove("hidden");
+
+        loginButton.disabled = false;
+
+        buttonText.textContent =
+          "Login";
+      }
+
+    });
+
+
+    // Forgot password
+    forgotPassword.addEventListener("click", async () => {
+
+      const email =
+        emailInput.value.trim();
+
+      if (!email) {
+
+        errorBox.textContent =
+          "Enter your email first.";
+
+        errorBox.classList.remove("hidden");
+
+        return;
+      }
+
+
+      try {
+
+        await sendPasswordResetEmail(
+          auth,
+          email
+        );
+
+        successBox.textContent =
+          "Password reset email sent. Check your inbox.";
+
+        successBox.classList.remove("hidden");
+
+      } catch (error) {
+
+        errorBox.textContent =
+          "Could not send reset email.";
+
+        errorBox.classList.remove("hidden");
+
+      }
+
+    });
+
+  </script>
+
+</body>
+</html>

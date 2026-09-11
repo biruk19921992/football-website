@@ -1,0 +1,582 @@
+console.log("🔥 HOME-SECTIONS FILE STARTED");
+console.log("🔥 HOME-SECTIONS AFTER IMPORT");
+import { db, auth } from "./firebase.js";
+import {
+  collection,
+  query,
+  orderBy,
+  getDocs,
+  addDoc,
+  limit,
+  doc,
+  updateDoc,
+  increment,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const postsRef = collection(db, "posts");
+
+function escapeHTML(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function renderNews(item) {
+  const data = item.data;
+  return `
+    <article class="glass rounded-2xl overflow-hidden hover:border-green-400/30 transition">
+<a href="article.html?id=${encodeURIComponent(item.id)}" class="block group">
+      <div class="relative overflow-hidden bg-black/20">
+        <div class="news-image-loading absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
+          <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading photo...
+        </div>
+        <img src="${escapeHTML(data.image || "")}"
+             alt="${escapeHTML(data.title || "News")}"
+             class="w-full h-48 object-cover relative z-10"
+             loading="lazy"
+             onload="this.previousElementSibling.style.display='none'"
+             onerror="this.previousElementSibling.innerHTML='<span>Photo unavailable</span>'">
+        <span class="absolute top-3 left-3 bg-green-500 text-black text-[10px] font-black px-2.5 py-1 rounded-md">
+          ${escapeHTML(data.category || "NEWS")}
+        </span>
+
+                      ${
+                        String(data.source || "").toLowerCase() === "espn"
+                          ? `<span class="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md shadow-lg">ESPN</span>`
+                          : ""
+                      }
+      </div>
+      <div class="p-4">
+        <h3 class="font-bold leading-6">${escapeHTML(data.title || "Football News")}</h3>
+        <p class="text-xs text-gray-500 mt-2 line-clamp-2">${escapeHTML(data.content || "")}</p>
+                                           <div class="mt-3 flex items-center justify-between gap-2">
+                                             <span class="text-xs font-bold text-green-400">Read full story →</span>
+                                             ${
+                                               String(data.source || "").toLowerCase() === "espn"
+                                                 ? `<span class="text-[10px] font-bold text-gray-500">Source: ESPN</span>`
+                                                 : ""
+                                             }
+                                           </div>
+      </div>
+</a>
+
+      <div style="display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));position:relative;z-index:50;min-height:52px" class="grid grid-cols-4 border-t border-white/10 mt-4">
+        <button type="button" class="home-action py-3 text-gray-400 hover:text-red-400 transition" data-action="like" data-id="${escapeHTML(item.id)}">
+          <i class="fa-regular fa-heart"></i>
+          <span class="ml-1 text-xs">Like</span>
+          <span class="like-count ml-1 text-xs">${Number(data.likesCount || 0)}</span>
+        </button>
+        <button type="button" class="home-action py-3 text-gray-400 hover:text-blue-400 transition" data-action="comment" data-id="${escapeHTML(item.id)}">
+          <i class="fa-regular fa-comment"></i>
+          <span class="ml-1 text-xs">Comment</span>
+          <span class="comment-count ml-1 text-xs">${Number(data.commentsCount || 0)}</span>
+        </button>
+        <button type="button" class="home-action py-3 text-gray-400 hover:text-green-400 transition" data-action="repost" data-id="${escapeHTML(item.id)}">
+          <i class="fa-solid fa-retweet"></i>
+          <span class="ml-1 text-xs">Repost</span>
+          <span class="repost-count ml-1 text-xs">${Number(data.repostsCount || 0)}</span>
+        </button>
+        <button type="button" class="home-action py-3 text-gray-400 hover:text-purple-400 transition" data-action="share" data-id="${escapeHTML(item.id)}">
+          <i class="fa-solid fa-share"></i>
+          <span class="ml-1 text-xs">Share</span>
+          <span class="share-count ml-1 text-xs">${Number(data.sharesCount || 0)}</span>
+        </button>
+      </div>
+
+      <div class="comments-area hidden px-4 pb-4">
+        <div class="comments-list space-y-2 mb-3"></div>
+
+        <div class="flex gap-2">
+          <input
+            type="text"
+            class="comment-input flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none"
+            placeholder="Write a comment..."
+            maxlength="500"
+          >
+          <button
+            type="button"
+            class="submit-comment px-4 py-2 rounded-xl bg-green-500 text-black font-bold text-sm"
+            data-id="${escapeHTML(item.id)}"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderVideo(item) {
+  const data = item.data;
+  const youtubeId = data.youtubeId || "";
+  const thumbnail = data.thumbnailUrl || data.image ||
+    (youtubeId ? `https://img.youtube.com/vi/${encodeURIComponent(youtubeId)}/hqdefault.jpg` : "");
+
+  return `
+    <article class="glass rounded-2xl overflow-hidden hover:border-red-400/30 transition">
+      <button type="button"
+        class="home-video-trigger w-full text-left"
+        data-youtube-id="${escapeHTML(youtubeId)}"
+        data-title="${escapeHTML(data.title || "Football Video")}">
+        <div class="relative">
+          <img src="${escapeHTML(thumbnail)}"
+               alt="${escapeHTML(data.title || "Football Video")}"
+               class="w-full h-52 object-cover"
+               loading="lazy">
+          <div class="absolute inset-0 flex items-center justify-center bg-black/10">
+            <div class="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center text-white">
+              <i class="fa-solid fa-play"></i>
+            </div>
+          </div>
+        </div>
+      </button>
+      <div class="p-4">
+        <h3 class="font-bold line-clamp-2">${escapeHTML(data.title || "Football Video")}</h3>
+        <p class="text-xs text-gray-500 mt-2">${escapeHTML(data.category || "VIDEO")}</p>
+      </div>
+
+      <div style="display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));position:relative;z-index:50;min-height:52px" class="grid grid-cols-4 border-t border-white/10 mt-4">
+        <button type="button" class="home-action py-3 text-gray-400 hover:text-red-400 transition" data-action="like" data-id="${escapeHTML(item.id)}">
+          <i class="fa-regular fa-heart"></i>
+          <span class="ml-1 text-xs">Like</span>
+          <span class="like-count ml-1 text-xs">${Number(data.likesCount || 0)}</span>
+        </button>
+        <button type="button" class="home-action py-3 text-gray-400 hover:text-blue-400 transition" data-action="comment" data-id="${escapeHTML(item.id)}">
+          <i class="fa-regular fa-comment"></i>
+          <span class="ml-1 text-xs">Comment</span>
+          <span class="comment-count ml-1 text-xs">${Number(data.commentsCount || 0)}</span>
+        </button>
+        <button type="button" class="home-action py-3 text-gray-400 hover:text-green-400 transition" data-action="repost" data-id="${escapeHTML(item.id)}">
+          <i class="fa-solid fa-retweet"></i>
+          <span class="ml-1 text-xs">Repost</span>
+          <span class="repost-count ml-1 text-xs">${Number(data.repostsCount || 0)}</span>
+        </button>
+        <button type="button" class="home-action py-3 text-gray-400 hover:text-purple-400 transition" data-action="share" data-id="${escapeHTML(item.id)}">
+          <i class="fa-solid fa-share"></i>
+          <span class="ml-1 text-xs">Share</span>
+          <span class="share-count ml-1 text-xs">${Number(data.sharesCount || 0)}</span>
+        </button>
+      </div>
+
+      <div class="comments-area hidden px-4 pb-4">
+        <div class="comments-list space-y-2 mb-3"></div>
+
+        <div class="flex gap-2">
+          <input
+            type="text"
+            class="comment-input flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none"
+            placeholder="Write a comment..."
+            maxlength="500"
+          >
+          <button
+            type="button"
+            class="submit-comment px-4 py-2 rounded-xl bg-green-500 text-black font-bold text-sm"
+            data-id="${escapeHTML(item.id)}"
+          >
+            Send
+          </button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+async function loadHomeSections() {
+  try {
+    const snapshot = await getDocs(
+      query(postsRef)
+    );
+
+    const posts = snapshot.docs.map(doc => ({
+      id: doc.id,
+      data: doc.data()
+    }));
+
+    const newsSnapshot = await getDocs(
+      query(collection(db, "news"), orderBy("createdAt", "desc"), limit(6))
+    );
+
+    const news = newsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      data: doc.data()
+    }));
+
+    const videos = posts
+      .filter(item => item.data.type === "video")
+      .slice(0, 4);
+
+    const highlights = posts
+      .filter(item =>
+        item.data.type === "video" &&
+        item.data.category === "highlights"
+      )
+      .slice(0, 5);
+
+    const newsContainer = document.getElementById("homeLatestNews");
+    const videosContainer = document.getElementById("homeLatestVideos");
+    const highlightsContainer = document.getElementById("homeHighlights");
+
+    if (newsContainer) {
+      newsContainer.innerHTML = news.length
+        ? news.map(renderNews).join("")
+        : `<div class="glass rounded-2xl p-8 text-center text-gray-500 md:col-span-4">No news yet.</div>`;
+    }
+
+    if (videosContainer) {
+      videosContainer.innerHTML = videos.length
+        ? videos.map(renderVideo).join("")
+        : `<div class="glass rounded-2xl p-8 text-center text-gray-500 md:col-span-3">No videos yet.</div>`;
+    }
+
+    if (highlightsContainer) {
+      highlightsContainer.innerHTML = highlights.length
+        ? highlights.map(renderVideo).join("")
+        : `<div class="glass rounded-2xl p-8 text-center text-gray-500 md:col-span-3">No highlights yet.</div>`;
+    }
+
+    document.querySelectorAll(".home-video-trigger").forEach(button => {
+      button.addEventListener("click", () => {
+        const youtubeId = button.dataset.youtubeId;
+        const title = button.dataset.title || "Football Video";
+        if (youtubeId && window.FootballXtraMiniPlayer) {
+          window.FootballXtraMiniPlayer.play(youtubeId, title);
+        }
+      });
+    });
+
+    console.log("🔥 HOME SECTIONS REACHED"); console.log(
+      `Homepage sections loaded: news=${news.length}, videos=${videos.length}, highlights=${highlights.length}`
+    );
+  } catch (error) {
+    console.error("Homepage sections error:", error); alert("HOME ERROR: " + error.message);
+  }
+}
+
+
+document.addEventListener("click", async (event) => {
+  const button = event.target.closest(".home-action");
+  if (!button) return;
+
+  const action = button.dataset.action;
+  const id = button.dataset.id;
+
+  if (action === "like") {
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("Like ለማድረግ Login ያድርጉ።");
+      return;
+    }
+
+    const icon = button.querySelector("i");
+    const countEl = button.querySelector(".like-count");
+    const currentCount = Number(countEl?.textContent || 0);
+    const collectionName = id.startsWith("espn_") ? "news" : "posts";
+    const likeRef = doc(db, collectionName, id, "likes", user.uid);
+    const postRef = doc(db, collectionName, id);
+
+    try {
+      const existing = await getDoc(likeRef);
+
+      if (existing.exists()) {
+        await deleteDoc(likeRef);
+        await updateDoc(postRef, {
+          likesCount: increment(-1)
+        });
+
+        if (countEl) {
+          countEl.textContent = String(Math.max(0, currentCount - 1));
+        }
+
+        button.classList.remove("text-red-400");
+        icon.classList.remove("fa-solid");
+        icon.classList.add("fa-regular");
+      } else {
+        await setDoc(likeRef, {
+          uid: user.uid,
+          createdAt: serverTimestamp()
+        });
+
+        await updateDoc(postRef, {
+          likesCount: increment(1)
+        });
+
+        if (countEl) {
+          countEl.textContent = String(currentCount + 1);
+        }
+
+        button.classList.add("text-red-400");
+        icon.classList.remove("fa-regular");
+        icon.classList.add("fa-solid");
+      }
+
+      console.log("❤️ Like updated:", id);
+    } catch (error) {
+      console.error("❌ Like update failed:", error);
+      alert("Like ማስቀመጥ አልተቻለም።");
+    }
+
+    return;
+  }
+
+  if (action === "comment") {
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("Comment ለማድረግ Login ያድርጉ።");
+      return;
+    }
+
+    const card = button.closest("article");
+    const area = card?.querySelector(".comments-area");
+
+    if (!area) return;
+
+    area.classList.toggle("hidden");
+
+    if (!area.classList.contains("hidden")) {
+      const list = area.querySelector(".comments-list");
+
+      if (list && id && !id.startsWith("demo-")) {
+        try {
+          const commentsCollection = id.startsWith("espn_") ? "news" : "posts";
+          const commentsQuery = query(
+            collection(db, commentsCollection, id, "comments"),
+            orderBy("createdAt", "asc"),
+            limit(50)
+          );
+
+          const snapshot = await getDocs(commentsQuery);
+
+          if (snapshot.empty) {
+            list.innerHTML =
+              '<div class="text-xs text-gray-500 text-center py-2">No comments yet.</div>';
+          } else {
+            list.innerHTML = snapshot.docs.map(item => {
+              const comment = item.data();
+
+              return `
+                <div class="flex gap-2 items-start">
+                  <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-xs font-bold text-green-400">
+                    ${escapeHTML((comment.userName || "U").charAt(0).toUpperCase())}
+                  </div>
+
+                  <div class="flex-1 min-w-0 bg-white/5 rounded-xl px-3 py-2">
+                    <span class="text-xs font-bold text-white">
+                      ${escapeHTML(comment.userName || "User")}
+                    </span>
+                    <p class="text-sm text-gray-300 mt-1 break-words">
+                      ${escapeHTML(comment.text || "")}
+                    </p>
+                  </div>
+                </div>
+              `;
+            }).join("");
+          }
+        } catch (error) {
+          console.error("❌ Comments loading failed:", error);
+          list.innerHTML =
+            '<div class="text-xs text-red-400 text-center py-2">Could not load comments.</div>';
+        }
+      }
+    }
+
+    return;
+  }
+
+  if (action === "repost") {
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("Repost ለማድረግ Login ያድርጉ።");
+      return;
+    }
+
+    if (id.startsWith("demo-")) {
+      alert("Demo post ላይ Repost መቀመጥ አይችልም።");
+      return;
+    }
+
+    const collectionName = id.startsWith("espn_") ? "news" : "posts";
+    const repostRef = doc(db, collectionName, id, "reposts", user.uid);
+    const postRef = doc(db, collectionName, id);
+
+    try {
+      const existing = await getDoc(repostRef);
+
+      if (existing.exists()) {
+        alert("ይህን post አስቀድመው Repost አድርገዋል 🔁");
+        return;
+      }
+
+      await setDoc(repostRef, {
+        uid: user.uid,
+        createdAt: serverTimestamp()
+      });
+
+      await updateDoc(postRef, {
+        repostsCount: increment(1)
+      });
+
+      button.classList.add("text-green-400");
+
+      const repostCountEl = button.querySelector(".repost-count");
+      if (repostCountEl) {
+        repostCountEl.textContent =
+          String(Number(repostCountEl.textContent || 0) + 1);
+      }
+
+      alert("Reposted 🔁");
+      console.log("🔁 Repost saved:", id);
+    } catch (error) {
+      console.error("❌ Repost failed:", error);
+      alert("Repost ማድረግ አልተቻለም።");
+    }
+
+    return;
+  }
+
+  if (action === "share") {
+    const url = `${window.location.origin}/index.html#post-${id}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "FootballXtra",
+          text: "Check this football post ⚽",
+          url: url
+        });
+
+        if (!id.startsWith("demo-")) {
+          const collectionName = id.startsWith("espn_") ? "news" : "posts";
+          await updateDoc(doc(db, collectionName, id), {
+            sharesCount: increment(1)
+          });
+
+          const countEl = button.querySelector(".share-count");
+          if (countEl) {
+            countEl.textContent =
+              String(Number(countEl.textContent || 0) + 1);
+          }
+        }
+
+        console.log("📤 Share successful:", id);
+      } else if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url);
+
+        if (!id.startsWith("demo-")) {
+          const collectionName = id.startsWith("espn_") ? "news" : "posts";
+          await updateDoc(doc(db, collectionName, id), {
+            sharesCount: increment(1)
+          });
+
+          const countEl = button.querySelector(".share-count");
+          if (countEl) {
+            countEl.textContent =
+              String(Number(countEl.textContent || 0) + 1);
+          }
+        }
+
+        alert("Post link copied! 🔗");
+      } else {
+        const input = document.createElement("input");
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        input.remove();
+        alert("Post link copied! 🔗");
+      }
+    } catch (error) {
+      console.error("❌ Share failed:", error);
+
+      try {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(url);
+          alert("Share unavailable. Link copied! 🔗");
+        } else {
+          alert("Share unavailable. Link: " + url);
+        }
+      } catch (fallbackError) {
+        alert("Share unavailable. Link: " + url);
+      }
+    }
+
+    return;
+  }
+});
+
+
+document.addEventListener("click", async (event) => {
+  const button = event.target.closest(".submit-comment");
+  if (!button) return;
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Comment ለመላክ Login ያድርጉ።");
+    return;
+  }
+
+  const id = button.dataset.id;
+  const card = button.closest("article");
+  const input = card?.querySelector(".comment-input");
+  const text = input?.value.trim();
+
+  if (!id || !text) return;
+
+  if (id.startsWith("demo-")) {
+    alert("Demo post ላይ comment መቀመጥ አይችልም።");
+    return;
+  }
+
+  button.disabled = true;
+
+    const commentsCollection = id.startsWith("espn_") ? "news" : "posts";
+  try {
+    await addDoc(
+      collection(db, commentsCollection, id, "comments"),
+      {
+        uid: user.uid,
+        userName: user.displayName || "User",
+        userPhoto: user.photoURL || "",
+        text,
+        createdAt: serverTimestamp()
+      }
+    );
+
+    await updateDoc(doc(db, commentsCollection, id), {
+      commentsCount: increment(1)
+    });
+
+    input.value = "";
+
+    console.log("💬 Comment saved:", id);
+
+    const commentButton = card.querySelector('[data-action="comment"]');
+    if (commentButton) {
+      const oldCount = commentButton.querySelector(".comment-count");
+
+      if (oldCount) {
+        oldCount.textContent =
+          String(Number(oldCount.textContent || 0) + 1);
+      }
+    }
+
+    alert("Comment ተልኳል 💬");
+  } catch (error) {
+    console.error("❌ Comment save failed:", error);
+    alert("Comment መላክ አልተቻለም።");
+  } finally {
+    button.disabled = false;
+  }
+});
+
+loadHomeSections();

@@ -1,0 +1,214 @@
+import { getCurrentAdmin, isSuperAdmin } from "../roles.js";
+import { auth, db } from "../../../js/firebase.js";
+import {
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const ADMIN_ROLES = {
+  super_admin: "Super Admin",
+  content_admin: "Content / News Admin",
+  video_admin: "Video / Highlight Admin",
+  match_admin: "Match Data Admin",
+  moderator_admin: "Community Moderator"
+};
+
+export async function renderAdminsModule(container) {
+  const currentAdmin = await getCurrentAdmin();
+
+  container.innerHTML = `
+    <div class="grid lg:grid-cols-2 gap-5">
+      <div class="glass rounded-2xl p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+            <i class="fa-solid fa-user-plus text-blue-400"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-lg">Add Admin</h3>
+            <p class="text-xs text-gray-500">Create a new FootballXtra administrator</p>
+          </div>
+        </div>
+
+        <form id="addAdminForm" class="space-y-4">
+          <input id="adminNameInput" required
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none"
+            placeholder="Full name">
+
+          <input id="adminEmailInput" type="email" required
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none"
+            placeholder="Email address">
+
+          <input id="adminPasswordInput" type="password" minlength="6" required
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none"
+            placeholder="Temporary password">
+
+          <select id="adminRoleInput" required
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none">
+            ${Object.entries(ADMIN_ROLES).map(([id, label]) =>
+              `<option value="${id}">${label}</option>`
+            ).join("")}
+          </select>
+
+          <div class="text-xs text-yellow-400/80 bg-yellow-400/5 rounded-xl p-3">
+            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+            Give the new admin a temporary password and ask them to change it after login.
+          </div>
+
+          <button type="submit"
+            class="w-full bg-blue-500 hover:bg-blue-400 text-white font-black rounded-xl px-4 py-3">
+            <i class="fa-solid fa-user-plus mr-2"></i>
+            Create Admin
+          </button>
+
+          <div id="addAdminMessage" class="text-sm"></div>
+        </form>
+      </div>
+
+      <div class="glass rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h3 class="font-black text-lg">Admin Users</h3>
+            <p class="text-xs text-gray-500">Current administrators</p>
+          </div>
+          <button id="refreshAdmins"
+            class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+        </div>
+        <div id="adminsList" class="space-y-3">
+          <div class="text-center text-gray-500 py-8">Loading admins...</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const form = document.getElementById("addAdminForm");
+  const refresh = document.getElementById("refreshAdmins");
+
+  if (!isSuperAdmin(currentAdmin)) {
+    const addAdminCard = form.closest(".glass");
+    if (addAdminCard) {
+      addAdminCard.style.display = "none";
+    }
+  } else {
+    form.addEventListener("submit", handleAddAdmin);
+  }
+
+  refresh.addEventListener("click", loadAdmins);
+
+  await loadAdmins();
+}
+
+async function handleAddAdmin(event) {
+  event.preventDefault();
+
+  const currentAdmin = await getCurrentAdmin();
+
+  if (!isSuperAdmin(currentAdmin)) {
+    console.error("❌ Unauthorized Add Admin attempt");
+    alert("Only Super Admin can create admins.");
+    return;
+  }
+
+  const message = document.getElementById("addAdminMessage");
+  const button = event.target.querySelector("button[type='submit']");
+
+  const name = document.getElementById("adminNameInput").value.trim();
+  const email = document.getElementById("adminEmailInput").value.trim();
+  const password = document.getElementById("adminPasswordInput").value;
+  const role = document.getElementById("adminRoleInput").value;
+
+  message.textContent = "Creating admin...";
+  message.className = "text-sm text-blue-400";
+  button.disabled = true;
+
+  try {
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error("You are not logged in.");
+    }
+
+    const token = await user.getIdToken();
+
+    const response = await fetch("http://localhost:3000/api/admins", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        role
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "Failed to create admin");
+    }
+
+    message.textContent = "Admin created successfully.";
+    message.className = "text-sm text-green-400";
+    event.target.reset();
+    await loadAdmins();
+  } catch (error) {
+    console.error("Add Admin error:", error);
+    message.textContent = error.message;
+    message.className = "text-sm text-red-400";
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function loadAdmins() {
+  const list = document.getElementById("adminsList");
+  if (!list) return;
+
+  try {
+    const snapshot = await getDocs(collection(db, "users"));
+    const admins = snapshot.docs
+      .map(doc => doc.data())
+      .filter(user => ADMIN_ROLES[user.role]);
+
+    if (!admins.length) {
+      list.innerHTML = `
+        <div class="text-center text-gray-500 py-8">
+          No admin users found.
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = admins.map(admin => `
+      <div class="flex items-center justify-between gap-3 bg-white/5 rounded-xl p-4">
+        <div class="min-w-0">
+          <div class="font-bold truncate">${escapeHtml(admin.name || "Admin")}</div>
+          <div class="text-xs text-gray-500 truncate">${escapeHtml(admin.email || "")}</div>
+        </div>
+        <span class="shrink-0 text-xs px-2 py-1 rounded-lg bg-blue-500/10 text-blue-400">
+          ${ADMIN_ROLES[admin.role]}
+        </span>
+      </div>
+    `).join("");
+  } catch (error) {
+    console.error("Load admins error:", error);
+    list.innerHTML = `
+      <div class="text-center text-red-400 py-8">
+        Failed to load admin users.
+      </div>
+    `;
+  }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}

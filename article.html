@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Football Xtra | Article</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Inter, sans-serif;
+      background: #07090d;
+      color: white;
+    }
+
+    .glass {
+      background: rgba(255,255,255,.035);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .article-content {
+      line-height: 1.8;
+      color: #d1d5db;
+    }
+
+    .article-content p {
+      margin-bottom: 16px;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 bg-[#07090d]/95 backdrop-blur-xl border-b border-white/10">
+    <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+
+      <a href="index.html" class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-green-500 flex items-center justify-center">
+          <i class="fa-solid fa-futbol text-black"></i>
+        </div>
+
+        <div>
+          <div class="font-black tracking-tight leading-none">
+            FOOTBALL<span class="text-green-400">XTRA</span>
+          </div>
+          <div class="text-[9px] text-gray-500 font-bold tracking-widest">
+            FOOTBALL MEDIA
+          </div>
+        </div>
+      </a>
+
+      <a href="news.html"
+         class="text-sm font-bold text-gray-300 hover:text-green-400">
+        <i class="fa-solid fa-arrow-left mr-1"></i>
+        News
+      </a>
+
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="max-w-3xl mx-auto px-4 py-6 pb-28">
+
+    <div id="loading"
+         class="glass rounded-2xl p-8 text-center">
+      <i class="fa-solid fa-spinner fa-spin text-green-400 text-3xl"></i>
+      <p class="text-gray-400 mt-3">Loading article...</p>
+    </div>
+
+    <div id="error"
+         class="hidden glass rounded-2xl p-8 text-center">
+      <i class="fa-regular fa-newspaper text-red-400 text-3xl"></i>
+      <p id="errorText" class="text-gray-400 mt-3">
+        Article not found.
+      </p>
+      <a href="news.html"
+         class="inline-block mt-5 bg-green-500 text-black px-5 py-3 rounded-xl font-bold">
+        Back to News
+      </a>
+    </div>
+
+    <article id="article"
+             class="hidden">
+
+      <!-- CATEGORY -->
+      <div class="flex items-center gap-2 mb-3">
+        <span id="category"
+              class="bg-green-500 text-black text-[10px] font-black px-3 py-1 rounded-md uppercase">
+          FOOTBALL
+        </span>
+
+        <span id="source"
+              class="text-xs text-gray-500">
+          ESPN
+        </span>
+      </div>
+
+      <!-- TITLE -->
+      <h1 id="title"
+          class="text-2xl sm:text-4xl font-black leading-tight">
+      </h1>
+
+      <!-- DATE -->
+      <div id="date"
+           class="text-xs text-gray-500 mt-3">
+      </div>
+
+      <!-- IMAGE -->
+      <div id="imageWrap"
+           class="mt-5 rounded-2xl overflow-hidden bg-white/5">
+        <img id="image"
+             class="w-full max-h-[500px] object-cover"
+             alt="">
+      </div>
+
+      <!-- CONTENT -->
+      <div class="glass rounded-2xl mt-5 p-5 sm:p-7">
+
+        <div id="content"
+             class="article-content text-[15px]">
+        </div>
+
+        <!-- ESPN SOURCE -->
+        <div id="espnSource"
+             class="hidden mt-7 pt-5 border-t border-white/10">
+
+          <div class="text-xs text-gray-500 mb-3">
+            ORIGINAL SOURCE
+          </div>
+
+          <a id="espnLink"
+             href="#"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="flex items-center justify-center gap-2 w-full bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl px-4 py-3 font-bold text-sm">
+            <i class="fa-solid fa-arrow-up-right-from-square text-green-400"></i>
+            Read full story on ESPN
+          </a>
+
+          <p class="text-[10px] text-gray-600 text-center mt-2">
+            Full article available on the original ESPN website.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- SOCIAL ACTIONS -->
+      <div class="glass rounded-2xl mt-5 overflow-hidden">
+
+        <div class="grid grid-cols-4 divide-x divide-white/10">
+
+          <button id="likeBtn"
+                  type="button"
+                  class="py-4 flex flex-col items-center gap-1 text-gray-400 hover:text-red-400 transition">
+            <i id="likeIcon" class="fa-regular fa-heart text-lg"></i>
+            <span class="text-[11px]">
+              <span id="likesCount">0</span> Likes
+            </span>
+          </button>
+
+          <button id="commentBtn"
+                  type="button"
+                  class="py-4 flex flex-col items-center gap-1 text-gray-400 hover:text-green-400 transition">
+            <i class="fa-regular fa-comment text-lg"></i>
+            <span class="text-[11px]">
+              <span id="commentsCount">0</span> Comments
+            </span>
+          </button>
+
+          <button id="repostBtn"
+                  type="button"
+                  class="py-4 flex flex-col items-center gap-1 text-gray-400 hover:text-green-400 transition">
+            <i class="fa-solid fa-retweet text-lg"></i>
+            <span class="text-[11px]">
+              <span id="repostsCount">0</span> Reposts
+            </span>
+          </button>
+
+          <button id="shareBtn"
+                  type="button"
+                  class="py-4 flex flex-col items-center gap-1 text-gray-400 hover:text-blue-400 transition">
+            <i class="fa-solid fa-share text-lg"></i>
+            <span class="text-[11px]">Share</span>
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- COMMENTS -->
+      <section id="commentsSection"
+               class="hidden glass rounded-2xl mt-4 p-4">
+
+        <h2 class="font-bold mb-4">
+          Comments
+        </h2>
+
+        <div class="flex gap-2 mb-4">
+
+          <input id="commentInput"
+                 type="text"
+                 maxlength="500"
+                 placeholder="Write a comment..."
+                 class="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm outline-none focus:border-green-400">
+
+          <button id="submitComment"
+                  type="button"
+                  class="bg-green-500 text-black px-4 rounded-xl font-bold">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+
+        </div>
+
+        <div id="commentsList"
+             class="space-y-3">
+        </div>
+
+      </section>
+
+      <!-- TELEGRAM -->
+      <a href="https://t.me/FootballXtranews"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="mt-5 flex items-center justify-center gap-2 bg-[#229ED9] hover:opacity-90 rounded-xl px-5 py-4 font-bold">
+        <i class="fa-brands fa-telegram text-xl"></i>
+        Join Football Xtra on Telegram
+      </a>
+
+    </article>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-[#07090d]/95 backdrop-blur-xl border-t border-white/10">
+    <div class="max-w-3xl mx-auto grid grid-cols-4">
+
+      <a href="index.html"
+         class="py-3 text-center text-gray-500">
+        <i class="fa-solid fa-house block text-lg"></i>
+        <span class="text-[10px]">Home</span>
+      </a>
+
+      <a href="news.html"
+         class="py-3 text-center text-green-400">
+        <i class="fa-regular fa-newspaper block text-lg"></i>
+        <span class="text-[10px]">News</span>
+      </a>
+
+      <a href="scores.html"
+         class="py-3 text-center text-gray-500">
+        <i class="fa-solid fa-futbol block text-lg"></i>
+        <span class="text-[10px]">Scores</span>
+      </a>
+
+      <a href="profile.html"
+         class="py-3 text-center text-gray-500">
+        <i class="fa-regular fa-user block text-lg"></i>
+        <span class="text-[10px]">Profile</span>
+      </a>
+
+    </div>
+  </nav>
+
+  <!-- FIREBASE ARTICLE LOGIC -->
+  <script type="module">
+
+    import { auth, db } from "./js/firebase.js";
+
+    import {
+      doc,
+      getDoc,
+      setDoc,
+      deleteDoc,
+      getDocs,
+      collection,
+      query,
+      orderBy,
+      limit,
+      addDoc,
+      serverTimestamp,
+      increment,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const articleId = params.get("id");
+    console.log("ARTICLE URL:", window.location.href); console.log("ARTICLE ID:", articleId);
+
+    const loading = document.getElementById("loading");
+    const errorBox = document.getElementById("error");
+    const errorText = document.getElementById("errorText");
+    const article = document.getElementById("article");
+
+    const titleEl = document.getElementById("title");
+    const imageEl = document.getElementById("image");
+    const imageWrap = document.getElementById("imageWrap");
+    const contentEl = document.getElementById("content");
+    const categoryEl = document.getElementById("category");
+    const sourceEl = document.getElementById("source");
+    const dateEl = document.getElementById("date");
+
+    const espnSource = document.getElementById("espnSource");
+    const espnLink = document.getElementById("espnLink");
+
+    const likeBtn = document.getElementById("likeBtn");
+    const likeIcon = document.getElementById("likeIcon");
+    const likesCount = document.getElementById("likesCount");
+
+    const commentsCount = document.getElementById("commentsCount");
+    const repostsCount = document.getElementById("repostsCount");
+
+    const commentBtn = document.getElementById("commentBtn");
+    const commentsSection = document.getElementById("commentsSection");
+    const commentsList = document.getElementById("commentsList");
+    const commentInput = document.getElementById("commentInput");
+    const submitComment = document.getElementById("submitComment");
+
+    const repostBtn = document.getElementById("repostBtn");
+    const shareBtn = document.getElementById("shareBtn");
+
+    function escapeHTML(value = "") {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function formatDate(value) {
+      if (!value) return "";
+
+      const date = value?.toDate
+        ? value.toDate()
+        : new Date(value);
+
+      if (Number.isNaN(date.getTime())) return "";
+
+      return date.toLocaleString();
+    }
+
+    function showLoginMessage() {
+      const go = confirm(
+        "Please login to interact with this article.\\n\\nDo you want to login now?"
+      );
+
+      if (go) {
+        window.location.href = "login.html";
+      }
+    }
+
+    async function loadArticle() {
+
+      if (!articleId) {
+        loading.classList.add("hidden");
+        errorBox.classList.remove("hidden");
+        errorText.textContent = "No article ID was provided.";
+        return;
+      }
+
+      try {
+
+        const response = await fetch("/api/news");
+        if (!response.ok) {
+          throw new Error("Failed to load news from backend.");
+        }
+
+        const result = await response.json();
+        const articles = result.articles || result.news || result.data || [];
+        const data = articles.find(item =>
+          String(item.id) === String(articleId) ||
+          String(item._id) === String(articleId) ||
+          String(item.guid) === String(articleId)
+        );
+
+        if (!data) {
+          throw new Error("Article not found.");
+        }
+
+        titleEl.textContent =
+          data.title ||
+          data.headline ||
+          "Untitled article";
+
+        categoryEl.textContent =
+          data.category ||
+          "Football";
+
+        sourceEl.textContent =
+          data.source ||
+          "Football Xtra";
+
+        dateEl.textContent =
+          formatDate(
+            data.publishedAt ||
+            data.createdAt ||
+            data.published
+          );
+
+        if (data.image) {
+          imageEl.src = data.image;
+          imageEl.alt = data.title || "Football news";
+        } else {
+          imageWrap.classList.add("hidden");
+        }
+
+        const description =
+          data.description ||
+          data.content ||
+          "No description available.";
+
+        contentEl.innerHTML =
+          `<p>${escapeHTML(description)}</p>`;
+
+        const sourceUrl =
+          data.sourceUrl ||
+          data.link ||
+          "";
+
+        if (
+          String(data.source || "").toUpperCase() === "ESPN" &&
+          sourceUrl
+        ) {
+          espnLink.href = sourceUrl;
+          espnSource.classList.remove("hidden");
+        }
+
+        likesCount.textContent =
+          Number(data.likesCount || 0);
+
+        commentsCount.textContent =
+          Number(data.commentsCount || 0);
+
+        repostsCount.textContent =
+          Number(data.repostsCount || 0);
+
+        loading.classList.add("hidden");
+        article.classList.remove("hidden");
+
+      } catch (error) {
+
+        console.error("Article loading error:", error);
+        errorText.textContent = "DEBUG: " + (error.message || error);
+
+        loading.classList.add("hidden");
+        errorBox.classList.remove("hidden");
+        errorText.textContent =
+          error.message || "Could not load article.";
+
+      }
+
+    }
+
+    async function handleLike() {
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        showLoginMessage();
+        return;
+      }
+
+      const likeRef =
+        doc(
+          db,
+          "news",
+          articleId,
+          "likes",
+          user.uid
+        );
+
+      const articleRef =
+        doc(db, "news", articleId);
+
+      const existing =
+        await getDoc(likeRef);
+
+      if (existing.exists()) {
+
+        await deleteDoc(likeRef);
+
+        await updateDoc(articleRef, {
+          likesCount: increment(-1)
+        });
+
+        likeBtn.classList.remove("text-red-400");
+
+        likeIcon.classList.remove("fa-solid");
+        likeIcon.classList.add("fa-regular");
+
+        likesCount.textContent =
+          Math.max(
+            0,
+            Number(likesCount.textContent || 0) - 1
+          );
+
+      } else {
+
+        await setDoc(likeRef, {
+          uid: user.uid,
+          createdAt: serverTimestamp()
+        });
+
+        await updateDoc(articleRef, {
+          likesCount: increment(1)
+        });
+
+        likeBtn.classList.add("text-red-400");
+
+        likeIcon.classList.remove("fa-regular");
+        likeIcon.classList.add("fa-solid");
+
+        likesCount.textContent =
+          Number(likesCount.textContent || 0) + 1;
+      }
+
+    }
+
+    async function handleComment() {
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        showLoginMessage();
+        return;
+      }
+
+      const text =
+        commentInput.value.trim();
+
+      if (!text) return;
+
+      await addDoc(
+        collection(
+          db,
+          "news",
+          articleId,
+          "comments"
+        ),
+        {
+          uid: user.uid,
+          userName:
+            user.displayName || "User",
+          userPhoto:
+            user.photoURL || "",
+          text,
+          createdAt:
+            serverTimestamp()
+        }
+      );
+
+      await updateDoc(
+        doc(db, "news", articleId),
+        {
+          commentsCount: increment(1)
+        }
+      );
+
+      commentInput.value = "";
+
+      await loadComments();
+
+    }
+
+    async function loadComments() {
+
+      try {
+
+        const commentsQuery =
+          query(
+            collection(
+              db,
+              "news",
+              articleId,
+              "comments"
+            ),
+            orderBy("createdAt", "asc"),
+            limit(50)
+          );
+
+        const snapshot =
+          await getDocs(commentsQuery);
+
+        if (snapshot.empty) {
+
+          commentsList.innerHTML =
+            '<div class="text-xs text-gray-500 text-center py-3">No comments yet.</div>';
+
+          return;
+        }
+
+        commentsList.innerHTML =
+          snapshot.docs.map(item => {
+
+            const comment =
+              item.data();
+
+            return `
+              <div class="flex gap-2 items-start">
+
+                <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-xs font-bold text-green-400">
+                  ${escapeHTML(
+                    (comment.userName || "U")
+                      .charAt(0)
+                      .toUpperCase()
+                  )}
+                </div>
+
+                <div class="flex-1 min-w-0 bg-white/5 rounded-xl px-3 py-2">
+
+                  <div class="flex items-center justify-between gap-2">
+
+                    <span class="text-xs font-bold">
+                      ${escapeHTML(
+                        comment.userName || "User"
+                      )}
+                    </span>
+
+                    <span class="text-[10px] text-gray-500">
+                      ${formatDate(comment.createdAt)}
+                    </span>
+
+                  </div>
+
+                  <p class="text-sm text-gray-300 mt-1 break-words">
+                    ${escapeHTML(
+                      comment.text || ""
+                    )}
+                  </p>
+
+                </div>
+
+              </div>
+            `;
+
+          }).join("");
+
+      } catch (error) {
+
+        console.error(
+          "Comment loading error:",
+          error
+        );
+
+        commentsList.innerHTML =
+          '<div class="text-xs text-red-400 text-center py-3">Could not load comments.</div>';
+
+      }
+
+    }
+
+    async function handleRepost() {
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        showLoginMessage();
+        return;
+      }
+
+      const repostRef =
+        doc(
+          db,
+          "news",
+          articleId,
+          "reposts",
+          user.uid
+        );
+
+      const articleRef =
+        doc(db, "news", articleId);
+
+      const existing =
+        await getDoc(repostRef);
+
+      if (existing.exists()) {
+
+        alert("You already reposted this.");
+
+        return;
+      }
+
+      await setDoc(repostRef, {
+        uid: user.uid,
+        createdAt: serverTimestamp()
+      });
+
+      await updateDoc(articleRef, {
+        repostsCount: increment(1)
+      });
+
+      repostsCount.textContent =
+        Number(repostsCount.textContent || 0) + 1;
+
+      alert("Reposted successfully 🔁");
+
+    }
+
+    async function handleShare() {
+
+      const url =
+        window.location.href;
+
+      if (navigator.share) {
+
+        try {
+
+          await navigator.share({
+            title:
+              titleEl.textContent ||
+              "Football Xtra",
+            text:
+              "Check this football news on Football Xtra",
+            url
+          });
+
+        } catch (error) {
+
+          console.log("Share cancelled");
+
+        }
+
+      } else {
+
+        try {
+
+          await navigator.clipboard.writeText(url);
+
+          alert("Article link copied!");
+
+        } catch (error) {
+
+          alert(url);
+
+        }
+
+      }
+
+    }
+
+    likeBtn.addEventListener(
+      "click",
+      async () => {
+
+        try {
+
+          await handleLike();
+
+        } catch (error) {
+
+          console.error(
+            "Like error:",
+            error
+          );
+
+          alert(
+            "Could not update like."
+          );
+
+        }
+
+      }
+    );
+
+    commentBtn.addEventListener(
+      "click",
+      async () => {
+
+        commentsSection.classList.toggle(
+          "hidden"
+        );
+
+        if (
+          !commentsSection.classList.contains(
+            "hidden"
+          )
+        ) {
+          await loadComments();
+        }
+
+      }
+    );
+
+    submitComment.addEventListener(
+      "click",
+      async () => {
+
+        try {
+
+          await handleComment();
+
+        } catch (error) {
+
+          console.error(
+            "Comment error:",
+            error
+          );
+
+          alert(
+            "Could not post comment."
+          );
+
+        }
+
+      }
+    );
+
+    commentInput.addEventListener(
+      "keydown",
+      async event => {
+
+        if (event.key === "Enter") {
+
+          event.preventDefault();
+
+          try {
+
+            await handleComment();
+
+          } catch (error) {
+
+            console.error(
+              "Comment error:",
+              error
+            );
+
+            alert(
+              "Could not post comment."
+            );
+
+          }
+
+        }
+
+      }
+    );
+
+    repostBtn.addEventListener(
+      "click",
+      async () => {
+
+        try {
+
+          await handleRepost();
+
+        } catch (error) {
+
+          console.error(
+            "Repost error:",
+            error
+          );
+
+          alert(
+            "Could not repost article."
+          );
+
+        }
+
+      }
+    );
+
+    shareBtn.addEventListener(
+      "click",
+      handleShare
+    );
+
+    auth.onAuthStateChanged(async user => {
+
+      if (!user || !articleId) return;
+
+      try {
+
+        const likeRef =
+          doc(
+            db,
+            "news",
+            articleId,
+            "likes",
+            user.uid
+          );
+
+        const repostRef =
+          doc(
+            db,
+            "news",
+            articleId,
+            "reposts",
+            user.uid
+          );
+
+        const [likeSnap, repostSnap] =
+          await Promise.all([
+            getDoc(likeRef),
+            getDoc(repostRef)
+          ]);
+
+        if (likeSnap.exists()) {
+
+          likeBtn.classList.add(
+            "text-red-400"
+          );
+
+          likeIcon.classList.remove(
+            "fa-regular"
+          );
+
+          likeIcon.classList.add(
+            "fa-solid"
+          );
+
+        }
+
+        if (repostSnap.exists()) {
+
+          repostBtn.classList.add(
+            "text-green-400"
+          );
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "User article state error:",
+          error
+        );
+
+      }
+
+    });
+
+    loadArticle();
+
+  </script>
+
+</body>
+</html>

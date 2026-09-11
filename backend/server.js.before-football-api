@@ -1,0 +1,280 @@
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+
+const {
+  initializeApp,
+  cert
+} = require("firebase-admin/app");
+
+const {
+  getAuth
+} = require("firebase-admin/auth");
+
+const {
+  getMessaging
+} = require("firebase-admin/messaging");
+
+const {
+  getFirestore,
+  FieldValue
+} = require("firebase-admin/firestore");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+/* =========================
+   FIREBASE ADMIN
+========================= */
+
+const serviceAccount = require(
+  "./footballxtra-firebase-adminsdk-fbsvc-f163909951.json"
+);
+
+initializeApp({
+  credential: cert(serviceAccount)
+});
+
+const firebaseAuth = getAuth();
+const messaging = getMessaging();
+const firestore = getFirestore();
+
+console.log("🔥 Firebase Admin initialized successfully!");
+
+/* =========================
+   MIDDLEWARE
+========================= */
+
+app.use(cors());
+app.use(express.json());
+
+/* =========================
+   HOME
+========================= */
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Football Website Backend is working! ⚽🔥"
+  });
+});
+
+/* =========================
+   HEALTH
+========================= */
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    status: "OK",
+    firebase: "connected"
+  });
+});
+
+/* =========================
+   FIREBASE STATUS
+========================= */
+
+app.get("/api/firebase-status", (req, res) => {
+  res.json({
+    success: true,
+    firebase: "Firebase Admin is connected 🔥"
+  });
+});
+
+/* =========================
+   AUTH MIDDLEWARE
+========================= */
+
+async function verifyFirebaseUser(req, res, next) {
+  try {
+
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({
+        success: false,
+        message: "Authorization header is required"
+      });
+    }
+
+    if (!authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid authorization format"
+      });
+    }
+
+    const idToken =
+      authHeader.split("Bearer ")[1];
+
+    if (!idToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Firebase ID token is required"
+      });
+    }
+
+    const decodedToken =
+      await firebaseAuth.verifyIdToken(idToken);
+
+    req.user = decodedToken;
+
+    next();
+
+  } catch (error) {
+
+    console.error("❌ Auth verification error:", error);
+
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired Firebase token"
+    });
+  }
+}
+
+/* =========================
+   REGISTER FCM TOKEN
+========================= */
+
+app.post(
+  "/api/register-fcm-token",
+  verifyFirebaseUser,
+  async (req, res) => {
+
+    try {
+
+      const {
+        token,
+        userAgent
+      } = req.body;
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          message: "FCM token is required"
+        });
+      }
+
+      const uid = req.user.uid;
+
+      await firestore
+        .collection("fcmTokens")
+        .doc(token)
+        .set({
+          uid: uid,
+          token: token,
+          userAgent: userAgent || "",
+          updatedAt: FieldValue.serverTimestamp()
+        }, {
+          merge: true
+        });
+
+      console.log(
+        "🔔 FCM token registered for:",
+        uid
+      );
+
+      res.json({
+        success: true,
+        message: "FCM token registered successfully 🔥"
+      });
+
+    } catch (error) {
+
+      console.error(
+        "❌ Token registration error:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+);
+
+/* =========================
+   SEND NOTIFICATION
+========================= */
+
+app.post(
+  "/api/send-notification",
+  verifyFirebaseUser,
+  async (req, res) => {
+
+    try {
+
+      const {
+        token,
+        title,
+        body
+      } = req.body;
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          message: "FCM token is required"
+        });
+      }
+
+      const message = {
+
+        token: token,
+
+        notification: {
+          title:
+            title || "FOOTBALLXTRA ⚽",
+
+          body:
+            body ||
+            "You have a new football notification 🔥"
+        },
+
+        data: {
+          click_action: "/"
+        }
+      };
+
+      const response =
+        await messaging.send(message);
+
+      console.log(
+        "📲 FCM notification sent:",
+        response
+      );
+
+      res.json({
+        success: true,
+        message:
+          "Notification sent successfully 🔥",
+        messageId: response
+      });
+
+    } catch (error) {
+
+      console.error(
+        "❌ FCM send error:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+);
+
+/* =========================
+   SERVER
+========================= */
+
+app.listen(PORT, () => {
+
+  console.log(
+    `⚽ Backend running on http://localhost:${PORT}`
+  );
+
+});

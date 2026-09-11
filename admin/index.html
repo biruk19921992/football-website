@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>FootballXtra Admin</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, sans-serif;
+      background: #07110d;
+      color: #fff;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: #091712;
+      border-right: 1px solid rgba(255,255,255,.07);
+    }
+
+    .main {
+      margin-left: 260px;
+    }
+
+    .glass {
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.07);
+    }
+
+    .nav-item {
+      transition: .2s;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: rgba(34,197,94,.12);
+      color: #4ade80;
+    }
+
+    .stat-card {
+      transition: .2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(34,197,94,.25);
+    }
+
+    @media(max-width: 900px) {
+      .sidebar {
+        width: 78px;
+      }
+
+      .sidebar .label,
+      .sidebar .section-title,
+      .sidebar .brand-text {
+        display: none;
+      }
+
+      .main {
+        margin-left: 78px;
+      }
+    }
+
+    @media(max-width: 600px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ================= SIDEBAR ================= -->
+
+<aside class="sidebar fixed left-0 top-0 bottom-0 z-40 p-4">
+
+  <div class="flex items-center gap-3 px-3 py-4 mb-5">
+    <div class="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center">
+      <i class="fa-solid fa-futbol text-black text-lg"></i>
+    </div>
+
+    <div class="brand-text">
+      <div class="font-black text-lg">FOOTBALLXTRA</div>
+      <div class="text-[10px] text-green-400 font-bold tracking-widest">
+        ADMIN PANEL
+      </div>
+    </div>
+  </div>
+
+  <div class="space-y-1">
+
+    <div class="section-title text-[10px] text-gray-500 font-bold px-3 py-2">
+      MAIN
+    </div>
+
+    <button class="nav-item active w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="dashboard">
+      <i class="fa-solid fa-chart-pie w-5"></i>
+      <span class="label">Dashboard</span>
+    </button>
+
+    <div class="section-title text-[10px] text-gray-500 font-bold px-3 py-2 mt-4">
+      CONTENT
+    </div>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="news">
+      <i class="fa-solid fa-newspaper w-5"></i>
+      <span class="label">News</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="transfers">
+      <i class="fa-solid fa-right-left w-5"></i>
+      <span class="label">Transfers</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="gallery">
+      <i class="fa-solid fa-images w-5"></i>
+      <span class="label">Gallery</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="videos">
+      <i class="fa-solid fa-video w-5"></i>
+      <span class="label">Videos</span>
+    </button>
+
+
+    <div class="section-title text-[10px] text-gray-500 font-bold px-3 py-2 mt-4">
+      FOOTBALL
+    </div>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="matches">
+      <i class="fa-solid fa-futbol w-5"></i>
+      <span class="label">Matches</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="scores">
+      <i class="fa-solid fa-bolt w-5"></i>
+      <span class="label">Live Scores</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="lineups">
+      <i class="fa-solid fa-users w-5"></i>
+      <span class="label">Lineups</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="tables">
+      <i class="fa-solid fa-ranking-star w-5"></i>
+      <span class="label">League Tables</span>
+    </button>
+
+
+    <div class="section-title text-[10px] text-gray-500 font-bold px-3 py-2 mt-4">
+      COMMUNITY
+    </div>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="community">
+      <i class="fa-solid fa-comments w-5"></i>
+      <span class="label">Community</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="reports">
+      <i class="fa-solid fa-flag w-5"></i>
+      <span class="label">Reports</span>
+    </button>
+
+
+    <div class="section-title text-[10px] text-gray-500 font-bold px-3 py-2 mt-4">
+      MONETIZATION
+    </div>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="ads">
+      <i class="fa-solid fa-rectangle-ad w-5"></i>
+      <span class="label">Advertisements</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="sponsors">
+      <i class="fa-solid fa-handshake w-5"></i>
+      <span class="label">Sponsors</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="premium">
+      <i class="fa-solid fa-crown w-5"></i>
+      <span class="label">Premium</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="revenue">
+      <i class="fa-solid fa-money-bill-trend-up w-5"></i>
+      <span class="label">Revenue</span>
+    </button>
+
+
+    <div class="section-title text-[10px] text-gray-500 font-bold px-3 py-2 mt-4">
+      ADMINISTRATION
+    </div>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="admins">
+      <i class="fa-solid fa-user-shield w-5"></i>
+      <span class="label">Admin Users</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="permissions">
+      <i class="fa-solid fa-key w-5"></i>
+      <span class="label">Permissions</span>
+    </button>
+
+    <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm"
+            data-page="settings">
+      <i class="fa-solid fa-gear w-5"></i>
+      <span class="label">Settings</span>
+    </button>
+
+  </div>
+
+</aside>
+
+
+<!-- ================= MAIN ================= -->
+
+<main class="main min-h-screen">
+
+  <!-- TOP BAR -->
+
+  <header class="h-20 border-b border-white/5 flex items-center justify-between px-5 md:px-8">
+
+    <div>
+      <div class="text-xs text-gray-500">Welcome back</div>
+      <h1 id="pageTitle" class="text-xl font-black">
+        Dashboard
+      </h1>
+    </div>
+
+    <div class="flex items-center gap-3">
+
+      <button class="w-10 h-10 glass rounded-xl flex items-center justify-center">
+        <i class="fa-regular fa-bell text-gray-300"></i>
+      </button>
+
+      <div class="flex items-center gap-3 glass rounded-xl px-3 py-2">
+
+        <img
+          id="adminAvatar"
+          src="https://ui-avatars.com/api/?name=Admin&background=22c55e&color=000"
+          class="w-9 h-9 rounded-full"
+        >
+
+        <div class="hidden sm:block">
+          <div id="adminName" class="text-sm font-bold">Admin</div>
+          <div id="adminRole" class="text-[10px] text-green-400">
+            Administrator
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- ================= PAGE CONTENT ================= -->
+
+  <div class="p-5 md:p-8">
+
+    <!-- DASHBOARD -->
+
+    <section id="dashboardPage">
+
+      <div class="mb-7">
+
+        <div class="text-green-400 text-xs font-black tracking-widest mb-1">
+          OVERVIEW
+        </div>
+
+        <h2 class="text-2xl md:text-3xl font-black">
+          FootballXtra Dashboard
+        </h2>
+
+        <p class="text-gray-500 text-sm mt-1">
+          Manage your football platform from one place.
+        </p>
+
+      </div>
+
+
+      <!-- STATS -->
+
+      <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+
+        <div class="stat-card glass rounded-2xl p-5">
+          <div class="flex justify-between">
+            <div>
+              <p class="text-gray-500 text-xs">TOTAL USERS</p>
+              <h3 id="statUsers" class="text-2xl font-black mt-2">0</h3>
+            </div>
+
+            <div class="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+              <i class="fa-solid fa-users"></i>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="stat-card glass rounded-2xl p-5">
+          <div class="flex justify-between">
+            <div>
+              <p class="text-gray-500 text-xs">TOTAL POSTS</p>
+              <h3 id="statPosts" class="text-2xl font-black mt-2">0</h3>
+            </div>
+
+            <div class="w-11 h-11 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
+              <i class="fa-solid fa-layer-group"></i>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="stat-card glass rounded-2xl p-5">
+          <div class="flex justify-between">
+            <div>
+              <p class="text-gray-500 text-xs">NEWS</p>
+              <h3 id="statNews" class="text-2xl font-black mt-2">0</h3>
+            </div>
+
+            <div class="w-11 h-11 rounded-xl bg-green-500/10 text-green-400 flex items-center justify-center">
+              <i class="fa-solid fa-newspaper"></i>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="stat-card glass rounded-2xl p-5">
+          <div class="flex justify-between">
+            <div>
+              <p class="text-gray-500 text-xs">VIDEOS</p>
+              <h3 id="statVideos" class="text-2xl font-black mt-2">0</h3>
+            </div>
+
+            <div class="w-11 h-11 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center">
+              <i class="fa-solid fa-video"></i>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="stat-card glass rounded-2xl p-5">
+          <div class="flex justify-between">
+            <div>
+              <p class="text-gray-500 text-xs">MATCHES</p>
+              <h3 id="statMatches" class="text-2xl font-black mt-2">0</h3>
+            </div>
+
+            <div class="w-11 h-11 rounded-xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center">
+              <i class="fa-solid fa-futbol"></i>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="stat-card glass rounded-2xl p-5">
+          <div class="flex justify-between">
+            <div>
+              <p class="text-gray-500 text-xs">REPORTS</p>
+              <h3 id="statReports" class="text-2xl font-black mt-2">0</h3>
+            </div>
+
+            <div class="w-11 h-11 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center">
+              <i class="fa-solid fa-flag"></i>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- QUICK ACTIONS -->
+
+      <div class="mb-8">
+
+        <h3 class="font-black text-lg mb-4">
+          Quick Actions
+        </h3>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+          <button data-page="news"
+                  class="glass rounded-2xl p-5 text-left hover:bg-white/5">
+            <i class="fa-solid fa-plus text-green-400 mb-3"></i>
+            <div class="font-bold text-sm">Create News</div>
+          </button>
+
+          <button data-page="videos"
+                  class="glass rounded-2xl p-5 text-left hover:bg-white/5">
+            <i class="fa-solid fa-video text-red-400 mb-3"></i>
+            <div class="font-bold text-sm">Add Video</div>
+          </button>
+
+          <button data-page="ads"
+                  class="glass rounded-2xl p-5 text-left hover:bg-white/5">
+            <i class="fa-solid fa-rectangle-ad text-green-400 mb-3"></i>
+            <div class="font-bold text-sm">Add Advertising</div>
+          </button>
+
+          <button data-page="admins"
+                  class="glass rounded-2xl p-5 text-left hover:bg-white/5">
+            <i class="fa-solid fa-user-plus text-blue-400 mb-3"></i>
+            <div class="font-bold text-sm">Add Admin</div>
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- SYSTEM STATUS -->
+
+      <div class="glass rounded-2xl p-6">
+
+        <div class="flex items-center justify-between mb-5">
+
+          <div>
+            <h3 class="font-black">System Status</h3>
+            <p class="text-xs text-gray-500 mt-1">
+              FootballXtra services
+            </p>
+          </div>
+
+          <span class="flex items-center gap-2 text-xs text-green-400">
+            <span class="w-2 h-2 rounded-full bg-green-400"></span>
+            Online
+          </span>
+
+        </div>
+
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+          <div class="bg-white/[.02] rounded-xl p-4">
+            <div class="text-xs text-gray-500">Firebase</div>
+            <div class="text-sm font-bold text-green-400 mt-1">
+              Connected
+            </div>
+          </div>
+
+          <div class="bg-white/[.02] rounded-xl p-4">
+            <div class="text-xs text-gray-500">Database</div>
+            <div class="text-sm font-bold text-green-400 mt-1">
+              Online
+            </div>
+          </div>
+
+          <div class="bg-white/[.02] rounded-xl p-4">
+            <div class="text-xs text-gray-500">Authentication</div>
+            <div class="text-sm font-bold text-green-400 mt-1">
+              Active
+            </div>
+          </div>
+
+          <div class="bg-white/[.02] rounded-xl p-4">
+            <div class="text-xs text-gray-500">API</div>
+            <div class="text-sm font-bold text-green-400 mt-1">
+              Ready
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- DYNAMIC PAGE -->
+
+    <section id="modulePage" class="hidden">
+
+      <div class="glass rounded-2xl p-8 text-center">
+
+        <div id="moduleIcon"
+             class="w-16 h-16 mx-auto rounded-2xl bg-green-500/10 text-green-400 flex items-center justify-center text-2xl mb-5">
+          <i class="fa-solid fa-cube"></i>
+        </div>
+
+        <h2 id="moduleTitle"
+            class="text-2xl font-black">
+          Module
+        </h2>
+
+        <p id="moduleDescription"
+           class="text-gray-500 text-sm mt-2">
+          Module management
+        </p>
+
+        <div id="moduleContent"
+             class="mt-7 text-left">
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</main>
+
+
+<!-- ================= MOBILE BAR ================= -->
+
+<div class="fixed bottom-0 left-0 right-0 h-16 bg-[#091712] border-t border-white/10 flex md:hidden items-center justify-around z-50">
+
+  <button data-page="dashboard" class="text-green-400">
+    <i class="fa-solid fa-chart-pie"></i>
+  </button>
+
+  <button data-page="news" class="text-gray-400">
+    <i class="fa-solid fa-newspaper"></i>
+  </button>
+
+  <button data-page="matches" class="text-gray-400">
+    <i class="fa-solid fa-futbol"></i>
+  </button>
+
+  <button data-page="community" class="text-gray-400">
+    <i class="fa-solid fa-comments"></i>
+  </button>
+
+  <button data-page="settings" class="text-gray-400">
+    <i class="fa-solid fa-gear"></i>
+  </button>
+
+</div>
+
+
+<!-- ================= FIREBASE / ADMIN ================= -->
+
+<script type="module">
+import { getCurrentAdmin, applyRolePermissions, hasPermission } from "./js/roles.js";
+
+import { auth, db } from "../js/firebase.js";
+
+import {
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+import {
+  doc,
+  getDoc,
+  collection,
+  getCountFromServer
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+let currentAdmin = null;
+const pages = {
+
+  dashboard: {
+    title: "Dashboard",
+    icon: "fa-chart-pie",
+    description: "FootballXtra overview and system statistics."
+  },
+
+  news: {
+    title: "News Management",
+    icon: "fa-newspaper",
+    description: "Create, edit and manage football news."
+  },
+
+  transfers: {
+    title: "Transfer Management",
+    icon: "fa-right-left",
+    description: "Manage transfer news and player movements."
+  },
+
+  gallery: {
+    title: "Photo Gallery",
+    icon: "fa-images",
+    description: "Manage football photos and galleries."
+  },
+
+  videos: {
+    title: "Video Management",
+    icon: "fa-video",
+    description: "Manage highlights, videos and YouTube content."
+  },
+
+  matches: {
+    title: "Matches",
+    icon: "fa-futbol",
+    description: "Create and manage football matches."
+  },
+
+  scores: {
+    title: "Live Scores",
+    icon: "fa-bolt",
+    description: "Manage live football scores."
+  },
+
+  lineups: {
+    title: "Lineups",
+    icon: "fa-users",
+    description: "Manage team lineups."
+  },
+
+  tables: {
+    title: "League Tables",
+    icon: "fa-ranking-star",
+    description: "Manage league standings."
+  },
+
+  community: {
+    title: "Community",
+    icon: "fa-comments",
+    description: "Monitor football community posts."
+  },
+
+  reports: {
+    title: "Reports",
+    icon: "fa-flag",
+    description: "Review reported content."
+  },
+
+  ads: {
+    title: "Advertisements",
+    icon: "fa-rectangle-ad",
+    description: "Manage website advertising."
+  },
+
+  sponsors: {
+    title: "Sponsors",
+    icon: "fa-handshake",
+    description: "Manage sponsorship campaigns."
+  },
+
+  premium: {
+    title: "Premium",
+    icon: "fa-crown",
+    description: "Manage premium memberships."
+  },
+
+  revenue: {
+    title: "Revenue",
+    icon: "fa-money-bill-trend-up",
+    description: "View platform monetization and revenue."
+  },
+
+  admins: {
+    title: "Admin Users",
+    icon: "fa-user-shield",
+    description: "Manage FootballXtra administrators."
+  },
+
+  permissions: {
+    title: "Roles & Permissions",
+    icon: "fa-key",
+    description: "Configure administrator permissions."
+  },
+
+  settings: {
+    title: "Settings",
+    icon: "fa-gear",
+    description: "Manage FootballXtra system settings."
+  }
+
+};
+
+
+const PAGE_PERMISSIONS = { dashboard:"dashboard", news:"news", transfers:"transfers", gallery:"gallery", videos:"videos", matches:"matches", scores:"live_scores", lineups:"lineups", tables:"league_tables", community:"community", reports:"reports", ads:"advertisements", sponsors:"sponsors", premium:"premium", revenue:"revenue", admins:"admin_users", permissions:"permissions", settings:"settings" };
+
+function canAccessPage(page) {
+  const permission = PAGE_PERMISSIONS[page];
+  if (!permission || !currentAdmin) return true;
+  return hasPermission(currentAdmin, permission);
+}
+
+function showPage(page) {
+  if (!canAccessPage(page)) {
+    alert("You don't have permission to access this section.");
+    return;
+  }
+
+
+
+  const data = pages[page];
+
+  if (!data) return;
+
+  document.querySelectorAll(".nav-item")
+    .forEach(el => el.classList.remove("active"));
+
+  document.querySelectorAll(`[data-page="${page}"]`)
+    .forEach(el => {
+      if (el.classList.contains("nav-item")) {
+        el.classList.add("active");
+      }
+    });
+
+  document.getElementById("pageTitle").textContent = data.title;
+
+  const dashboard =
+    document.getElementById("dashboardPage");
+
+  const module =
+    document.getElementById("modulePage");
+
+  if (page === "dashboard") {
+
+    dashboard.classList.remove("hidden");
+    module.classList.add("hidden");
+
+    return;
+  }
+
+  if (page === "admins") {
+    dashboard.classList.add("hidden");
+    module.classList.remove("hidden");
+    document.getElementById("moduleTitle").textContent = data.title;
+    document.getElementById("moduleDescription").textContent = data.description;
+    document.getElementById("moduleIcon").innerHTML = `<i class="fa-solid ${data.icon}"></i>`;
+    const content = document.getElementById("moduleContent");
+    content.innerHTML = `<div class="glass rounded-2xl p-6 text-center text-gray-400">Loading Admin Users...</div>`;
+    import("/admin/js/modules/admins.js")
+      .then(module => module.renderAdminsModule(content))
+      .catch(error => {
+        console.error("Admins module error:", error);
+        content.innerHTML = `<div class="glass rounded-2xl p-8 text-center text-red-400">Failed to load Admin Users module<div class="text-xs text-gray-500 mt-2">${error.message}</div></div>`;
+      });
+    return;
+  }
+
+  if (page === "news") {
+
+    dashboard.classList.add("hidden");
+    module.classList.remove("hidden");
+
+    document.getElementById("moduleTitle")
+      .textContent = data.title;
+
+    document.getElementById("moduleDescription")
+      .textContent = data.description;
+
+    document.getElementById("moduleIcon").innerHTML =
+      `<i class="fa-solid ${data.icon}"></i>`;
+
+    const content =
+      document.getElementById("moduleContent");
+
+    content.innerHTML = "";
+
+    import("/admin/js/modules/news.js")
+      .then(module => module.renderNewsModule(content))
+      .catch(error => {
+
+        console.error(error);
+
+        content.innerHTML = `
+          <div class="glass rounded-2xl p-8 text-center text-red-400">
+            Failed to load News module.
+          </div>
+        `;
+
+      });
+
+    return;
+  }
+
+
+  if (page === "ads") {
+    dashboard.classList.add("hidden");
+    module.classList.remove("hidden");
+    document.getElementById("moduleTitle").textContent = data.title;
+    document.getElementById("moduleDescription").textContent = data.description;
+    document.getElementById("moduleIcon").innerHTML = `<i class="fa-solid ${data.icon}"></i>`;
+    const content = document.getElementById("moduleContent");
+    content.innerHTML = `<div class="glass rounded-2xl p-6 text-center text-gray-400">Loading Advertisements...</div>`;
+    import("/admin/js/modules/ads.js")
+      .then(module => module.renderAdsModule(content))
+      .catch(error => {
+        console.error("Advertisements module error:", error);
+        content.innerHTML = `<div class="glass rounded-2xl p-8 text-center text-red-400">Failed to load Advertisements module<div class="text-xs text-gray-500 mt-2">${error.message}</div></div>`;
+      });
+    return;
+  }
+
+  if (page === "videos") {
+
+    dashboard.classList.add("hidden");
+    module.classList.remove("hidden");
+
+    document.getElementById("moduleTitle")
+      .textContent = data.title;
+
+    document.getElementById("moduleDescription")
+      .textContent = data.description;
+
+    document.getElementById("moduleIcon").innerHTML =
+      `<i class="fa-solid ${data.icon}"></i>`;
+
+    const content =
+      document.getElementById("moduleContent");
+
+    content.innerHTML = "";
+
+    import("/admin/js/modules/videos.js")
+      .then(module => module.renderVideosModule(content))
+      .catch(error => {
+
+        console.error(error);
+
+        content.innerHTML = `
+          <div class="glass rounded-2xl p-8 text-center text-red-400">
+            Failed to load Video module.
+            <div class="text-xs text-gray-500 mt-2">
+              ${error.message}
+            </div>
+          </div>
+        `;
+
+      });
+
+    return;
+  }
+
+  if (page === "matches") {
+    dashboard.classList.add("hidden");
+    module.classList.remove("hidden");
+
+    document.getElementById("moduleTitle").textContent = data.title;
+    document.getElementById("moduleDescription").textContent = data.description;
+    document.getElementById("moduleIcon").innerHTML = `<i class="fa-solid ${data.icon}"></i>`;
+
+    const content = document.getElementById("moduleContent");
+    content.innerHTML = `<div class="glass rounded-2xl p-6 text-center text-gray-400">Loading Football Matches...</div>`;
+
+    import("/admin/js/modules/matches.js")
+      .then(module => {
+        if (typeof module.renderMatchesModule === "function") {
+          module.renderMatchesModule(content);
+        } else if (typeof module.loadMatchesModule === "function") {
+          module.loadMatchesModule(content);
+        } else if (typeof module.init === "function") {
+          module.init(content);
+        } else {
+          throw new Error("No Matches module renderer found.");
+        }
+      })
+      .catch(error => {
+        console.error("Matches module error:", error);
+        content.innerHTML = `<div class="glass rounded-2xl p-8 text-center text-red-400"><div class="text-lg font-bold">Failed to load Matches module</div><div class="text-xs text-gray-500 mt-2">${error.message}</div></div>`;
+      });
+
+    return;
+  }
+  dashboard.classList.add("hidden");
+  module.classList.remove("hidden");
+
+  document.getElementById("moduleTitle")
+    .textContent = data.title;
+
+  document.getElementById("moduleDescription")
+    .textContent = data.description;
+
+  document.getElementById("moduleIcon").innerHTML =
+    `<i class="fa-solid ${data.icon}"></i>`;
+
+  document.getElementById("moduleContent").innerHTML = `
+
+    <div class="grid md:grid-cols-3 gap-4">
+
+      <div class="glass rounded-2xl p-5">
+        <div class="text-xs text-gray-500">STATUS</div>
+        <div class="font-bold text-green-400 mt-2">
+          Ready
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5">
+        <div class="text-xs text-gray-500">MODULE</div>
+        <div class="font-bold mt-2">
+          ${data.title}
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5">
+        <div class="text-xs text-gray-500">ACCESS</div>
+        <div class="font-bold text-green-400 mt-2">
+          Authorized
+        </div>
+      </div>
+
+    </div>
+
+    <div class="glass rounded-2xl p-6 mt-5">
+
+      <h3 class="font-black text-lg mb-2">
+        ${data.title}
+      </h3>
+
+      <p class="text-gray-500 text-sm">
+        This module is ready for Firebase-powered management.
+      </p>
+
+      <button
+        class="mt-5 px-5 py-3 rounded-xl bg-green-500 text-black font-black text-sm"
+        onclick="alert('Module setup coming next')">
+        <i class="fa-solid fa-plus mr-2"></i>
+        Create New
+      </button>
+
+    </div>
+  `;
+
+}
+
+
+document.addEventListener("click", event => {
+
+  const button =
+    event.target.closest("[data-page]");
+
+  if (!button) return;
+
+  showPage(button.dataset.page);
+
+});
+
+
+async function loadStats() {
+
+  const collections = {
+    users: "users",
+    posts: "posts",
+    news: "posts",
+    videos: "posts",
+    matches: "matches",
+    reports: "reports"
+  };
+
+  try {
+
+    const users =
+      await getCountFromServer(
+        collection(db, "users")
+      );
+
+    document.getElementById("statUsers")
+      .textContent =
+      users.data().count.toLocaleString();
+
+  } catch (e) {}
+
+  try {
+
+    const posts =
+      await getCountFromServer(
+        collection(db, "posts")
+      );
+
+    document.getElementById("statPosts")
+      .textContent =
+      posts.data().count.toLocaleString();
+
+  } catch (e) {}
+
+  try {
+
+    const news =
+      await getCountFromServer(
+        collection(db, "posts")
+      );
+
+    document.getElementById("statNews")
+      .textContent =
+      news.data().count.toLocaleString();
+
+  } catch (e) {}
+
+  try {
+
+    const videos =
+      await getCountFromServer(
+        collection(db, "posts")
+      );
+
+    document.getElementById("statVideos")
+      .textContent =
+      videos.data().count.toLocaleString();
+
+  } catch (e) {}
+
+  try {
+
+    const matches =
+      await getCountFromServer(
+        collection(db, "matches")
+      );
+
+    document.getElementById("statMatches")
+      .textContent =
+      matches.data().count.toLocaleString();
+
+  } catch (e) {}
+
+  try {
+
+    const reports =
+      await getCountFromServer(
+        collection(db, "reports")
+      );
+
+    document.getElementById("statReports")
+      .textContent =
+      reports.data().count.toLocaleString();
+
+  } catch (e) {}
+
+}
+
+
+onAuthStateChanged(auth, async user => {
+
+  if (!user) {
+
+    window.location.href = "../login.html";
+
+    return;
+  }
+
+
+  try {
+
+    const snap =
+      await getDoc(
+        doc(db, "users", user.uid)
+      );
+
+    if (!snap.exists()) {
+
+      alert("Admin profile not found.");
+
+      await signOut(auth);
+
+      window.location.href = "../login.html";
+
+      return;
+    }
+
+
+    const profile = snap.data();
+
+    const role =
+      profile.role || "user";
+
+
+    const adminRoles = [
+         "super_admin",
+         "content_admin",
+         "video_admin",
+         "match_admin",
+         "moderator_admin"
+       ];
+
+       currentAdmin = await getCurrentAdmin();
+
+       if (!currentAdmin.authorized) {
+         alert("Admin authorization failed: " + (currentAdmin?.reason || "unknown") + (currentAdmin?.role ? " | role=" + currentAdmin.role : "")); console.error("ADMIN AUTH DEBUG:", currentAdmin);
+         window.location.href = "../index.html";
+         return;
+       }
+
+       if (!adminRoles.includes(role)) {
+         alert("You don't have admin permission.");
+         window.location.href = "../index.html";
+         return;
+       }
+
+       document.querySelectorAll(".nav-item[data-page]").forEach(el => {
+         const page = el.dataset.page;
+         el.style.display = canAccessPage(page) ? "" : "none";
+       });
+       applyRolePermissions(currentAdmin);
+
+       document.getElementById("adminName")
+      .textContent =
+      profile.name ||
+      user.displayName ||
+      "Admin";
+
+
+    document.getElementById("adminRole")
+      .textContent =
+      role.replaceAll("_", " ");
+
+
+    if (profile.photoURL || user.photoURL) {
+
+      document.getElementById("adminAvatar").src =
+        profile.photoURL ||
+        user.photoURL;
+
+    }
+
+
+    await loadStats();
+
+  } catch (error) {
+
+    console.error("Admin initialization error:", error);
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1052 @@
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+
+const {
+  initializeApp,
+  cert
+} = require("firebase-admin/app");
+
+const {
+  getAuth
+} = require("firebase-admin/auth");
+
+const {
+  getMessaging
+} = require("firebase-admin/messaging");
+
+const {
+  getFirestore,
+  FieldValue
+} = require("firebase-admin/firestore");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+/* =========================
+   FIREBASE ADMIN
+========================= */
+
+const serviceAccount = require(
+  "./footballxtra-firebase-adminsdk-fbsvc-f163909951.json"
+);
+
+initializeApp({
+  credential: cert(serviceAccount)
+});
+
+const firebaseAuth = getAuth();
+const messaging = getMessaging();
+const firestore = getFirestore();
+
+console.log("🔥 Firebase Admin initialized successfully!");
+
+/* =========================
+   MIDDLEWARE
+========================= */
+
+app.use(cors());
+app.use(express.json());
+
+/* =========================
+   HOME
+========================= */
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Football Website Backend is working! ⚽🔥"
+  });
+});
+
+/* =========================
+   HEALTH
+========================= */
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    status: "OK",
+    firebase: "connected"
+  });
+});
+
+/* =========================
+   FIREBASE STATUS
+========================= */
+
+app.get("/api/firebase-status", (req, res) => {
+  res.json({
+    success: true,
+    firebase: "Firebase Admin is connected 🔥"
+  });
+});
+
+/* =========================
+   AUTH MIDDLEWARE
+========================= */
+
+async function verifyFirebaseUser(req, res, next) {
+  try {
+
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return res.status(401).json({
+        success: false,
+        message: "Authorization header is required"
+      });
+    }
+
+    if (!authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid authorization format"
+      });
+    }
+
+    const idToken =
+      authHeader.split("Bearer ")[1];
+
+    if (!idToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Firebase ID token is required"
+      });
+    }
+
+    const decodedToken =
+      await firebaseAuth.verifyIdToken(idToken);
+
+    req.user = decodedToken;
+
+    next();
+
+  } catch (error) {
+
+    console.error("❌ Auth verification error:", error);
+
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired Firebase token"
+    });
+  }
+}
+
+/* =========================
+   REGISTER FCM TOKEN
+========================= */
+
+app.post(
+  "/api/register-fcm-token",
+  verifyFirebaseUser,
+  async (req, res) => {
+
+    try {
+
+      const {
+        token,
+        userAgent
+      } = req.body;
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          message: "FCM token is required"
+        });
+      }
+
+      const uid = req.user.uid;
+
+      await firestore
+        .collection("fcmTokens")
+        .doc(token)
+        .set({
+          uid: uid,
+          token: token,
+          userAgent: userAgent || "",
+          updatedAt: FieldValue.serverTimestamp()
+        }, {
+          merge: true
+        });
+
+      console.log(
+        "🔔 FCM token registered for:",
+        uid
+      );
+
+      res.json({
+        success: true,
+        message: "FCM token registered successfully 🔥"
+      });
+
+    } catch (error) {
+
+      console.error(
+        "❌ Token registration error:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+);
+
+/* =========================
+   SEND NOTIFICATION
+========================= */
+
+app.post(
+  "/api/send-notification",
+  verifyFirebaseUser,
+  async (req, res) => {
+
+    try {
+
+      const {
+        token,
+        title,
+        body
+      } = req.body;
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          message: "FCM token is required"
+        });
+      }
+
+      const message = {
+
+        token: token,
+
+        notification: {
+          title:
+            title || "FOOTBALLXTRA ⚽",
+
+          body:
+            body ||
+            "You have a new football notification 🔥"
+        },
+
+        data: {
+          click_action: "/"
+        }
+      };
+
+      const response =
+        await messaging.send(message);
+
+      console.log(
+        "📲 FCM notification sent:",
+        response
+      );
+
+      res.json({
+        success: true,
+        message:
+          "Notification sent successfully 🔥",
+        messageId: response
+      });
+
+    } catch (error) {
+
+      console.error(
+        "❌ FCM send error:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+);
+
+async function requireSuperAdmin(req, res, next) {
+  try {
+    const userSnap = await firestore.collection("users").doc(req.user.uid).get();
+
+    if (!userSnap.exists || userSnap.data().role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Super Admin permission is required"
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("❌ Super Admin check error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify admin permission"
+    });
+  }
+}
+
+app.post("/api/admins", verifyFirebaseUser, requireSuperAdmin, async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body || {};
+    const allowedRoles = ["super_admin", "content_admin", "video_admin", "match_admin", "moderator_admin"];
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ success: false, message: "Name, email, password and role are required" });
+    }
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ success: false, message: "Invalid admin role" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: "Password must be at least 6 characters" });
+    }
+
+    const newUser = await firebaseAuth.createUser({
+      email: email.trim(),
+      password,
+      displayName: name.trim()
+    });
+
+    try {
+      await firestore.collection("users").doc(newUser.uid).set({
+        uid: newUser.uid,
+        name: name.trim(),
+        email: email.trim(),
+        role,
+        premium: false,
+        createdAt: FieldValue.serverTimestamp()
+      });
+    } catch (firestoreError) {
+      await firebaseAuth.deleteUser(newUser.uid).catch(() => {});
+      throw firestoreError;
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Admin created successfully",
+      admin: {
+        uid: newUser.uid,
+        name: name.trim(),
+        email: email.trim(),
+        role
+      }
+    });
+  } catch (error) {
+    console.error("❌ Admin creation error:", error);
+
+    if (error.code === "auth/email-already-exists") {
+      return res.status(409).json({ success: false, message: "Email already exists" });
+    }
+
+    return res.status(500).json({ success: false, message: error.message || "Failed to create admin" });
+  }
+});
+
+/* =========================
+   SERVER
+========================= */
+
+app.listen(PORT, () => {
+
+  console.log(
+    `⚽ Backend running on http://localhost:${PORT}`
+  );
+
+});
+
+/* =========================
+   FOOTBALL API
+========================= */
+
+const FOOTBALL_API_KEY = process.env.FOOTBALL_API_KEY;
+const FOOTBALL_API_BASE_URL =
+  process.env.FOOTBALL_API_BASE_URL ||
+  "https://v3.football.api-sports.io";
+
+async function footballApiRequest(endpoint, params = {}) {
+  if (!FOOTBALL_API_KEY) {
+    throw new Error("FOOTBALL_API_KEY is missing in backend/.env");
+  }
+
+  const url = new URL(
+    `${FOOTBALL_API_BASE_URL.replace(/\/$/, "")}/${endpoint.replace(/^\//, "")}`
+  );
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      url.searchParams.set(key, String(value));
+    }
+  });
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "x-apisports-key": FOOTBALL_API_KEY,
+      "Accept": "application/json"
+    }
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.errors
+        ? JSON.stringify(data.errors)
+        : `Football API HTTP ${response.status}`
+    );
+  }
+
+  if (Array.isArray(data.errors) && data.errors.length > 0) {
+    throw new Error(JSON.stringify(data.errors));
+  }
+
+  return data;
+}
+
+/* =========================
+   PREMIER LEAGUE STANDINGS
+========================= */
+app.get("/api/team/:id", async (req, res) => {
+  try {
+    const teamId = req.params.id;
+    const leagueCode = req.query.league || "eng.1";
+
+    const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${leagueCode}/teams/${teamId}`);
+
+    if (!response.ok) {
+      throw new Error("ESPN HTTP " + response.status);
+    }
+
+    const data = await response.json();
+    const team = data.team || data;
+
+    res.json({
+      success: true,
+      source: "espn",
+      team: {
+        id: team.id || teamId,
+        name: team.displayName || team.name || "",
+        shortName: team.shortDisplayName || team.abbreviation || "",
+        logo: team.logos?.[0]?.href || team.logo || "",
+        color: team.color || "",
+        alternateColor: team.alternateColor || "",
+        location: team.location || "",
+        nickname: team.nickname || "",
+        league: team.defaultLeague?.name || "",
+        standingSummary: team.standingSummary || "",
+        record: team.record?.items?.[0]?.summary || "",
+        nextEvent: team.nextEvent?.[0] ? {
+          date: team.nextEvent[0].date || "",
+          name: team.nextEvent[0].name || "",
+          venue: team.nextEvent[0].competitions?.[0]?.venue?.fullName || "",
+          city: team.nextEvent[0].competitions?.[0]?.venue?.address?.city || "",
+          country: team.nextEvent[0].competitions?.[0]?.venue?.address?.country || ""
+        } : null
+      }
+    });
+  } catch (error) {
+    console.error("Team error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+
+/* =========================
+   TEAM FIXTURES
+========================= */
+app.get("/api/team/:id/roster", async (req, res) => {
+  try {
+    const teamId = String(req.params.id);
+    const leagueCode = req.query.league || "eng.1";
+
+    if (!/^\d+$/.test(teamId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid team ID"
+      });
+    }
+
+    const response = await fetch(
+      `https://site.api.espn.com/apis/site/v2/sports/soccer/${leagueCode}/teams/${teamId}/roster`
+    );
+
+    if (!response.ok) {
+      throw new Error("ESPN HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    const players = (data.athletes || []).map(player => ({
+      id: player.id || null,
+      name: player.displayName || player.fullName || "",
+      shortName: player.shortName || "",
+      firstName: player.firstName || "",
+      lastName: player.lastName || "",
+      jersey: player.jersey || "",
+      position: player.position?.displayName || "",
+      positionAbbreviation: player.position?.abbreviation || "",
+      age: player.age ?? null,
+      height: player.displayHeight || "",
+      weight: player.displayWeight || "",
+      citizenship: player.citizenship || "",
+      countryCode: player.citizenshipCountry?.abbreviation || "",
+      headshot: player.headshot?.href || "",
+      status: player.status?.name || ""
+    }));
+
+    res.json({
+      success: true,
+      source: "espn",
+      teamId: Number(teamId),
+      league: leagueCode,
+      season: data.season || null,
+      count: players.length,
+      players
+    });
+
+  } catch (error) {
+    console.error("Roster error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+app.get("/api/team/:id/fixtures", async (req, res) => {
+  try {
+    const teamId = String(req.params.id);
+    const leagueCode = req.query.league || "eng.1";
+
+    if (!/^\d+$/.test(teamId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid team ID"
+      });
+    }
+
+    const now = new Date();
+    const fixtures = [];
+
+    const addDays = (date, days) => {
+      const d = new Date(date);
+      d.setUTCDate(d.getUTCDate() + days);
+      return d;
+    };
+
+    const fmt = d =>
+      d.getUTCFullYear() +
+      String(d.getUTCMonth() + 1).padStart(2, "0") +
+      String(d.getUTCDate()).padStart(2, "0");
+
+    for (let offset = -30; offset <= 30; offset++) { console.log("CHECK DATE:", fmt(addDays(now, offset)));
+      const day = addDays(now, offset);
+      const date = fmt(day);
+
+      try {
+        const url =
+          `https://site.api.espn.com/apis/site/v2/sports/soccer/${leagueCode}/scoreboard` +
+          `?dates=${date}&limit=100`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) continue;
+
+        const data = await response.json();
+
+        for (const event of (data.events || [])) {
+          const competitors =
+            event.competitions?.[0]?.competitors || [];
+
+          const belongsToTeam = competitors.some(
+            c => String(c.team?.id || c.id) === teamId
+          );
+
+          if (belongsToTeam) {
+            fixtures.push(event);
+          }
+        }
+      } catch (error) {
+        console.error("Fixture day error:", date, error.message);
+      }
+    }
+
+    const unique = [];
+    const seen = new Set();
+
+    for (const fixture of fixtures) {
+      const key = String(fixture.id || fixture.date || fixture.name);
+
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(fixture);
+      }
+    }
+
+    unique.sort(
+      (a, b) =>
+        new Date(a.date).getTime() -
+        new Date(b.date).getTime()
+    );
+
+    res.json({
+      success: true,
+      source: "espn",
+      teamId: Number(teamId),
+      league: leagueCode,
+      count: unique.length,
+      fixtures: unique
+    });
+
+  } catch (error) {
+    console.error("Team fixtures error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+app.get("/api/standings/:league", async (req, res) => {
+  try {
+    const leagueMap = {
+      "premier-league": {
+        code: "eng.1",
+        name: "Premier League"
+      },
+      "laliga": {
+        code: "esp.1",
+        name: "LaLiga"
+      },
+      "bundesliga": {
+        code: "ger.1",
+        name: "Bundesliga"
+      },
+      "serie-a": {
+        code: "ita.1",
+        name: "Serie A"
+      },
+      "ligue-1": {
+        code: "fra.1",
+        name: "Ligue 1"
+      },
+      "champions-league": {
+        code: "uefa.champions",
+        name: "Champions League"
+      }
+    };
+
+    const selected = leagueMap[req.params.league];
+
+    if (!selected) {
+      return res.status(404).json({
+        success: false,
+        message: "League not supported"
+      });
+    }
+
+    const response = await fetch(
+      `https://site.api.espn.com/apis/v2/sports/soccer/${selected.code}/standings`
+    );
+
+    if (!response.ok) {
+      throw new Error("ESPN HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    const entries =
+      data.children?.[0]?.standings?.entries ||
+      data.standings?.entries ||
+      [];
+
+    const table = entries.map((item, index) => {
+      const stats = {};
+
+      (item.stats || []).forEach(stat => {
+        stats[stat.name] = stat.value;
+      });
+
+      return {
+        rank: item.note?.rank || index + 1,
+        team: {
+          id: item.team?.id || null,
+          name: item.team?.displayName || item.team?.name || "",
+          logo: item.team?.logos?.[0]?.href || ""
+        },
+        played: stats.gamesPlayed ?? 0,
+        wins: stats.wins ?? 0,
+        draws: stats.ties ?? stats.draws ?? 0,
+        losses: stats.losses ?? 0,
+        goalDifference: stats.pointDifferential ?? 0,
+        points: stats.points ?? 0
+      };
+    });
+
+    res.json({
+      success: true,
+      source: "espn",
+      league: selected.name,
+      season: data.children?.[0]?.standings?.season || null,
+      count: table.length,
+      standings: table
+    });
+
+  } catch (error) {
+    console.error("Standings error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/* =========================
+   LIVE MATCHES
+========================= */
+
+app.get("/api/matches/live", async (req, res) => {
+  try {
+    const data = await footballApiRequest("fixtures", {
+      live: "all"
+    });
+
+    const matches = (data.response || []).map((item) => ({
+      fixtureId: item.fixture?.id,
+
+      status: {
+        short: item.fixture?.status?.short || null,
+        long: item.fixture?.status?.long || null,
+        elapsed: item.fixture?.status?.elapsed ?? null,
+        extra: item.fixture?.status?.extra ?? null
+      },
+
+      league: {
+        id: item.league?.id ?? null,
+        name: item.league?.name || "",
+        country: item.league?.country || "",
+        logo: item.league?.logo || ""
+      },
+
+      home: {
+        id: item.teams?.home?.id ?? null,
+        name: item.teams?.home?.name || "",
+        logo: item.teams?.home?.logo || "",
+        winner: item.teams?.home?.winner ?? null
+      },
+
+      away: {
+        id: item.teams?.away?.id ?? null,
+        name: item.teams?.away?.name || "",
+        logo: item.teams?.away?.logo || "",
+        winner: item.teams?.away?.winner ?? null
+      },
+
+      goals: {
+        home: item.goals?.home ?? 0,
+        away: item.goals?.away ?? 0
+      },
+
+      fixture: {
+        date: item.fixture?.date || null,
+        timezone: item.fixture?.timezone || null,
+        venue: item.fixture?.venue?.name || ""
+      }
+    }));
+
+    res.json({
+      success: true,
+      source: "api-football",
+      count: matches.length,
+      matches
+    });
+
+  } catch (error) {
+    console.error("❌ Live matches error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/* =========================
+   ESPN TODAY'S MATCHES
+========================= */
+app.get("/api/matches/today-espn", async (req, res) => {
+  try {
+    const date = req.query.date || new Date().toISOString().slice(0, 10);
+    const dateParam = date.replace(/-/g, "");
+
+    const response = await fetch(
+      `https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=${dateParam}&limit=100`
+    );
+
+    if (!response.ok) {
+      throw new Error(`ESPN HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const matches = (data.events || []).map((event) => {
+      const competition = event.competitions?.[0] || {};
+      const competitors = competition.competitors || [];
+
+      const home = competitors.find(
+        (team) => team.homeAway === "home"
+      ) || {};
+
+      const away = competitors.find(
+        (team) => team.homeAway === "away"
+      ) || {};
+
+      return {
+        fixtureId: event.id || null,
+        status: {
+          short: event.status?.type?.state || null,
+          long: event.status?.type?.description || "",
+          detail: event.status?.type?.detail || "",
+          elapsed: null
+        },
+        league: {
+          name: "English Premier League",
+          country: "England",
+          logo: ""
+        },
+        home: {
+          id: home.id || null,
+          name: home.team?.displayName || "",
+          logo: home.team?.logo || home.team?.logos?.[0]?.href || ""
+        },
+        away: {
+          id: away.id || null,
+          name: away.team?.displayName || "",
+          logo: away.team?.logo || away.team?.logos?.[0]?.href || ""
+        },
+        goals: {
+          home: home.score != null ? Number(home.score) : null,
+          away: away.score != null ? Number(away.score) : null
+        },
+        fixture: {
+          date: event.date || null,
+          timezone: "UTC",
+          venue: competition.venue?.fullName ||
+            competition.venue?.address?.city ||
+            ""
+        }
+      };
+    });
+
+    res.json({
+      success: true,
+      source: "espn",
+      date,
+      count: matches.length,
+      matches
+    });
+  } catch (error) {
+    console.error("❌ ESPN today's matches error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/* =========================
+   FIXTURES BY DATE
+========================= */
+
+app.get("/api/matches/fixtures", async (req, res) => {
+  try {
+    const date = req.query.date;
+
+    if (!date) {
+      return res.status(400).json({
+        success: false,
+        message: "date query is required. Example: ?date=2026-09-07"
+      });
+    }
+
+    const data = await footballApiRequest("fixtures", {
+      date,
+      timezone: req.query.timezone || "Africa/Addis_Ababa"
+    });
+
+    res.json({
+      success: true,
+      source: "api-football",
+      date,
+      count: data.results || 0,
+      matches: data.response || []
+    });
+
+  } catch (error) {
+    console.error("❌ Fixtures error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/* =========================
+   SINGLE MATCH
+========================= */
+
+app.get("/api/matches/:fixtureId", async (req, res) => {
+  try {
+    const fixtureId = req.params.fixtureId;
+
+    if (!/^\d+$/.test(fixtureId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid fixture ID"
+      });
+    }
+
+    const data = await footballApiRequest("fixtures", {
+      id: fixtureId
+    });
+
+    res.json({
+      success: true,
+      source: "api-football",
+      fixtureId: Number(fixtureId),
+      count: data.results || 0,
+      match: data.response?.[0] || null
+    });
+
+  } catch (error) {
+    console.error("❌ Match details error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/* =========================
+   MATCH LINEUPS
+========================= */
+
+app.get("/api/matches/:fixtureId/lineups", async (req, res) => {
+  try {
+    const fixtureId = req.params.fixtureId;
+
+    if (!/^\d+$/.test(fixtureId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid fixture ID"
+      });
+    }
+
+    const data = await footballApiRequest("fixtures/lineups", {
+      fixture: fixtureId
+    });
+
+    res.json({
+      success: true,
+      source: "api-football",
+      fixtureId: Number(fixtureId),
+      count: data.results || 0,
+      lineups: data.response || []
+    });
+
+  } catch (error) {
+    console.error("❌ Lineups error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/* =========================
+   MATCH EVENTS
+========================= */
+
+app.get("/api/matches/:fixtureId/events", async (req, res) => {
+  try {
+    const fixtureId = req.params.fixtureId;
+
+    if (!/^\d+$/.test(fixtureId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid fixture ID"
+      });
+    }
+
+    const data = await footballApiRequest("fixtures/events", {
+      fixture: fixtureId
+    });
+
+    res.json({
+      success: true,
+      source: "api-football",
+      fixtureId: Number(fixtureId),
+      count: data.results || 0,
+      events: data.response || []
+    });
+
+  } catch (error) {
+    console.error("❌ Match events error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+/* =========================
+   MATCH STATISTICS
+========================= */
+
+app.get("/api/matches/:fixtureId/statistics", async (req, res) => {
+  try {
+    const fixtureId = req.params.fixtureId;
+
+    if (!/^\d+$/.test(fixtureId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid fixture ID"
+      });
+    }
+
+    const data = await footballApiRequest("fixtures/statistics", {
+      fixture: fixtureId
+    });
+
+    res.json({
+      success: true,
+      source: "api-football",
+      fixtureId: Number(fixtureId),
+      count: data.results || 0,
+      statistics: data.response || []
+    });
+
+  } catch (error) {
+    console.error("❌ Match statistics error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});

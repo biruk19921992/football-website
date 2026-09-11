@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Profile - FootballXtra</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: #050b14;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    .glass {
+      background: rgba(15, 23, 42, .82);
+      border: 1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+
+<header class="sticky top-0 z-50 border-b border-white/10 bg-[#050b14]/95 backdrop-blur">
+  <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+    <a href="standings.html" class="text-sm text-gray-300 hover:text-white">
+      ← Back
+    </a>
+
+    <div class="font-black tracking-wide">
+      <span class="text-white">FOOTBALL</span><span class="text-green-400">XTRA</span>
+    </div>
+
+    <div class="w-12"></div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-6">
+
+  <section id="teamHero" class="glass rounded-3xl p-6 mb-6">
+    <div class="flex flex-col items-center text-center">
+      <div class="w-28 h-28 rounded-full bg-white flex items-center justify-center p-4 shadow-2xl">
+        <img id="teamLogo"
+             src=""
+             alt="Team logo"
+             class="max-w-full max-h-full object-contain">
+      </div>
+
+      <div class="mt-5">
+        <p id="teamLeague" class="text-sm text-green-400 font-bold uppercase tracking-wider">
+          Loading...
+        </p>
+
+        <h1 id="teamName" class="text-3xl md:text-4xl font-black mt-2">
+          Loading...
+        </h1>
+
+        <p id="teamShortName" class="text-gray-400 mt-1"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+
+    <div class="glass rounded-2xl p-4 text-center">
+      <p class="text-xs text-gray-400 uppercase">Position</p>
+      <p id="position" class="text-2xl font-black mt-1">-</p>
+    </div>
+
+    <div class="glass rounded-2xl p-4 text-center">
+      <p class="text-xs text-gray-400 uppercase">Points</p>
+      <p id="points" class="text-2xl font-black mt-1 text-green-400">-</p>
+    </div>
+
+    <div class="glass rounded-2xl p-4 text-center">
+      <p class="text-xs text-gray-400 uppercase">Played</p>
+      <p id="played" class="text-2xl font-black mt-1">-</p>
+    </div>
+
+    <div class="glass rounded-2xl p-4 text-center">
+      <p class="text-xs text-gray-400 uppercase">Goal Diff</p>
+      <p id="goalDifference" class="text-2xl font-black mt-1">-</p>
+    </div>
+
+  </section>
+
+  <section class="glass rounded-3xl p-5 mb-6">
+    <h2 class="text-lg font-black mb-4">Season Record</h2>
+
+    <div class="grid grid-cols-3 gap-3 text-center">
+
+      <div class="rounded-2xl bg-green-500/10 p-4">
+        <p class="text-xs text-gray-400">WINS</p>
+        <p id="wins" class="text-2xl font-black text-green-400">-</p>
+      </div>
+
+      <div class="rounded-2xl bg-yellow-500/10 p-4">
+        <p class="text-xs text-gray-400">DRAWS</p>
+        <p id="draws" class="text-2xl font-black text-yellow-400">-</p>
+      </div>
+
+      <div class="rounded-2xl bg-red-500/10 p-4">
+        <p class="text-xs text-gray-400">LOSSES</p>
+        <p id="losses" class="text-2xl font-black text-red-400">-</p>
+      </div>
+
+    </div>
+  </section>
+
+
+  <section class="grid md:grid-cols-2 gap-4 mb-6">
+
+    <div class="glass rounded-3xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-black">⚽ Next Fixture</h2>
+        <span class="text-xs text-green-400 font-bold">UPCOMING</span>
+      </div>
+
+      <div id="nextFixture" class="text-sm text-gray-400">
+        Loading next fixture...
+      </div>
+    </div>
+
+    <div class="glass rounded-3xl p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-black">🏆 Recent Results</h2>
+        <span class="text-xs text-gray-500 font-bold">LATEST</span>
+      </div>
+
+      <div id="recentResults" class="space-y-3">
+        <div class="text-sm text-gray-400">
+          Loading recent results...
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="glass rounded-3xl p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-black">Team Information</h2>
+      <span class="text-xs text-green-400 font-bold">LIVE DATA</span>
+    </div>
+
+    <div id="teamInfo" class="text-sm text-gray-400">
+      Loading team information...
+    </div>
+  </section>
+
+  <div id="errorBox"
+       class="hidden mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-center">
+    <p class="text-red-400 font-bold">Unable to load team</p>
+    <p id="errorText" class="text-sm text-gray-400 mt-1"></p>
+  </div>
+
+</main>
+
+<script>
+const API_BASE = "http://localhost:3000";
+
+const params = new URLSearchParams(window.location.search);
+const teamId = params.get("id");
+const league = params.get("league") || "eng.1";
+
+const leagueNames = {
+  "eng.1": "Premier League",
+  "esp.1": "LaLiga",
+  "ger.1": "Bundesliga",
+  "ita.1": "Serie A",
+  "fra.1": "Ligue 1",
+  "uefa.champions": "Champions League"
+};
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value ?? "-";
+}
+
+function formatGD(value) {
+  const n = Number(value || 0);
+  return n > 0 ? "+" + n : String(n);
+}
+
+async function loadTeam() {
+  if (!teamId) {
+    showError("No team ID was provided.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/team/${encodeURIComponent(teamId)}?league=${encodeURIComponent(league)}`,
+      { cache: "no-store" }
+    );
+
+    if (!response.ok) {
+      throw new Error("Team API HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    if (!data.success || !data.team) {
+      throw new Error(data.message || "Team data unavailable");
+    }
+
+    const team = data.team;
+
+    setText("teamName", team.name);
+    setText("teamShortName", team.shortName);
+    setText("teamLeague", leagueNames[league] || league);
+
+    const logo = document.getElementById("teamLogo");
+    logo.src = team.logo || "";
+    logo.alt = team.name || "Team logo";
+
+    document.title = `${team.name} - FootballXtra`;
+
+    setText(
+      "teamInfo",
+      `${team.name} is currently being tracked through FootballXtra live football data.`
+    );
+
+    /*
+      Find the team's current standings row so we can display
+      position, points and W/D/L.
+    */
+    const fixturesResponse = await fetch(
+      `${API_BASE}/api/team/${encodeURIComponent(teamId)}/fixtures?league=${encodeURIComponent(league)}`,
+      { cache: "no-store" }
+    );
+
+    if (fixturesResponse.ok) {
+      const fixturesData = await fixturesResponse.json();
+      const fixtures = fixturesData.fixtures || [];
+
+      const now = Date.now();
+
+      const upcoming = fixtures
+        .filter(f => new Date(f.date).getTime() > now)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+
+      const recent = fixtures
+        .filter(f => new Date(f.date).getTime() <= now)
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 5);
+
+      const nextEl = document.getElementById("nextFixture");
+      const recentEl = document.getElementById("recentResults");
+
+      if (upcoming && nextEl) {
+        const comp = upcoming.competitions?.[0];
+        const competitors = comp?.competitors || [];
+
+        const home = competitors.find(c => c.homeAway === "home")?.team;
+        const away = competitors.find(c => c.homeAway === "away")?.team;
+
+        nextEl.innerHTML = `
+          <div class="text-center">
+            <p class="text-xs text-gray-500 mb-3">
+              ${new Date(upcoming.date).toLocaleString()}
+            </p>
+            <div class="flex items-center justify-center gap-4">
+              <span class="font-bold">${home?.shortDisplayName || home?.displayName || "Home"}</span>
+              <span class="text-green-400 font-black">VS</span>
+              <span class="font-bold">${away?.shortDisplayName || away?.displayName || "Away"}</span>
+            </div>
+          </div>
+        `;
+      } else if (nextEl) {
+        nextEl.textContent = "No upcoming fixture found.";
+      }
+
+      if (recentEl) {
+        if (!recent.length) {
+          recentEl.innerHTML = '<div class="text-sm text-gray-400">No recent results found.</div>';
+        } else {
+          recentEl.innerHTML = recent.map(f => {
+            const comp = f.competitions?.[0];
+            const competitors = comp?.competitors || [];
+
+            const home = competitors.find(c => c.homeAway === "home");
+            const away = competitors.find(c => c.homeAway === "away");
+
+            return `
+              <div class="rounded-2xl bg-white/5 p-3 flex items-center justify-between gap-3">
+                <div class="text-sm font-semibold">${home?.team?.shortDisplayName || home?.team?.displayName || "Home"}</div>
+                <div class="text-xs text-gray-400">
+                  ${home?.score?.displayValue ?? home?.score?.value ?? "-"} - ${away?.score?.displayValue ?? away?.score?.value ?? "-"}
+                </div>
+                <div class="text-sm font-semibold text-right">${away?.team?.shortDisplayName || away?.team?.displayName || "Away"}</div>
+              </div>
+            `;
+          }).join("");
+        }
+      }
+    }
+
+    const standingsResponse = await fetch(
+      `${API_BASE}/api/standings/${leagueToSlug(league)}`,
+      { cache: "no-store" }
+    );
+
+    if (standingsResponse.ok) {
+      const standingsData = await standingsResponse.json();
+
+      const rows = standingsData.standings || [];
+
+      const row = rows.find(
+        item => String(item.team?.id) === String(teamId)
+      );
+
+      if (row) {
+        setText("position", row.rank);
+        setText("points", row.points);
+        setText("played", row.played);
+        setText("goalDifference", formatGD(row.goalDifference));
+        setText("wins", row.wins);
+        setText("draws", row.draws);
+        setText("losses", row.losses);
+      }
+    }
+
+  } catch (error) {
+    console.error(error);
+    showError(error.message);
+  }
+}
+
+function leagueToSlug(code) {
+  const map = {
+    "eng.1": "premier-league",
+    "esp.1": "laliga",
+    "ger.1": "bundesliga",
+    "ita.1": "serie-a",
+    "fra.1": "ligue-1",
+    "uefa.champions": "champions-league"
+  };
+
+  return map[code] || "premier-league";
+}
+
+function showError(message) {
+  document.getElementById("errorBox").classList.remove("hidden");
+  setText("errorText", message || "Unknown error");
+}
+
+loadTeam();
+</script>
+
+</body>
+</html>

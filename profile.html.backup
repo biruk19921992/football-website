@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>My Profile - FOOTBALLXTRA</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(circle at top, #182033 0%, #080b12 45%, #05070b 100%);
+    }
+
+    .glass {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(18px);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen text-white">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-50 bg-black/50 backdrop-blur-xl border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
+
+      <a href="index.html"
+         class="text-2xl font-black">
+        FOOTBALL<span class="text-green-400">XTRA</span>
+      </a>
+
+      <a href="index.html"
+         class="text-gray-400 hover:text-white">
+        <i class="fa-solid fa-house mr-1"></i>
+        Home
+      </a>
+
+    </div>
+  </header>
+
+
+  <!-- MAIN -->
+  <main class="max-w-4xl mx-auto px-5 py-10">
+
+    <!-- PROFILE HEADER -->
+    <section class="glass rounded-3xl p-6 sm:p-8">
+
+      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+
+        <!-- AVATAR -->
+        <div class="relative">
+
+          <div id="avatar"
+               class="w-28 h-28 rounded-full
+                      bg-green-400/10
+                      border-2 border-green-400/30
+                      flex items-center justify-center
+                      overflow-hidden">
+
+            <i class="fa-solid fa-user text-5xl text-green-400"></i>
+
+          </div>
+
+          <button id="changePhotoBtn" type="button"
+            class="absolute bottom-1 right-1
+                   w-9 h-9 rounded-full
+                   bg-green-400 text-black
+                   flex items-center justify-center
+                   shadow-lg">
+
+            <i class="fa-solid fa-camera"></i>
+          </button>
+
+          <input id="photoInput" type="file" accept="image/*" class="hidden">
+
+        </div>
+
+
+        <!-- USER INFO -->
+        <div class="text-center sm:text-left flex-1">
+
+          <div class="flex flex-col sm:flex-row
+                      items-center sm:items-center gap-3">
+
+            <h1 id="userName"
+                class="text-3xl font-black">
+              Loading...
+            </h1>
+
+            <span id="premiumBadge"
+                  class="hidden px-3 py-1 rounded-full
+                         text-xs font-bold
+                         bg-yellow-400/10
+                         text-yellow-300
+                         border border-yellow-400/20">
+
+              <i class="fa-solid fa-crown mr-1"></i>
+              PREMIUM
+
+            </span>
+
+          </div>
+
+          <p id="userEmail"
+             class="text-gray-400 mt-2">
+            Loading...
+          </p>
+
+          <p class="text-xs text-gray-500 mt-3">
+            <i class="fa-solid fa-futbol mr-1"></i>
+            FOOTBALLXTRA Member
+          </p>
+
+        </div>
+
+
+        <!-- EDIT -->
+        <button
+          id="editBtn"
+          class="px-5 py-2.5 rounded-xl
+                 border border-white/10
+                 bg-white/5
+                 hover:bg-white/10
+                 font-semibold">
+
+          <i class="fa-solid fa-pen mr-2"></i>
+          Edit
+
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- STATS -->
+    <section class="grid grid-cols-3 gap-3 mt-5">
+
+      <div class="glass rounded-2xl p-5 text-center">
+        <p id="commentsCount"
+           class="text-2xl font-black">
+          0
+        </p>
+        <p class="text-xs text-gray-500 mt-1">
+          Comments
+        </p>
+      </div>
+
+      <div class="glass rounded-2xl p-5 text-center">
+        <p id="favoritesCount"
+           class="text-2xl font-black">
+          0
+        </p>
+        <p class="text-xs text-gray-500 mt-1">
+          Favorites
+        </p>
+      </div>
+
+      <div class="glass rounded-2xl p-5 text-center">
+        <p class="text-2xl font-black">
+          0
+        </p>
+        <p class="text-xs text-gray-500 mt-1">
+          Following
+        </p>
+      </div>
+
+    </section>
+
+
+    <!-- ACCOUNT -->
+    <section class="mt-8">
+
+      <h2 class="text-xl font-black mb-4">
+        Account
+      </h2>
+
+      <div class="glass rounded-2xl overflow-hidden">
+
+        <div class="p-5 flex items-center justify-between
+                    border-b border-white/10">
+
+          <div class="flex items-center gap-4">
+
+            <div class="w-10 h-10 rounded-xl
+                        bg-blue-400/10
+                        flex items-center justify-center">
+
+              <i class="fa-solid fa-envelope text-blue-400"></i>
+
+            </div>
+
+            <div>
+              <p class="font-semibold">Email</p>
+              <p id="accountEmail"
+                 class="text-sm text-gray-500">
+                Loading...
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <a href="javascript:void(0)"
+           class="p-5 flex items-center justify-between
+                  hover:bg-white/5 transition">
+
+          <div class="flex items-center gap-4">
+
+            <div class="w-10 h-10 rounded-xl
+                        bg-purple-400/10
+                        flex items-center justify-center">
+
+              <i class="fa-solid fa-lock text-purple-400"></i>
+
+            </div>
+
+            <div>
+              <p class="font-semibold">Password</p>
+              <p class="text-sm text-gray-500">
+                Change your password
+              </p>
+            </div>
+
+          </div>
+
+          <i class="fa-solid fa-chevron-right text-gray-500"></i>
+
+        </a>
+
+      </div>
+
+    </section>
+
+
+    <!-- FOOTBALL -->
+    <section class="mt-8">
+
+      <h2 class="text-xl font-black mb-4">
+        Football Preferences
+      </h2>
+
+      <div class="glass rounded-2xl p-5">
+
+        <label class="block text-sm font-semibold mb-3">
+          Favorite Team
+        </label>
+
+        <select id="favoriteTeam"
+                class="w-full bg-black/40
+                       border border-white/10
+                       rounded-xl px-4 py-3
+                       outline-none
+                       focus:border-green-400">
+
+          <option value="">Select your favorite team</option>
+          <option value="Manchester United">Manchester United</option>
+          <option value="Liverpool">Liverpool</option>
+          <option value="Arsenal">Arsenal</option>
+          <option value="Chelsea">Chelsea</option>
+          <option value="Manchester City">Manchester City</option>
+          <option value="Real Madrid">Real Madrid</option>
+          <option value="Barcelona">Barcelona</option>
+          <option value="Bayern Munich">Bayern Munich</option>
+          <option value="PSG">PSG</option>
+          <option value="Ethiopia">Ethiopia</option>
+
+        </select>
+
+        <button id="saveTeam"
+                class="mt-4 w-full
+                       bg-green-400
+                       hover:bg-green-300
+                       text-black
+                       font-black
+                       py-3 rounded-xl">
+
+          <i class="fa-solid fa-floppy-disk mr-2"></i>
+          Save Preference
+
+        </button>
+
+        <p id="teamMessage"
+           class="hidden text-sm mt-3 text-center">
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- PREMIUM -->
+    <section class="mt-8">
+
+      <div class="rounded-3xl p-6
+                  bg-gradient-to-r
+                  from-yellow-400/10
+                  to-orange-500/10
+                  border border-yellow-400/20">
+
+        <div class="flex items-center gap-4">
+
+          <div class="w-12 h-12 rounded-2xl
+                      bg-yellow-400/10
+                      flex items-center justify-center">
+
+            <i class="fa-solid fa-crown text-yellow-300 text-xl"></i>
+
+          </div>
+
+          <div class="flex-1">
+
+            <h3 class="font-black">
+              FOOTBALLXTRA Premium
+            </h3>
+
+            <p class="text-sm text-gray-400 mt-1">
+              Unlock exclusive football content.
+            </p>
+
+          </div>
+
+          <button
+            class="hidden sm:block
+                   px-4 py-2 rounded-xl
+                   bg-yellow-400
+                   text-black
+                   font-bold">
+
+            Upgrade
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- LOGOUT -->
+    <section class="mt-8 mb-10">
+
+      <button id="logoutBtn"
+              class="w-full rounded-2xl
+                     border border-red-500/20
+                     bg-red-500/10
+                     hover:bg-red-500/20
+                     text-red-300
+                     font-bold
+                     py-4">
+
+        <i class="fa-solid fa-right-from-bracket mr-2"></i>
+        Logout
+
+      </button>
+
+    </section>
+
+  </main>
+
+
+  <!-- FIREBASE -->
+  <script type="module">
+
+    import { watchAuth, logout } from "./js/auth.js";
+
+    import {
+      doc,
+      getDoc,
+      setDoc
+    } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+    import { db, auth } from "./js/firebase.js";
+
+
+    const userName = document.getElementById("userName");
+    const userEmail = document.getElementById("userEmail");
+    const accountEmail = document.getElementById("accountEmail");
+
+    const favoriteTeam =
+      document.getElementById("favoriteTeam");
+
+    const saveTeam =
+      document.getElementById("saveTeam");
+
+    const teamMessage =
+      document.getElementById("teamMessage");
+
+    const logoutBtn =
+      document.getElementById("logoutBtn");
+
+    const premiumBadge =
+      document.getElementById("premiumBadge");
+
+
+    // AUTH
+    watchAuth(async (user) => {
+
+      if (!user) {
+
+        window.location.replace("login.html");
+
+        return;
+      }
+
+
+      userName.textContent =
+        user.displayName || "FOOTBALLXTRA User";
+
+      userEmail.textContent =
+        user.email || "";
+
+      accountEmail.textContent =
+        user.email || "";
+
+
+      // FIRESTORE PROFILE
+      try {
+
+        const userRef =
+          doc(db, "users", user.uid);
+
+        const snapshot =
+          await getDoc(userRef);
+
+
+        if (snapshot.exists()) {
+
+          const data =
+            snapshot.data();
+
+          if (data.name) {
+
+            userName.textContent =
+              data.name;
+
+          }
+
+          if (data.favoriteTeam) {
+
+            favoriteTeam.value =
+              data.favoriteTeam;
+
+          }
+
+          if (data.premium === true) {
+
+            premiumBadge.classList.remove("hidden");
+
+          }
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Profile loading error:",
+          error
+        );
+
+      }
+
+    });
+
+
+    // SAVE FAVORITE TEAM
+    saveTeam.addEventListener("click", async () => {
+
+      const user =
+        auth.currentUser;
+
+      if (!user) {
+
+        teamMessage.textContent =
+          "Please login first.";
+
+        teamMessage.className =
+          "text-sm mt-3 text-center text-red-400";
+
+        return;
+      }
+
+
+      try {
+
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            favoriteTeam:
+              favoriteTeam.value
+          },
+          {
+            merge: true
+          }
+        );
+
+
+        teamMessage.textContent =
+          "Favorite team saved successfully!";
+
+        teamMessage.className =
+          "text-sm mt-3 text-center text-green-400";
+
+      } catch (error) {
+
+        console.error(error);
+
+        teamMessage.textContent =
+          "Could not save preference.";
+
+        teamMessage.className =
+          "text-sm mt-3 text-center text-red-400";
+
+      }
+
+    });
+
+
+    // LOGOUT
+    logoutBtn.addEventListener("click", async () => {
+
+      const success = await logout();
+
+      if (success) {
+
+        window.location.replace("login.html");
+
+      }
+
+    });
+
+function raw() { [native code] }
+  </script>
+
+</body>
+</html>
+
+<script type="module" src="./photo-upload.js"></script>

@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Football Xtra | Football News & Scores</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: #07090d;
+      color: white;
+    }
+
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .hero {
+      background:
+        linear-gradient(to right, rgba(7,9,13,0.95), rgba(7,9,13,0.45)),
+        url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1600&q=80");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hide-scrollbar {
+      scrollbar-width: none;
+    }
+
+    .news-card {
+      transition: 0.25s ease;
+    }
+
+    .news-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .bottom-nav {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  </style>
+</head>
+
+<body class="pb-20 md:pb-0">
+
+<!-- ================= HEADER ================= -->
+
+<header class="sticky top-0 z-50 border-b border-white/10 bg-[#07090d]/90 backdrop-blur-xl">
+
+  <div class="max-w-7xl mx-auto px-4">
+
+    <div class="h-16 flex items-center justify-between">
+
+      <!-- LOGO -->
+
+      <a href="index.html" class="flex items-center gap-2">
+
+        <div class="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center">
+          <i class="fa-solid fa-futbol text-black text-xl"></i>
+        </div>
+
+        <div>
+          <h1 class="font-black text-xl tracking-tight">
+            FOOTBALL<span class="text-green-400">XTRA</span>
+          </h1>
+
+          <p class="text-[9px] text-gray-500 tracking-[3px]">
+            FOOTBALL MEDIA
+          </p>
+        </div>
+
+      </a>
+
+
+      <!-- DESKTOP NAV -->
+
+      <nav class="hidden lg:flex items-center gap-7 text-sm font-semibold">
+
+        <a href="index.html" class="text-green-400">
+          Home
+        </a>
+
+        <a href="news.html" class="text-gray-300 hover:text-green-400">
+          News
+        </a>
+
+        <a href="scores.html" class="text-gray-300 hover:text-green-400">
+          Scores
+        </a>
+
+        <a href="fixtures.html" class="text-gray-300 hover:text-green-400">
+          Fixtures
+        </a>
+
+        <a href="#" class="text-gray-300 hover:text-green-400">
+          Transfers
+        </a>
+
+          Videos
+        </a>
+
+      </nav>
+
+
+      <!-- ACTIONS -->
+
+      <div class="flex items-center gap-2">
+
+        <button
+          class="w-10 h-10 rounded-xl glass flex items-center justify-center">
+          <i class="fa-solid fa-magnifying-glass text-gray-300"></i>
+        </button>
+
+        <button id="notificationBtn"
+          class="flex w-10 h-10 rounded-xl glass items-center justify-center relative">
+
+          <i class="fa-regular fa-bell text-gray-300"></i>
+
+          <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+
+        </button>
+
+        <div class="relative hidden sm:block">
+
+  <a
+    id="headerAuthLink"
+    href="login.html"
+    class="flex items-center bg-green-500 hover:bg-green-400 text-black px-4 py-2.5 rounded-xl font-bold text-sm transition">
+
+    Login
+
+  </a>
+
+  <div
+    id="profileDropdown"
+    class="hidden absolute right-0 top-14 w-64 glass rounded-2xl p-2 border border-white/10 shadow-2xl z-50">
+
+    <div class="px-4 py-3 border-b border-white/10 mb-2">
+
+      <div class="flex items-center gap-3">
+
+        <div
+          id="dropdownAvatar"
+          class="w-11 h-11 rounded-full bg-green-400/10 border border-green-400/30 flex items-center justify-center overflow-hidden">
+
+          <i class="fa-solid fa-user text-green-400"></i>
+
+        </div>
+
+        <div class="min-w-0">
+
+          <p
+            id="dropdownName"
+            class="font-bold text-white truncate">
+            User
+          </p>
+
+          <p
+            id="dropdownEmail"
+            class="text-xs text-gray-400 truncate">
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <a
+      href="profile.html"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-gray-200">
+
+      <i class="fa-regular fa-user w-5 text-green-400"></i>
+      <span>My Profile</span>
+
+    </a>
+
+    <a
+      href="profile.html"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-gray-200">
+
+      <i class="fa-solid fa-star w-5 text-yellow-400"></i>
+      <span>Favorite Team</span>
+
+    </a>
+
+    <a
+      href="profile.html"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/10 text-gray-200">
+
+      <i class="fa-solid fa-crown w-5 text-purple-400"></i>
+      <span>Premium</span>
+
+    </a>
+
+    <button
+      id="homeLogoutBtn"
+      type="button"
+      class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 text-red-400 text-left">
+
+      <i class="fa-solid fa-right-from-bracket w-5"></i>
+      <span>Logout</span>
+
+    </button>
+
+  </div>
+
+</div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<!-- ================= BREAKING NEWS ================= -->
+
+<div class="border-b border-white/10 bg-[#0b0f15]">
+
+  <div class="max-w-7xl mx-auto px-4">
+
+    <div class="flex items-center h-11 gap-4 overflow-hidden">
+
+      <span class="flex-shrink-0 bg-red-500 text-white text-xs font-black px-3 py-1.5 rounded-md">
+
+        🔴 BREAKING
+
+      </span>
+
+      <div class="whitespace-nowrap text-sm text-gray-300">
+
+        Manchester United complete major transfer deal as new season approaches...
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ================= HERO ================= -->
+
+<section class="hero min-h-[480px] flex items-center">
+
+  <div class="max-w-7xl mx-auto px-4 w-full">
+
+    <div class="max-w-2xl">
+
+      <span class="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full text-xs font-bold mb-5">
+
+        <i class="fa-solid fa-fire"></i>
+        TRANSFER NEWS
+
+      </span>
+
+      <h2 class="text-4xl md:text-6xl font-black leading-tight">
+
+        The latest football
+        <span class="text-green-400">
+          stories
+        </span>
+        you need to know.
+
+      </h2>
+
+      <p class="mt-5 text-gray-300 text-sm md:text-base leading-7 max-w-xl">
+
+        Get the latest football news, transfer updates, match results,
+        fixtures, videos and everything happening in the world of football.
+
+      </p>
+
+      <div class="flex flex-wrap gap-3 mt-7">
+
+        <a
+          href="news.html"
+          class="bg-green-500 hover:bg-green-400 text-black px-6 py-3 rounded-xl font-bold">
+
+          Read Latest News
+          <i class="fa-solid fa-arrow-right ml-2"></i>
+
+        </a>
+
+        <a
+          href="scores.html"
+          class="glass px-6 py-3 rounded-xl font-bold">
+
+          <i class="fa-solid fa-circle-play mr-2 text-green-400"></i>
+          Live Scores
+
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ================= MAIN ================= -->
+
+<main class="max-w-7xl mx-auto px-4 py-10">
+
+
+<!-- ================= LIVE SCORES ================= -->
+
+<section>
+
+  <div class="flex items-center justify-between mb-5">
+
+    <div class="flex items-center gap-3">
+
+      <div class="w-9 h-9 rounded-lg bg-red-500/15 flex items-center justify-center">
+
+        <i class="fa-solid fa-bolt text-red-400"></i>
+
+      </div>
+
+      <div>
+
+        <h2 class="font-black text-xl">
+          Live Scores
+        </h2>
+
+        <p class="text-xs text-gray-500">
+          Today's matches
+        </p>
+
+      </div>
+
+    </div>
+
+    <a href="scores.html"
+       class="text-green-400 text-sm font-bold">
+
+      View all →
+
+    </a>
+
+  </div>
+
+
+  <div
+    id="homeLiveScores"
+    class="grid md:grid-cols-3 gap-4">
+
+    <div class="glass rounded-2xl p-6 text-center text-gray-400">
+      <i class="fa-solid fa-spinner fa-spin text-green-400 text-xl mb-3"></i>
+      <p>Loading live scores...</p>
+    </div>
+
+  </div>
+    </section>
+
+
+<!-- ================= DYNAMIC ADVERTISEMENTS ================= -->
+<section id="homeAds" class="mt-10 hidden" aria-label="Advertisements"></section>
+
+<!-- ================= LATEST NEWS ================= -->
+<section class="mt-14">
+  <div class="flex items-end justify-between mb-6">
+    <div>
+      <p class="text-green-400 text-xs font-black tracking-widest uppercase">Stay updated</p>
+      <h2 class="text-2xl md:text-3xl font-black mt-1">Latest News</h2>
+    </div>
+    <a href="news.html" class="text-sm text-green-400 font-bold">See all news →</a>
+  </div>
+
+  <div id="homeLatestNews" class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="glass rounded-2xl p-8 text-center text-gray-500 md:col-span-4">
+      Loading latest news...
+    </div>
+  </div>
+</section>
+
+<!-- ================= LATEST VIDEOS ================= -->
+<section class="mt-14">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <p class="text-red-400 text-xs font-black tracking-widest">WATCH NOW</p>
+      <h2 class="text-2xl font-black">Latest Videos</h2>
+    </div>
+    <a href="videos.html" class="text-sm text-green-400 font-bold">See all videos →</a>
+  </div>
+
+  <div id="homeLatestVideos" class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="glass rounded-2xl p-8 text-center text-gray-500 md:col-span-4">
+      Loading latest videos...
+    </div>
+  </div>
+</section>
+
+<!-- ================= HIGHLIGHTS ================= -->
+<section class="mt-14">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <p class="text-yellow-400 text-xs font-black tracking-widest">MATCH ACTION</p>
+      <h2 class="text-2xl font-black">Highlights</h2>
+    </div>
+    <a href="videos.html" class="text-sm text-green-400 font-bold">More highlights →</a>
+  </div>
+
+  <div id="homeHighlights" class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="glass rounded-2xl p-8 text-center text-gray-500 md:col-span-4">
+      Loading highlights...
+    </div>
+  </div>
+</section>
+
+<!-- ================= TELEGRAM ================= -->
+
+<section class="mt-14">
+
+  <div class="rounded-3xl bg-green-500 p-7 md:p-10 text-black">
+
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+
+      <div>
+
+        <div class="flex items-center gap-3">
+
+          <div class="w-12 h-12 rounded-2xl bg-black/10 flex items-center justify-center">
+
+            <i class="fa-brands fa-telegram text-2xl"></i>
+
+          </div>
+
+          <h2 class="text-2xl font-black">
+            Join our Telegram
+          </h2>
+
+        </div>
+
+        <p class="mt-3 max-w-xl text-black/70 text-sm">
+
+          Get breaking football news, transfer updates and match alerts
+          directly on Telegram.
+
+        </p>
+
+      </div>
+
+      <a
+        href="#"
+        class="bg-black text-white px-6 py-3 rounded-xl font-bold text-center">
+
+        Join Channel
+        <i class="fa-solid fa-arrow-right ml-2"></i>
+
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ================= LEAGUE TABLE ================= -->
+
+<section class="mt-14">
+
+  <div class="flex justify-between items-center mb-5">
+
+    <div>
+
+      <p class="text-green-400 text-xs font-black tracking-widest">
+        PREMIER LEAGUE
+      </p>
+
+      <h2 class="text-2xl font-black">
+        League Table
+      </h2>
+
+    </div>
+
+    <a href="standings.html"
+       class="text-sm text-green-400 font-bold">
+
+      Full table →
+
+    </a>
+
+  </div>
+
+
+  <div class="glass rounded-2xl overflow-hidden">
+
+    <div class="grid grid-cols-12 px-4 py-3 text-[10px] text-gray-500 uppercase border-b border-white/10">
+
+      <span class="col-span-1">
+        #
+      </span>
+
+      <span class="col-span-6">
+        Team
+      </span>
+
+      <span class="col-span-2 text-center">
+        P
+      </span>
+
+      <span class="col-span-1 text-center">
+        GD
+      </span>
+
+      <span class="col-span-2 text-center">
+        PTS
+      </span>
+
+    </div>
+
+
+    <!-- TEAM -->
+
+    <div class="grid grid-cols-12 px-4 py-4 border-b border-white/5 items-center">
+
+      <span class="col-span-1 text-green-400 font-black">
+        1
+      </span>
+
+      <span class="col-span-6 font-semibold">
+        Liverpool
+      </span>
+
+      <span class="col-span-2 text-center text-gray-400">
+        5
+      </span>
+
+      <span class="col-span-1 text-center text-gray-400">
+        +8
+      </span>
+
+      <span class="col-span-2 text-center font-black">
+        13
+      </span>
+
+    </div>
+
+
+    <div class="grid grid-cols-12 px-4 py-4 border-b border-white/5 items-center">
+
+      <span class="col-span-1 text-green-400 font-black">
+        2
+      </span>
+
+      <span class="col-span-6 font-semibold">
+        Arsenal
+      </span>
+
+      <span class="col-span-2 text-center text-gray-400">
+        5
+      </span>
+
+      <span class="col-span-1 text-center text-gray-400">
+        +6
+      </span>
+
+      <span class="col-span-2 text-center font-black">
+        12
+      </span>
+
+    </div>
+
+
+    <div class="grid grid-cols-12 px-4 py-4 items-center">
+
+      <span class="col-span-1 text-green-400 font-black">
+        3
+      </span>
+
+      <span class="col-span-6 font-semibold">
+        Manchester United
+      </span>
+
+      <span class="col-span-2 text-center text-gray-400">
+        5
+      </span>
+
+      <span class="col-span-1 text-center text-gray-400">
+        +4
+      </span>
+
+      <span class="col-span-2 text-center font-black">
+        10
+      </span>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ================= PREMIUM ================= -->
+
+<section class="mt-14">
+
+  <div class="glass rounded-3xl p-7 md:p-10">
+
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+
+      <div>
+
+        <span class="text-yellow-400 text-xs font-black tracking-widest">
+          ⭐ PREMIUM
+        </span>
+
+        <h2 class="text-3xl font-black mt-2">
+          Go beyond the headlines.
+        </h2>
+
+        <p class="text-gray-400 mt-3 leading-7 text-sm">
+
+          Unlock exclusive football stories, advanced statistics,
+          premium transfer reports and an ad-free experience.
+
+        </p>
+
+        <button
+          class="mt-6 bg-yellow-400 text-black px-6 py-3 rounded-xl font-black">
+
+          Explore Premium
+          <i class="fa-solid fa-arrow-right ml-2"></i>
+
+        </button>
+
+      </div>
+
+
+      <div class="grid grid-cols-2 gap-3">
+
+        <div class="bg-white/5 rounded-2xl p-5">
+
+          <i class="fa-solid fa-ban text-yellow-400"></i>
+
+          <p class="font-bold mt-3">
+            Ad Free
+          </p>
+
+        </div>
+
+        <div class="bg-white/5 rounded-2xl p-5">
+
+          <i class="fa-solid fa-chart-line text-yellow-400"></i>
+
+          <p class="font-bold mt-3">
+            Advanced Stats
+          </p>
+
+        </div>
+
+        <div class="bg-white/5 rounded-2xl p-5">
+
+          <i class="fa-solid fa-bolt text-yellow-400"></i>
+
+          <p class="font-bold mt-3">
+            Early News
+          </p>
+
+        </div>
+
+        <div class="bg-white/5 rounded-2xl p-5">
+
+          <i class="fa-solid fa-star text-yellow-400"></i>
+
+          <p class="font-bold mt-3">
+            Exclusive
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer class="border-t border-white/10 mt-10">
+
+  <div class="max-w-7xl mx-auto px-4 py-10">
+
+    <div class="grid md:grid-cols-4 gap-8">
+
+      <div>
+
+        <h2 class="font-black text-xl">
+          FOOTBALL<span class="text-green-400">XTRA</span>
+        </h2>
+
+        <p class="text-gray-500 text-sm mt-3 leading-6">
+
+          Your home for football news, scores,
+          transfers and videos.
+
+        </p>
+
+      </div>
+
+
+      <div>
+
+        <h3 class="font-bold mb-3">
+          Football
+        </h3>
+
+        <div class="space-y-2 text-sm text-gray-500">
+
+          <a href="news.html" class="block hover:text-white">
+            News
+          </a>
+
+          <a href="scores.html" class="block hover:text-white">
+            Scores
+          </a>
+
+          <a href="fixtures.html" class="block hover:text-white">
+            Fixtures
+          </a>
+
+          <a href="standings.html" class="block hover:text-white">
+            Standings
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <h3 class="font-bold mb-3">
+          Company
+        </h3>
+
+        <div class="space-y-2 text-sm text-gray-500">
+
+          <a href="#" class="block hover:text-white">
+            About
+          </a>
+
+          <a href="#" class="block hover:text-white">
+            Contact
+          </a>
+
+          <a href="#" class="block hover:text-white">
+            Privacy
+          </a>
+
+          <a href="#" class="block hover:text-white">
+            Terms
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <div>
+
+        <h3 class="font-bold mb-3">
+          Follow us
+        </h3>
+
+        <div class="flex gap-3">
+
+          <a href="#"
+             class="w-10 h-10 rounded-xl glass flex items-center justify-center">
+
+            <i class="fa-brands fa-telegram"></i>
+
+          </a>
+
+          <a href="#"
+             class="w-10 h-10 rounded-xl glass flex items-center justify-center">
+
+            <i class="fa-brands fa-youtube"></i>
+
+          </a>
+
+          <a href="#"
+             class="w-10 h-10 rounded-xl glass flex items-center justify-center">
+
+            <i class="fa-brands fa-tiktok"></i>
+
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="border-t border-white/10 mt-8 pt-6 text-center text-xs text-gray-600">
+
+      © 2026 Football Xtra. All rights reserved.
+
+    </div>
+
+  </div>
+
+</footer>
+
+
+<!-- ================= MOBILE NAV ================= -->
+
+<nav class="bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0b0f15]/95 backdrop-blur-xl border-t border-white/10">
+
+  <div class="grid grid-cols-5 h-16">
+
+    <a href="index.html"
+       class="flex flex-col items-center justify-center text-green-400">
+
+      <i class="fa-solid fa-house"></i>
+
+      <span class="text-[9px] mt-1">
+        Home
+      </span>
+
+    </a>
+
+    <a href="news.html"
+       class="flex flex-col items-center justify-center text-gray-500">
+
+      <i class="fa-regular fa-newspaper"></i>
+
+      <span class="text-[9px] mt-1">
+        News
+      </span>
+
+    </a>
+
+    <a href="scores.html"
+       class="flex flex-col items-center justify-center text-gray-500">
+
+      <i class="fa-solid fa-futbol"></i>
+
+      <span class="text-[9px] mt-1">
+        Scores
+      </span>
+
+    </a>
+
+    <a href="videos.html"
+       class="flex flex-col items-center justify-center text-gray-500">
+
+      <i class="fa-brands fa-youtube"></i>
+
+      <span class="text-[9px] mt-1">
+        Videos
+      </span>
+
+    </a>
+
+              <a id="mobileAccountLink" href="login.html"
+       class="flex flex-col items-center justify-center text-gray-500">
+
+      <i class="fa-regular fa-user"></i>
+
+      <span class="text-[9px] mt-1">
+        Account
+      </span>
+
+    </a>
+
+  </div>
+
+</nav>
+
+
+<script type="module">
+  import { watchAuth } from "./js/auth.js";
+
+  import {
+    doc,
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+  import { db } from "./js/firebase.js";
+
+  const headerAuthLink =
+    document.getElementById("headerAuthLink");
+
+  const mobileAccountLink =
+    document.getElementById("mobileAccountLink");
+
+  function createUserContent(container, user, photoURL) {
+    if (!container) return;
+
+    const name =
+      user.displayName ||
+      "User";
+
+    const photo =
+      photoURL ||
+      "";
+
+    if (photo) {
+      container.innerHTML = `
+        <img
+          src="${photo}"
+          alt="Profile"
+          class="w-8 h-8 rounded-full object-cover border-2 border-green-400"
+        >
+        <span class="ml-2">${name}</span>
+      `;
+    } else {
+      container.innerHTML = `
+        <i class="fa-regular fa-user mr-2"></i>
+        <span>${name}</span>
+      `;
+    }
+  }
+
+  const profileDropdown =
+    document.getElementById("profileDropdown");
+
+  const dropdownAvatar =
+    document.getElementById("dropdownAvatar");
+
+  const dropdownName =
+    document.getElementById("dropdownName");
+
+  const dropdownEmail =
+    document.getElementById("dropdownEmail");
+
+  const homeLogoutBtn =
+    document.getElementById("homeLogoutBtn");
+
+  if (headerAuthLink) {
+    headerAuthLink.addEventListener("click", (event) => {
+
+      if (headerAuthLink.href.includes("profile.html")) {
+        event.preventDefault();
+
+        if (profileDropdown) {
+          profileDropdown.classList.toggle("hidden");
+        }
+      }
+
+    });
+  }
+
+  document.addEventListener("click", (event) => {
+
+    if (
+      profileDropdown &&
+      headerAuthLink &&
+      !profileDropdown.contains(event.target) &&
+      !headerAuthLink.contains(event.target)
+    ) {
+      profileDropdown.classList.add("hidden");
+    }
+
+  });
+
+  if (homeLogoutBtn) {
+
+    homeLogoutBtn.addEventListener("click", async () => {
+
+      const { logout } = await import("./js/auth.js");
+
+      const success = await logout();
+
+      if (success) {
+        window.location.replace("login.html");
+      }
+
+    });
+
+  }
+
+  watchAuth(async (user) => {
+
+    if (!user) {
+
+      if (headerAuthLink) {
+        headerAuthLink.href = "login.html";
+        headerAuthLink.innerHTML = "Login";
+      }
+
+      if (mobileAccountLink) {
+        mobileAccountLink.href = "login.html";
+
+        const text =
+          mobileAccountLink.querySelector("span");
+
+        if (text) {
+          text.textContent = "Account";
+        }
+      }
+
+      return;
+    }
+
+    let photoURL = "";
+    let firestoreName = "";
+
+    try {
+
+      const userRef =
+        doc(db, "users", user.uid);
+
+      const snapshot =
+        await getDoc(userRef);
+
+      if (snapshot.exists()) {
+
+        const data = snapshot.data();
+
+        photoURL =
+          data.photoURL || "";
+
+        firestoreName =
+          data.name || "";
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Home profile loading error:",
+        error
+      );
+    }
+
+    const finalName =
+      firestoreName ||
+      user.displayName ||
+      "User";
+
+    const finalPhoto =
+      photoURL || "";
+
+    if (dropdownName) {
+      dropdownName.textContent = finalName;
+    }
+
+    if (dropdownEmail) {
+      dropdownEmail.textContent = user.email || "";
+    }
+
+    if (dropdownAvatar && finalPhoto) {
+
+      dropdownAvatar.innerHTML = `
+        <img
+          src="${finalPhoto}"
+          alt="Profile"
+          class="w-full h-full object-cover"
+        >
+      `;
+
+    }
+
+
+    if (headerAuthLink) {
+
+      headerAuthLink.href =
+        "profile.html";
+
+      if (finalPhoto) {
+
+        headerAuthLink.innerHTML = `
+          <img
+            src="${finalPhoto}"
+            alt="Profile"
+            class="w-8 h-8 rounded-full object-cover border-2 border-green-400 inline-block mr-2"
+          >
+          <span>${finalName}</span>
+        `;
+
+      } else {
+
+        headerAuthLink.innerHTML = `
+          <i class="fa-regular fa-user mr-2"></i>
+          <span>${finalName}</span>
+        `;
+      }
+    }
+
+    if (mobileAccountLink) {
+
+      mobileAccountLink.href =
+        "profile.html";
+
+      if (finalPhoto) {
+
+        mobileAccountLink.innerHTML = `
+          <img
+            src="${finalPhoto}"
+            alt="Profile"
+            class="w-7 h-7 rounded-full object-cover border-2 border-green-400"
+          >
+          <span class="text-[9px] mt-1">
+            ${finalName}
+          </span>
+        `;
+
+      } else {
+
+        mobileAccountLink.innerHTML = `
+          <i class="fa-regular fa-user"></i>
+          <span class="text-[9px] mt-1">
+            ${finalName}
+          </span>
+        `;
+      }
+    }
+
+  });
+</script>
+<!-- NOTIFICATION PANEL -->
+<div
+  id="notificationDropdown"
+  class="hidden fixed top-20 right-4 w-[350px] max-w-[calc(100vw-2rem)] glass rounded-2xl border border-white/10 shadow-2xl z-[9999] overflow-hidden">
+
+  <div class="flex items-center justify-between px-4 py-4 border-b border-white/10">
+    <div class="flex items-center gap-2">
+      <i class="fa-regular fa-bell text-green-400"></i>
+      <h3 class="font-bold text-white">Notifications</h3>
+    </div>
+
+    <button
+      id="markAllReadBtn"
+      type="button"
+      class="text-xs text-green-400 hover:text-green-300 font-semibold">
+      Mark all as read
+    </button>
+  </div>
+
+  <div
+    id="notificationList"
+    class="max-h-[420px] overflow-y-auto">
+
+    <div
+      id="emptyNotifications"
+      class="px-6 py-12 text-center text-gray-400">
+
+      <i class="fa-regular fa-bell-slash text-3xl mb-3"></i>
+
+      <p class="text-sm">
+        No notifications yet
+      </p>
+
+    </div>
+
+  </div>
+</div>
+  <section id="homeSocialFeed" class="space-y-4"></section>
+  <script type="module" src="./js/home-feed.js?v=20260908"></script>
+<script type="module" src="./js/home-sections.js?v=20260908"></script>
+<script type="module" src="./js/home-ads.js?v=20260908"></script>
+<script type="module" src="./js/live-scores.js"></script>
+
+<script type="module" src="./notifications.js"></script>
+<script src="./js/mini-player.js"></script>
+</body>
+</html>
+

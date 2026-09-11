@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premier League Table - FootballXtra</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background:#050b08;
+      color:#fff;
+      font-family:Arial,sans-serif;
+    }
+    .glass {
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      backdrop-filter:blur(12px);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+
+  <header class="border-b border-white/10 bg-black/30">
+    <div class="max-w-5xl mx-auto px-4 py-5 flex items-center justify-between">
+      <a href="index.html"
+         class="text-green-400 font-black text-lg">
+        ← FootballXtra
+      </a>
+
+      <span class="text-xs text-gray-400 font-bold">
+        PREMIER LEAGUE
+      </span>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+
+    <div class="mb-6">
+      <p class="text-green-400 text-xs font-black tracking-widest">
+        PREMIER LEAGUE
+      </p>
+      <h1 class="text-3xl font-black mt-1">
+        Full League Table
+      </h1>
+      <p id="tableStatus" class="text-gray-500 text-sm mt-2">
+        Loading standings...
+      </p>
+    </div>
+
+    <div class="glass rounded-2xl overflow-hidden">
+
+      <div class="grid grid-cols-12 px-4 py-3 text-[10px] text-gray-500 uppercase border-b border-white/10">
+        <span class="col-span-1">#</span>
+        <span class="col-span-5">Team</span>
+        <span class="col-span-1 text-center">P</span>
+        <span class="col-span-1 text-center">W</span>
+        <span class="col-span-1 text-center">D</span>
+        <span class="col-span-1 text-center">L</span>
+        <span class="col-span-1 text-center">GD</span>
+        <span class="col-span-1 text-center">PTS</span>
+      </div>
+
+      <div id="standingsBody"></div>
+
+    </div>
+
+  </main>
+
+  <script>
+    const API_URL =
+      "http://localhost:3000/api/standings/premier-league";
+
+    async function loadStandings() {
+      const body = document.getElementById("standingsBody");
+      const status = document.getElementById("tableStatus");
+
+      try {
+        status.textContent = "Updating standings...";
+
+        const response = await fetch(API_URL, {
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+
+        const data = await response.json();
+
+        if (!data.success || !Array.isArray(data.standings)) {
+          throw new Error(data.message || "Invalid standings data");
+        }
+
+        body.innerHTML = "";
+
+        data.standings.forEach((team, index) => {
+          const row = document.createElement("div");
+
+          row.className =
+            "grid grid-cols-12 px-4 py-4 border-b border-white/5 items-center hover:bg-white/5 transition";
+
+          const gd = Number(team.goalDifference || 0);
+          const gdText = gd > 0 ? "+" + gd : String(gd);
+
+          row.innerHTML = `
+            <span class="col-span-1 font-black ${
+              index < 4 ? "text-green-400" : "text-gray-400"
+            }">
+              ${team.rank || index + 1}
+            </span>
+
+            <span class="col-span-5 font-semibold flex items-center gap-2 min-w-0">
+              ${
+                team.team?.logo
+                  ? `<img src="${team.team.logo}"
+                          alt=""
+                          class="w-7 h-7 object-contain flex-shrink-0">`
+                  : ""
+              }
+              <span class="truncate">
+                ${team.team?.name || "Unknown"}
+              </span>
+            </span>
+
+            <span class="col-span-1 text-center text-gray-400">
+              ${team.played ?? 0}
+            </span>
+
+            <span class="col-span-1 text-center text-gray-400">-</span>
+            <span class="col-span-1 text-center text-gray-400">-</span>
+            <span class="col-span-1 text-center text-gray-400">-</span>
+
+            <span class="col-span-1 text-center ${
+              gd > 0 ? "text-green-400" :
+              gd < 0 ? "text-red-400" :
+              "text-gray-400"
+            }">
+              ${gdText}
+            </span>
+
+            <span class="col-span-1 text-center font-black">
+              ${team.points ?? 0}
+            </span>
+          `;
+
+          body.appendChild(row);
+        });
+
+        status.textContent =
+          `${data.league || "Premier League"} • ${data.count || data.standings.length} teams • Live data`;
+
+      } catch (error) {
+        console.error("Standings error:", error);
+
+        status.textContent =
+          "Unable to load standings. Make sure the backend is running.";
+
+        body.innerHTML = `
+          <div class="p-8 text-center text-red-400">
+            Failed to load league table
+          </div>
+        `;
+      }
+    }
+
+    loadStandings();
+
+    setInterval(loadStandings, 60000);
+  </script>
+
+</body>
+</html>

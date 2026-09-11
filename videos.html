@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Videos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-[#0b0f15] text-white min-h-screen">
+
+<header class="sticky top-0 z-50 border-b border-white/10 bg-[#07090d]/90 backdrop-blur-xl">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="h-16 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2">
+        <div class="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center">
+          <i class="fa-solid fa-futbol text-black text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-black text-xl tracking-tight">
+            FOOTBALL<span class="text-green-400">XTRA</span>
+          </h1>
+          <p class="text-[9px] text-gray-500 tracking-[3px]">FOOTBALL MEDIA</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8 pb-24">
+    <h1 class="text-2xl font-bold mb-6">Videos</h1>
+
+    <div id="videoList" class="grid gap-6 sm:grid-cols-2"></div>
+  </main>
+
+  <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0b0f15]/95 backdrop-blur-xl border-t border-white/10">
+    <div class="grid grid-cols-5 h-16">
+
+      <a href="index.html" class="flex flex-col items-center justify-center text-gray-500">
+        <i class="fa-solid fa-house"></i>
+        <span class="text-[9px] mt-1">Home</span>
+      </a>
+
+      <a href="news.html" class="flex flex-col items-center justify-center text-gray-500">
+        <i class="fa-regular fa-newspaper"></i>
+        <span class="text-[9px] mt-1">News</span>
+      </a>
+
+      <a href="scores.html" class="flex flex-col items-center justify-center text-gray-500">
+        <i class="fa-solid fa-futbol"></i>
+        <span class="text-[9px] mt-1">Scores</span>
+      </a>
+
+      <a href="videos.html" class="flex flex-col items-center justify-center text-green-400">
+        <i class="fa-brands fa-youtube"></i>
+        <span class="text-[9px] mt-1">Videos</span>
+      </a>
+
+      <a href="profile.html" class="flex flex-col items-center justify-center text-gray-500">
+        <i class="fa-regular fa-user"></i>
+        <span class="text-[9px] mt-1">Profile</span>
+      </a>
+
+    </div>
+  </nav>
+
+<script type="module">
+import { db } from "./js/firebase.js";
+import { collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const videoList = document.getElementById("videoList");
+
+function escapeHTML(value = "") {
+  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+}
+
+async function loadVideos() {
+  try {
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    const videos = snapshot.docs.filter(doc => doc.data().type === "video");
+
+    if (!videos.length) {
+      videoList.innerHTML = '<div class="sm:col-span-2 text-center py-20 text-gray-400"><i class="fa-brands fa-youtube text-5xl mb-4"></i><p class="text-lg">No videos available yet.</p></div>';
+      return;
+    }
+
+    videoList.innerHTML = videos.map(doc => {
+      const v = doc.data();
+      const youtubeId = v.youtubeId || "";
+      return `<article class="overflow-hidden rounded-2xl bg-white/5 border border-white/10">
+        <a href="https://www.youtube.com/watch?v=${encodeURIComponent(youtubeId)}" target="_blank" rel="noopener">
+          <div class="relative aspect-video bg-black">
+            <img src="${escapeHTML(v.thumbnailUrl || v.image || "")}" alt="${escapeHTML(v.title || "Video")}" class="w-full h-full object-cover">
+            <div class="absolute inset-0 flex items-center justify-center bg-black/20">
+              <i class="fa-brands fa-youtube text-5xl text-white"></i>
+            </div>
+          </div>
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-lg">${escapeHTML(v.title || "Untitled video")}</h2>
+          <p class="text-sm text-gray-400 mt-2">${escapeHTML(v.content || "")}</p>
+        </div>
+      </article>`;
+    }).join("");
+  } catch (error) {
+    console.error("Videos error:", error);
+    videoList.innerHTML = '<div class="sm:col-span-2 text-center py-20 text-red-400">Failed to load videos.</div>';
+  }
+}
+
+loadVideos();
+</script>
+</body>
+</html>

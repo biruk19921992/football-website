@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Sign Up - FOOTBALLXTRA</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(circle at top, #182033 0%, #080b12 45%, #05070b 100%);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen text-white">
+
+  <!-- Header -->
+  <header class="border-b border-white/10 bg-black/30 backdrop-blur-xl">
+    <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
+
+      <a href="index.html"
+         class="text-2xl font-black tracking-tight">
+        FOOTBALL<span class="text-green-400">XTRA</span>
+      </a>
+
+      <a href="login.html"
+         class="text-sm text-gray-300 hover:text-white">
+        Login
+      </a>
+
+    </div>
+  </header>
+
+
+  <!-- Signup -->
+  <main class="min-h-[calc(100vh-73px)] flex items-center justify-center px-5 py-10">
+
+    <div class="w-full max-w-md">
+
+      <!-- Logo -->
+      <div class="text-center mb-8">
+
+        <div class="mx-auto mb-5 w-16 h-16 rounded-2xl
+                    bg-green-400/10 border border-green-400/20
+                    flex items-center justify-center">
+
+          <i class="fa-solid fa-futbol text-3xl text-green-400"></i>
+
+        </div>
+
+        <h1 class="text-3xl font-black">
+          Create Account
+        </h1>
+
+        <p class="text-gray-400 mt-2">
+          Join the FOOTBALLXTRA community
+        </p>
+
+      </div>
+
+
+      <!-- Card -->
+      <div class="bg-white/[0.06] border border-white/10
+                  rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+
+        <form id="signupForm" class="space-y-5">
+
+          <!-- Name -->
+          <div>
+            <label class="block text-sm font-semibold mb-2">
+              Full Name
+            </label>
+
+            <div class="relative">
+
+              <i class="fa-solid fa-user absolute left-4 top-1/2
+                         -translate-y-1/2 text-gray-500"></i>
+
+              <input
+                id="name"
+                type="text"
+                placeholder="Enter your name"
+                required
+                class="w-full bg-black/30 border border-white/10
+                       rounded-xl py-3.5 pl-11 pr-4
+                       outline-none focus:border-green-400
+                       transition">
+            </div>
+          </div>
+
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-semibold mb-2">
+              Email
+            </label>
+
+            <div class="relative">
+
+              <i class="fa-solid fa-envelope absolute left-4 top-1/2
+                         -translate-y-1/2 text-gray-500"></i>
+
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+                class="w-full bg-black/30 border border-white/10
+                       rounded-xl py-3.5 pl-11 pr-4
+                       outline-none focus:border-green-400
+                       transition">
+            </div>
+          </div>
+
+
+          <!-- Password -->
+          <div>
+            <label class="block text-sm font-semibold mb-2">
+              Password
+            </label>
+
+            <div class="relative">
+
+              <i class="fa-solid fa-lock absolute left-4 top-1/2
+                         -translate-y-1/2 text-gray-500"></i>
+
+              <input
+                id="password"
+                type="password"
+                placeholder="Minimum 6 characters"
+                minlength="6"
+                required
+                class="w-full bg-black/30 border border-white/10
+                       rounded-xl py-3.5 pl-11 pr-12
+                       outline-none focus:border-green-400
+                       transition">
+
+              <button
+                type="button"
+                id="togglePassword"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+
+                <i class="fa-solid fa-eye"></i>
+
+              </button>
+
+            </div>
+          </div>
+
+
+          <!-- Confirm Password -->
+          <div>
+            <label class="block text-sm font-semibold mb-2">
+              Confirm Password
+            </label>
+
+            <div class="relative">
+
+              <i class="fa-solid fa-lock absolute left-4 top-1/2
+                         -translate-y-1/2 text-gray-500"></i>
+
+              <input
+                id="confirmPassword"
+                type="password"
+                placeholder="Repeat your password"
+                minlength="6"
+                required
+                class="w-full bg-black/30 border border-white/10
+                       rounded-xl py-3.5 pl-11 pr-4
+                       outline-none focus:border-green-400
+                       transition">
+            </div>
+          </div>
+
+
+          <!-- Error -->
+          <div id="errorBox"
+               class="hidden rounded-xl bg-red-500/10
+                      border border-red-500/20
+                      text-red-300 text-sm p-3">
+          </div>
+
+
+          <!-- Success -->
+          <div id="successBox"
+               class="hidden rounded-xl bg-green-500/10
+                      border border-green-500/20
+                      text-green-300 text-sm p-3">
+          </div>
+
+
+          <!-- Button -->
+          <button
+            id="signupButton"
+            type="submit"
+            class="w-full bg-green-400 hover:bg-green-300
+                   text-black font-black py-3.5 rounded-xl
+                   transition active:scale-[0.98]">
+
+            <span id="buttonText">
+              Create Account
+            </span>
+
+          </button>
+
+        </form>
+
+
+        <div class="flex items-center gap-3 my-6">
+
+          <div class="h-px bg-white/10 flex-1"></div>
+
+          <span class="text-xs text-gray-500">OR</span>
+
+          <div class="h-px bg-white/10 flex-1"></div>
+
+        </div>
+
+
+        <p class="text-center text-sm text-gray-400">
+
+          Already have an account?
+
+          <a href="login.html"
+             class="text-green-400 font-bold hover:text-green-300">
+
+            Login
+
+          </a>
+
+        </p>
+
+      </div>
+
+
+      <p class="text-center text-xs text-gray-600 mt-6">
+        © 2026 FOOTBALLXTRA. All rights reserved.
+      </p>
+
+    </div>
+
+  </main>
+
+
+  <!-- Firebase -->
+  <script type="module">
+
+    import { signup } from "./js/auth.js";
+
+    const form = document.getElementById("signupForm");
+
+    const errorBox = document.getElementById("errorBox");
+    const successBox = document.getElementById("successBox");
+
+    const button = document.getElementById("signupButton");
+    const buttonText = document.getElementById("buttonText");
+
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirmPassword");
+
+    const togglePassword =
+      document.getElementById("togglePassword");
+
+
+    // Show / hide password
+    togglePassword.addEventListener("click", () => {
+
+      if (password.type === "password") {
+
+        password.type = "text";
+
+        togglePassword.innerHTML =
+          '<i class="fa-solid fa-eye-slash"></i>';
+
+      } else {
+
+        password.type = "password";
+
+        togglePassword.innerHTML =
+          '<i class="fa-solid fa-eye"></i>';
+      }
+
+    });
+
+
+    form.addEventListener("submit", async (e) => {
+
+      e.preventDefault();
+
+      errorBox.classList.add("hidden");
+      successBox.classList.add("hidden");
+
+      const name =
+        document.getElementById("name").value.trim();
+
+      const email =
+        document.getElementById("email").value.trim();
+
+      const pass =
+        password.value;
+
+      const confirm =
+        confirmPassword.value;
+
+
+      // Password check
+      if (pass !== confirm) {
+
+        errorBox.textContent =
+          "Passwords do not match.";
+
+        errorBox.classList.remove("hidden");
+
+        return;
+      }
+
+
+      if (pass.length < 6) {
+
+        errorBox.textContent =
+          "Password must be at least 6 characters.";
+
+        errorBox.classList.remove("hidden");
+
+        return;
+      }
+
+
+      // Loading
+      button.disabled = true;
+
+      buttonText.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Creating...';
+
+
+      // Firebase signup
+      const result =
+        await signup(name, email, pass);
+
+
+      if (result.success) {
+
+        successBox.textContent =
+          "Account created successfully! Redirecting...";
+
+        successBox.classList.remove("hidden");
+
+        form.reset();
+
+        setTimeout(() => {
+
+          window.location.href = "index.html";
+
+        }, 1500);
+
+      } else {
+
+        let message =
+          "Something went wrong. Please try again.";
+
+        if (result.error?.code ===
+            "auth/email-already-in-use") {
+
+          message =
+            "This email is already registered.";
+
+        } else if (result.error?.code ===
+                   "auth/invalid-email") {
+
+          message =
+            "Please enter a valid email address.";
+
+        } else if (result.error?.code ===
+                   "auth/weak-password") {
+
+          message =
+            "Password is too weak.";
+
+        }
+
+        errorBox.textContent = message;
+
+        errorBox.classList.remove("hidden");
+
+        button.disabled = false;
+
+        buttonText.textContent =
+          "Create Account";
+      }
+
+    });
+
+  </script>
+
+</body>
+</html>

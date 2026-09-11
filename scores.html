@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Live Scores - FootballXtra</title>
+
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    body {
+      background: #07110d;
+      color: white;
+      min-height: 100vh;
+    }
+
+    .glass {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(12px);
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="sticky top-0 z-50 glass">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+
+      <a href="index.html"
+         class="font-black text-xl">
+        <span class="text-green-400">Football</span>Xtra
+      </a>
+
+      <a href="index.html"
+         class="text-sm text-gray-300 hover:text-green-400">
+        <i class="fa-solid fa-arrow-left mr-2"></i>
+        Home
+      </a>
+
+    </div>
+  </header>
+
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-black">
+          Live Scores
+        </h1>
+
+        <p class="text-sm text-gray-500 mt-1">
+          Live football matches
+        </p>
+      </div>
+
+      <button
+        id="refreshScores"
+        class="glass px-4 py-2 rounded-xl text-sm font-bold hover:border-green-400/40 transition">
+        <i class="fa-solid fa-rotate mr-2"></i>
+        Refresh
+      </button>
+    </div>
+
+
+    <div
+      id="scoresStatus"
+      class="text-sm text-gray-500 mb-5">
+      Loading live matches...
+    </div>
+
+
+    <div
+      id="liveScores"
+      class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+    </div>
+
+  </main>
+
+
+  <script type="module">
+console.log("SCORES JS STARTED");
+
+    const API_BASE = "http://localhost:3000";
+
+    const container =
+      document.getElementById("liveScores");
+
+    const status =
+      document.getElementById("scoresStatus");
+
+    const refreshButton =
+      document.getElementById("refreshScores");
+
+
+    function escapeHTML(value = "") {
+
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+    }
+
+
+    function logo(url, name) {
+
+      if (url) {
+
+        return `
+          <img
+            src="${escapeHTML(url)}"
+            alt="${escapeHTML(name)}"
+            class="w-14 h-14 object-contain mx-auto"
+            loading="lazy"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+          >
+
+          <div
+            class="hidden w-14 h-14 rounded-full bg-white/10 mx-auto items-center justify-center text-xl">
+            ⚽
+          </div>
+        `;
+
+      }
+
+      return `
+        <div
+          class="w-14 h-14 rounded-full bg-white/10 mx-auto flex items-center justify-center text-xl">
+          ⚽
+        </div>
+      `;
+
+    }
+
+
+    function renderMatch(match) {
+
+      const home = match.home || {};
+      const away = match.away || {};
+      const league = match.league || {};
+      const matchStatus = match.status || {};
+  const fixtureId = match.fixtureId;
+
+      const homeScore =
+        home.score ??
+        match.goals?.home ??
+        0;
+
+      const awayScore =
+        away.score ??
+        match.goals?.away ??
+        0;
+
+      const short = String(matchStatus.short || "").toLowerCase();
+      const longStatus = String(matchStatus.long || "").toLowerCase();
+      const detail = String(matchStatus.detail || "");
+
+      const isLive =
+        short === "in" ||
+        ["1h", "2h", "et", "p", "live", "bt"].includes(short);
+
+      const isHalfTime =
+        short === "ht" ||
+        longStatus.includes("halftime") ||
+        longStatus.includes("half time");
+
+      const isFinished =
+        short === "post" ||
+        ["ft", "aet", "pen"].includes(short) ||
+        longStatus.includes("final") ||
+        longStatus.includes("full time");
+
+      const kickoffTime = match.fixture?.date
+        ? new Date(match.fixture.date).toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+            timeZone: "Africa/Addis_Ababa"
+          })
+        : "--:--";
+
+      let liveMinute = detail || (matchStatus.elapsed != null ? `${matchStatus.elapsed}'` : "");
+
+      if (isLive) {
+        const startDate = match.fixture?.date || match.date;
+        if (startDate) {
+          const startedAt = new Date(startDate).getTime();
+          if (!Number.isNaN(startedAt)) {
+            const minutesSinceKickoff = Math.max(
+              0,
+              Math.floor((Date.now() - startedAt) / 60000)
+            );
+            if (minutesSinceKickoff <= 130) {
+              liveMinute = `${Math.min(minutesSinceKickoff, 120)}'`;
+            }
+          }
+        }
+      }
+
+      const displayStatus = isLive
+        ? `🔴 LIVE ${liveMinute}`.trim()
+        : isHalfTime
+          ? "🟡 HT"
+          : isFinished
+            ? "⚪ FT"
+            : `🕐 ${kickoffTime}`;
+
+      return `
+        <article
+          onclick="window.openMatchDetails('${fixtureId}'); return false;"
+          class="glass rounded-2xl p-5 hover:border-green-400/30 transition cursor-pointer">
+
+          <div
+            class="flex items-center justify-between gap-3 mb-5">
+
+            <div class="min-w-0">
+
+              <p
+                class="font-bold text-gray-300 truncate">
+
+                ${escapeHTML(
+                  league.name || "Football"
+                )}
+
+              </p>
+
+              <p
+                class="text-xs text-gray-500 truncate">
+
+                ${escapeHTML(
+                  league.country || ""
+                )}
+
+              </p>
+
+            </div>
+
+
+            <span
+              class="text-red-400 font-black text-xs whitespace-nowrap">
+
+              ${isLive ? '<span class="animate-pulse">●</span> ' : ""}
+              ${escapeHTML(displayStatus)}
+
+            </span>
+
+          </div>
+
+
+          <div
+            class="flex items-center justify-between gap-3">
+
+
+            <div
+              class="text-center flex-1 min-w-0">
+
+              ${logo(
+                home.logo,
+                home.name
+              )}
+
+              <p
+                class="font-bold text-sm mt-2 truncate">
+
+                ${escapeHTML(
+                  home.name || "Home"
+                )}
+
+              </p>
+
+            </div>
+
+
+            <div
+              class="text-center shrink-0">
+
+              <div
+                class="text-2xl font-black">
+
+                ${escapeHTML(homeScore)}
+                -
+                ${escapeHTML(awayScore)}
+
+              </div>
+
+              <div
+                class="text-[10px] text-red-400 font-bold mt-1">
+
+                ${escapeHTML(
+                  matchStatus.short || "LIVE"
+                )}
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="text-center flex-1 min-w-0">
+
+              ${logo(
+                away.logo,
+                away.name
+              )}
+
+              <p
+                class="font-bold text-sm mt-2 truncate">
+
+                ${escapeHTML(
+                  away.name || "Away"
+                )}
+
+              </p>
+
+            </div>
+
+          </div>
+
+        </article>
+
+      `;
+
+    }
+
+
+    async function loadLiveScores() {
+
+      status.textContent =
+        "Loading live matches...";
+
+
+      try {
+
+        const response =
+          await fetch(
+            `${API_BASE}/api/matches/today-espn?date=${new Date().toLocaleDateString("en-CA", {timeZone: "Africa/Addis_Ababa"})}`,
+            {
+              cache: "no-store"
+            }
+          );
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            `HTTP ${response.status}`
+          );
+
+        }
+
+
+        const data =
+          await response.json();
+
+
+        if (
+          !data.success ||
+          !Array.isArray(data.matches)
+        ) {
+
+          throw new Error(
+            "Invalid API response"
+          );
+
+        }
+
+
+        const matches =
+          data.matches;
+
+
+        status.innerHTML = `
+          <span class="text-green-400 font-bold">
+            ● ${matches.length}
+          </span>
+          live matches
+        `;
+
+
+        if (matches.length === 0) {
+
+          container.innerHTML = `
+
+            <div
+              class="md:col-span-2 lg:col-span-3 glass rounded-2xl p-10 text-center">
+
+              <div class="text-5xl mb-4">
+                ⚽
+              </div>
+
+              <p class="font-bold text-gray-300">
+                No live matches right now
+              </p>
+
+              <p class="text-xs text-gray-500 mt-2">
+                Check back later.
+              </p>
+
+            </div>
+
+          `;
+
+          return;
+
+        }
+
+
+        container.innerHTML =
+          matches
+            .map(renderMatch)
+            .join("");
+
+
+      } catch (error) {
+
+        console.error(
+          "Live Scores Error:",
+          error
+        );
+
+
+        status.textContent =
+          "Unable to load live scores";
+
+
+        container.innerHTML = `
+
+          <div
+            class="md:col-span-2 lg:col-span-3 glass rounded-2xl p-8 text-center">
+
+            <i
+              class="fa-solid fa-circle-exclamation text-red-400 text-3xl mb-4">
+            </i>
+
+            <p class="font-bold text-gray-300">
+              Live scores unavailable
+            </p>
+
+            <p class="text-xs text-gray-500 mt-2">
+              Please try again shortly.
+            </p>
+
+          </div>
+
+        `;
+
+      }
+
+    }
+
+
+    refreshButton.addEventListener(
+      "click",
+      loadLiveScores
+    );
+
+
+    loadLiveScores();
+
+
+    setInterval(
+      loadLiveScores,
+      60000
+    );
+
+    setInterval(() => {
+      if (typeof loadLiveScores === "function") {
+        loadLiveScores();
+      }
+    }, 30000);
+
+window.openMatchDetails = function(fixtureId) {
+  console.log("Opening fixture:", fixtureId);
+  if (!fixtureId) return;
+  window.location.href = "match.html#fixture=" + encodeURIComponent(fixtureId);
+}
+
+  </script>
+
+<script src="./js/mini-player.js"></script>
+<nav class="bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0b0f15]/95 backdrop-blur-xl border-t border-white/10">
+  <div class="grid grid-cols-5 h-16">
+    <a href="index.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-solid fa-house"></i><span class="text-[9px] mt-1">Home</span></a>
+    <a href="news.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-regular fa-newspaper"></i><span class="text-[9px] mt-1">News</span></a>
+    <a href="scores.html" class="flex flex-col items-center justify-center text-green-400"><i class="fa-solid fa-futbol"></i><span class="text-[9px] mt-1">Scores</span></a>
+    <a href="videos.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-brands fa-youtube"></i><span class="text-[9px] mt-1">Videos</span></a><a href="profile.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-regular fa-user"></i><span class="text-[9px] mt-1">Profile</span></a>
+  </div>
+</nav>
+</body>
+</html>

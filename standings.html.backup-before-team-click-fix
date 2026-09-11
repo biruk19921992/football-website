@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FootballXtra - League Tables</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+  background:#070b12;
+  color:#f8fafc;
+  font-family:Inter,system-ui,-apple-system,sans-serif;
+}
+
+.glass{
+  background:linear-gradient(145deg,#101722,#0b111b);
+  border:1px solid #1e293b;
+  box-shadow:0 15px 40px rgba(0,0,0,.35);
+}
+
+.table-row{
+  transition:.2s ease;
+}
+
+.table-row:hover{
+  background:#111c2b;
+  transform:translateX(2px);
+}
+
+.team-logo{
+  width:34px;
+  height:34px;
+  object-fit:contain;
+}
+
+.badge{
+  width:4px;
+  height:34px;
+  border-radius:4px;
+}
+
+.zone-ucl{background:#2563eb}
+.zone-uel{background:#f59e0b}
+.zone-uecl{background:#22c55e}
+.zone-relegation{background:#ef4444}
+
+select{
+  appearance:none;
+  background:#111827;
+  border:1px solid #263449;
+}
+
+select:focus{
+  outline:none;
+  border-color:#22c55e;
+  box-shadow:0 0 0 2px rgba(34,197,94,.15);
+}
+
+::-webkit-scrollbar{width:7px}
+::-webkit-scrollbar-track{background:#070b12}
+::-webkit-scrollbar-thumb{
+  background:#263449;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body class="min-h-screen">
+
+<header class="sticky top-0 z-50 bg-[#070b12]/95 backdrop-blur border-b border-slate-800">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+
+    <a href="index.html"
+       class="flex items-center gap-2 text-slate-300 hover:text-white font-semibold">
+      <span class="text-xl">←</span>
+      <span>FootballXtra</span>
+    </a>
+
+    <div class="text-xs font-bold tracking-[3px] text-green-400">
+      LEAGUE TABLES
+    </div>
+
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-6">
+
+  <!-- HERO -->
+  <section class="glass rounded-3xl p-5 md:p-7 mb-6">
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+          <span class="text-xs uppercase tracking-widest text-green-400 font-bold">
+            Live Data
+          </span>
+        </div>
+
+        <h1 id="leagueTitle"
+            class="text-3xl md:text-4xl font-black">
+          Premier League
+        </h1>
+
+        <p class="text-slate-400 mt-2 text-sm">
+          Complete standings, updated automatically.
+        </p>
+      </div>
+
+      <!-- SELECTOR -->
+      <div class="relative">
+        <select id="leagueSelect"
+          class="w-full md:w-64 rounded-2xl px-4 py-3 pr-10 text-sm font-bold text-white">
+
+          <option value="premier-league">Premier League</option>
+          <option value="laliga">LaLiga</option>
+          <option value="bundesliga">Bundesliga</option>
+          <option value="serie-a">Serie A</option>
+          <option value="ligue-1">Ligue 1</option>
+          <option value="champions-league">Champions League</option>
+
+        </select>
+
+        <span class="absolute right-4 top-3.5 text-slate-400 pointer-events-none">
+          ▼
+        </span>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- STATUS -->
+  <div id="status"
+       class="hidden mb-4 rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm">
+  </div>
+
+  <!-- TABLE -->
+  <section class="glass rounded-3xl overflow-hidden">
+
+    <!-- TABLE HEADER -->
+    <div class="px-4 md:px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+
+      <div>
+        <h2 class="font-black text-lg">Standings</h2>
+        <p id="seasonText" class="text-xs text-slate-500 mt-1">
+          Current season
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 text-xs text-slate-500">
+        <span class="w-2 h-2 rounded-full bg-green-400"></span>
+        LIVE
+      </div>
+
+    </div>
+
+    <!-- DESKTOP HEADER -->
+    <div class="hidden md:grid grid-cols-[45px_minmax(180px,1fr)_55px_55px_55px_55px_65px_70px] px-5 py-3 text-[11px] uppercase tracking-wider text-slate-500 font-bold border-b border-slate-800">
+      <div>#</div>
+      <div>Team</div>
+      <div class="text-center">P</div>
+      <div class="text-center">W</div>
+      <div class="text-center">D</div>
+      <div class="text-center">L</div>
+      <div class="text-center">GD</div>
+      <div class="text-center">PTS</div>
+    </div>
+
+    <div id="tableBody"></div>
+
+  </section>
+
+  <!-- LEGEND -->
+  <section class="glass rounded-2xl p-4 mt-5">
+
+    <div class="text-xs font-bold text-slate-300 mb-3">
+      TABLE KEY
+    </div>
+
+    <div class="flex flex-wrap gap-x-5 gap-y-3 text-xs text-slate-400">
+
+      <div class="flex items-center gap-2">
+        <span class="badge zone-ucl"></span>
+        Champions League
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="badge zone-uel"></span>
+        Europa League
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="badge zone-uecl"></span>
+        Conference League
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="badge zone-relegation"></span>
+        Relegation
+      </div>
+
+    </div>
+
+  </section>
+
+  <p class="text-center text-xs text-slate-600 mt-6 mb-8">
+    FootballXtra • Standings automatically refresh every 60 seconds
+  </p>
+
+</main>
+
+<script>
+
+const API_BASE = "http://localhost:3000/api/standings/";
+
+const LEAGUES = {
+  "premier-league":"Premier League",
+  "laliga":"LaLiga",
+  "bundesliga":"Bundesliga",
+  "serie-a":"Serie A",
+  "ligue-1":"Ligue 1",
+  "champions-league":"Champions League"
+};
+
+const ESPN_LEAGUES = {
+  "premier-league":"eng.1",
+  "laliga":"esp.1",
+  "bundesliga":"ger.1",
+  "serie-a":"ita.1",
+  "ligue-1":"fra.1",
+  "champions-league":"uefa.champions"
+};
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function formatGD(value){
+  const n = Number(value || 0);
+  return n > 0 ? "+" + n : String(n);
+}
+
+function getZone(index,total,league){
+
+  const pos = index + 1;
+
+  if(league === "champions-league"){
+    return pos <= 8 ? "zone-ucl" : "";
+  }
+
+  if(pos <= 4) return "zone-ucl";
+  if(pos === 5) return "zone-uel";
+  if(pos === 6) return "zone-uecl";
+  if(pos > total - 3) return "zone-relegation";
+
+  return "";
+}
+
+function showStatus(message,type="info"){
+
+  statusBox.classList.remove("hidden");
+
+  if(type==="error"){
+    statusBox.className =
+      "mb-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300";
+  }else{
+    statusBox.className =
+      "mb-4 rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm text-slate-400";
+  }
+
+  statusBox.textContent = message;
+}
+
+function hideStatus(){
+  statusBox.classList.add("hidden");
+}
+
+function loading(){
+
+  tableBody.innerHTML = `
+    <div class="px-5 py-12 text-center">
+      <div class="inline-flex items-center gap-3 text-slate-400">
+        <div class="w-5 h-5 border-2 border-slate-600 border-t-green-400 rounded-full animate-spin"></div>
+        Loading live standings...
+      </div>
+    </div>
+  `;
+}
+
+function renderTable(data,league){
+
+  const standings = Array.isArray(data.standings)
+    ? data.standings
+    : [];
+
+  if(!standings.length){
+
+    tableBody.innerHTML = `
+      <div class="px-5 py-12 text-center text-slate-500">
+        No standings available.
+      </div>
+    `;
+
+    return;
+  }
+
+  const total = standings.length;
+
+  tableBody.innerHTML = standings.map((item,index)=>{
+
+    const team = item.team || {};
+    const zone = getZone(index,total,league);
+
+    return `
+      <div class="table-row relative border-b border-slate-800/70
+                  px-3 md:px-5 py-3">
+
+        <div class="flex items-center gap-3">
+
+          <div class="w-1 ${zone || "bg-transparent"} rounded-full self-stretch"></div>
+
+          <!-- POSITION -->
+          <div class="w-7 md:w-8 text-center font-black text-sm
+                      ${index < 4 ? "text-white" : "text-slate-500"}">
+            ${escapeHtml(item.rank ?? index+1)}
+          </div>
+
+          <!-- TEAM -->
+          <a href="team.html?id=${encodeURIComponent(team.id || "")}&league=${encodeURIComponent(ESPN_LEAGUES[league] || "eng.1")}"
+             class="flex-1 min-w-0 flex items-center gap-3 group"
+             title="View team profile">
+            ${
+              team.logo
+              ? `<img class="team-logo transition-transform duration-200 group-hover:scale-110"
+                      src="${escapeHtml(team.logo)}"
+                      alt="${escapeHtml(team.name)}"
+                      loading="lazy"
+                      onerror="this.style.display='none'">`
+              : `<div class="team-logo rounded-full bg-slate-800 flex items-center justify-center text-xs">⚽</div>`
+            }
+            <div class="min-w-0">
+              <div class="font-bold text-sm truncate group-hover:text-green-400 transition-colors">
+                ${escapeHtml(team.name)}
+              </div>
+              <div class="md:hidden text-[10px] text-slate-600 mt-0.5">
+                ${escapeHtml(item.played ?? 0)} played
+              </div>
+            </div>
+          </a>
+          <!-- STATS -->
+          <div class="grid grid-cols-6 gap-0 w-[250px] md:w-[380px] text-xs md:text-sm">
+
+            <div class="text-center text-slate-300">
+              <span class="md:hidden text-[9px] block text-slate-600">P</span>
+              ${escapeHtml(item.played ?? 0)}
+            </div>
+
+            <div class="text-center text-slate-300">
+              <span class="md:hidden text-[9px] block text-slate-600">W</span>
+              ${escapeHtml(item.wins ?? 0)}
+            </div>
+
+            <div class="text-center text-slate-300">
+              <span class="md:hidden text-[9px] block text-slate-600">D</span>
+              ${escapeHtml(item.draws ?? 0)}
+            </div>
+
+            <div class="text-center text-slate-300">
+              <span class="md:hidden text-[9px] block text-slate-600">L</span>
+              ${escapeHtml(item.losses ?? 0)}
+            </div>
+
+            <div class="text-center text-slate-300">
+              <span class="md:hidden text-[9px] block text-slate-600">GD</span>
+              ${escapeHtml(formatGD(item.goalDifference))}
+            </div>
+
+            <div class="text-center font-black text-white">
+              <span class="md:hidden text-[9px] block text-slate-600">PTS</span>
+              ${escapeHtml(item.points ?? 0)}
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+  }).join("");
+
+}
+
+async function loadStandings(){
+
+  const league = select.value;
+
+  leagueTitle.textContent = LEAGUES[league] || "League Table";
+
+  loading();
+
+  showStatus("Fetching live standings...");
+
+  try{
+
+    const response = await fetch(
+      API_BASE + encodeURIComponent(league),
+      {cache:"no-store"}
+    );
+
+    if(!response.ok){
+      throw new Error("HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    if(!data.success){
+      throw new Error(data.message || "Unable to load standings");
+    }
+
+    seasonText.textContent =
+      data.season
+      ? "Season " + data.season + " • " + data.count + " teams"
+      : (data.count || 0) + " teams";
+
+    renderTable(data,league);
+
+    hideStatus();
+
+  }catch(error){
+
+    console.error("Standings error:",error);
+
+    tableBody.innerHTML = `
+      <div class="px-5 py-14 text-center">
+        <div class="text-4xl mb-3">⚠️</div>
+        <div class="font-bold text-white mb-1">
+          Unable to load standings
+        </div>
+        <div class="text-sm text-slate-500 mb-5">
+          Make sure the FootballXtra backend is running.
+        </div>
+        <button onclick="loadStandings()"
+          class="px-4 py-2 rounded-xl bg-green-500 text-black
+                 font-bold text-sm hover:bg-green-400">
+          Try Again
+        </button>
+      </div>
+    `;
+
+    showStatus(error.message || "Request failed","error");
+  }
+}
+
+select.addEventListener("change",loadStandings);
+
+loadStandings();
+
+setInterval(loadStandings,60000);
+
+</script>
+
+</body>
+</html>
