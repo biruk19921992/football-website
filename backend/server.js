@@ -1,9 +1,6 @@
-const { GoogleGenAI } = require("@google/genai");
 const { XMLParser } = require("fast-xml-parser");
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
-const gemini = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const amharicNewsCache = new Map();
 async function translateToAmharic(text) {
   if (!text || !text.trim()) return text;
@@ -54,9 +51,23 @@ const PORT = process.env.PORT || 3000;
    FIREBASE ADMIN
 ========================= */
 
-const serviceAccount = require(
-  "./footballxtra-firebase-adminsdk-fbsvc-f163909951.json"
-);
+let serviceAccount;
+
+if (
+  process.env.FIREBASE_PROJECT_ID &&
+  process.env.FIREBASE_CLIENT_EMAIL &&
+  process.env.FIREBASE_PRIVATE_KEY
+) {
+  serviceAccount = {
+    project_id: process.env.FIREBASE_PROJECT_ID,
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
+  };
+} else {
+  serviceAccount = require(
+    "./footballxtra-firebase-adminsdk-fbsvc-7aeff5dae1.json"
+  );
+}
 
 initializeApp({
   databaseURL: "https://footballxtra-default-rtdb.firebaseio.com",
