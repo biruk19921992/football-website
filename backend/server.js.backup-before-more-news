@@ -1111,55 +1111,6 @@ app.get("/api/news", async (req, res) => {
       console.error("❌ CBS Sports RSS error:", error.message || error);
     }
 
-    try {
-      const rss = await fetch("https://www.theguardian.com/football/rss");
-
-      if (rss.ok) {
-        const xml = await rss.text();
-        const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)];
-
-        for (const match of items) {
-          const item = match[1];
-
-          const get = (tag) => {
-            const m = item.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i"));
-            return m
-              ? m[1]
-                  .replace(/<!\[CDATA\[|\]\]>/g, "")
-                  .replace(/<[^>]+>/g, " ")
-                  .replace(/&amp;/g, "&")
-                  .replace(/&lt;/g, "<")
-                  .replace(/&gt;/g, ">")
-                  .replace(/&#39;/g, "'")
-                  .replace(/&quot;/g, '"')
-                  .replace(/\s+/g, " ")
-                  .trim()
-              : "";
-          };
-
-          const title = get("title");
-          const link = get("link");
-          const published = get("pubDate");
-          const description = get("description");
-
-          if (title && link) {
-            news.push({
-              id: "GUARDIAN-" + Buffer.from(link).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(-24),
-              headline: title,
-              description,
-              published: published || null,
-              image: "",
-              link,
-              league: "Football",
-              source: "The Guardian"
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.error("❌ Guardian RSS error:", error.message || error);
-    }
-
     const unique = Array.from(
       new Map(news.map((item) => [item.id, item])).values()
     );

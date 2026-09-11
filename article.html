@@ -397,9 +397,10 @@
         }
 
         titleEl.textContent =
+          data.titleAm ||
           data.title ||
           data.headline ||
-          "Untitled article";
+          "የእግር ኳስ ዜና";
 
         categoryEl.textContent =
           data.category ||
@@ -418,15 +419,16 @@
 
         if (data.image) {
           imageEl.src = data.image;
-          imageEl.alt = data.title || "Football news";
+          imageEl.alt = data.titleAm || data.title || data.headline || "የእግር ኳስ ዜና";
         } else {
           imageWrap.classList.add("hidden");
         }
 
         const description =
+          data.descriptionAm ||
           data.description ||
           data.content ||
-          "No description available.";
+          "መግለጫ የለም።";
 
         contentEl.innerHTML =
           `<p>${escapeHTML(description)}</p>`;
