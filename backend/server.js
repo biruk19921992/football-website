@@ -1944,21 +1944,24 @@ async function importEspnNews() {
             article.lastModified ||
             null;
 
-          // Translate ESPN title and description to Amharic
-          const titleAm = await translateToAmharic(headline);
-          const descriptionAm = await translateToAmharic(description);
-
           /*
            * NEW ARTICLE
+           * Translate ONLY new ESPN articles.
+           * Existing articles must NOT call Google Translate again.
            */
           if (!existing.exists) {
+            const titleAm = await translateToAmharic(headline);
+            const descriptionAm = await translateToAmharic(description);
+
             await newsRef.set({
               title: headline,
+              titleAm,
               type: "news",
               author: "ESPN",
               description,
+              descriptionAm,
               image,
-              content: description,
+              content: descriptionAm,
               category: league.name,
               source: "ESPN",
               sourceId,
@@ -1989,9 +1992,7 @@ async function importEspnNews() {
 
           const changed =
             oldData.title !== headline ||
-            oldData.titleAm !== titleAm ||
             oldData.description !== description ||
-            oldData.descriptionAm !== descriptionAm ||
             oldData.image !== image ||
             oldData.sourceUrl !== sourceUrl ||
             oldData.publishedAt !== publishedAt ||
