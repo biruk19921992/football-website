@@ -1237,7 +1237,7 @@ app.get("/api/news", async (req, res) => {
       success: true,
       source: "espn",
       count: unique.length,
-      news: unique
+      news: latestNews
     });
   } catch (error) {
     console.error("❌ ESPN news route error:", error);
