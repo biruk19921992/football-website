@@ -5,26 +5,64 @@ const amharicNewsCache = new Map();
 async function translateToAmharic(text) {
   if (!text || !text.trim()) return text;
 
-  try {
-    const url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=am&dt=t&q=" + encodeURIComponent(text);
-    const response = await fetch(url);
+  const original = text.trim();
 
-    if (!response.ok) {
-      throw new Error("Google Translate HTTP " + response.status);
-    }
-
-    const data = await response.json();
-    const translated = Array.isArray(data?.[0])
-      ? data[0].map(part => part?.[0] || "").join("").trim()
-      : "";
-
-    return translated || text;
-  } catch (error) {
-    console.error("Google Translate error:", error.message);
-    return text;
+  // Return cached translation when available
+  if (amharicNewsCache.has(original)) {
+    return amharicNewsCache.get(original);
   }
-}
 
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const url =
+        "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=am&dt=t&q=" +
+        encodeURIComponent(original);
+
+      const response = await fetch(url);
+
+      if (response.status === 429) {
+        const waitMs = attempt * 3000;
+        console.warn(
+          `Google Translate rate limited (429). Waiting ${waitMs}ms...`
+        );
+        await new Promise(resolve => setTimeout(resolve, waitMs));
+        continue;
+      }
+
+      if (!response.ok) {
+        throw new Error("Google Translate HTTP " + response.status);
+      }
+
+      const data = await response.json();
+
+      const translated = Array.isArray(data?.[0])
+        ? data[0]
+            .map(part => part?.[0] || "")
+            .join("")
+            .trim()
+        : "";
+
+      const result = translated || original;
+
+      // Save translation in memory cache
+      amharicNewsCache.set(original, result);
+
+      // Small delay to reduce rate-limit pressure
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      return result;
+    } catch (error) {
+      if (attempt === 3) {
+        console.error("Google Translate error:", error.message);
+        return original;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+    }
+  }
+
+  return original;
+}
 const {
   initializeApp,
   cert
