@@ -1497,11 +1497,13 @@ async function importEspnGlobalNews() {
         if (!existing.exists) {
           await newsRef.set({
             title: headline,
+            titleAm,
             type: "news",
             author: "ESPN",
             description,
+            descriptionAm,
             image,
-            content: description,
+            content: descriptionAm,
             category,
             source: "ESPN",
             sourceId,
@@ -1534,9 +1536,11 @@ async function importEspnGlobalNews() {
           if (changed) {
             await newsRef.update({
               title: headline,
+              titleAm,
               description,
+              descriptionAm,
               image,
-              content: description,
+              content: descriptionAm,
               category,
               sourceUrl,
               publishedAt,
@@ -1902,6 +1906,10 @@ async function importEspnNews() {
             article.lastModified ||
             null;
 
+          // Translate ESPN title and description to Amharic
+          const titleAm = await translateToAmharic(headline);
+          const descriptionAm = await translateToAmharic(description);
+
           /*
            * NEW ARTICLE
            */
@@ -1943,7 +1951,9 @@ async function importEspnNews() {
 
           const changed =
             oldData.title !== headline ||
+            oldData.titleAm !== titleAm ||
             oldData.description !== description ||
+            oldData.descriptionAm !== descriptionAm ||
             oldData.image !== image ||
             oldData.sourceUrl !== sourceUrl ||
             oldData.publishedAt !== publishedAt ||
