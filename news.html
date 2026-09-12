@@ -150,7 +150,7 @@ async function loadNews() {
       </div>
     `;
 
-    const response = await fetch("http://localhost:3000/api/news?refresh=" + Date.now(), { cache: "no-store" });
+    const response = await fetch("https://footballxtra-website.onrender.com/api/news?refresh=" + Date.now(), { cache: "no-store" });
 
     if (!response.ok) {
       throw new Error(`News API HTTP ${response.status}`);
