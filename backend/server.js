@@ -2028,7 +2028,7 @@ async function importEspnNews() {
 //setInterval(importEspnNews, 10 * 1000);
 //importBbcNews();
 //setInterval(importBbcNews, 60 * 1000);
-//importSkySportsNews();
-//setInterval(importSkySportsNews, 60 * 1000);
+importSkySportsNews();
+setInterval(importSkySportsNews, 60 * 1000);
 //setInterval(importEspnGlobalNews, 10 * 1000);
 
