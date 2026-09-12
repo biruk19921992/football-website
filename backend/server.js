@@ -1213,19 +1213,19 @@ app.get("/api/news", async (req, res) => {
 
           const get = (tag) => {
             const m = item.match(
-              new RegExp(`<${tag}(?:\\\\s[^>]*)?>([\\\\s\\\\S]*?)<\\\\/${tag}>`, "i")
+              new RegExp("<" + tag + "(?:\\s[^>]*)?>([\\s\\S]*?)</" + tag + ">", "i")
             );
 
             return m
               ? m[1]
-                  .replace(/<!\\[CDATA\\[|\\]\\]>/g, "")
+                  .replace(/<!\[CDATA\[|\]\]>/g, "")
                   .replace(/<[^>]+>/g, " ")
                   .replace(/&amp;/g, "&")
                   .replace(/&lt;/g, "<")
                   .replace(/&gt;/g, ">")
                   .replace(/&#39;/g, "'")
                   .replace(/&quot;/g, '"')
-                  .replace(/\\s+/g, " ")
+                  .replace(/\s+/g, " ")
                   .trim()
               : "";
           };
@@ -1235,7 +1235,7 @@ app.get("/api/news", async (req, res) => {
           const published = get("pubDate");
           const description = get("description");
 
-          if (title && link && link.includes("/football/")) {
+          if (title && link) {
             news.push({
               id: "SKY-" + Buffer.from(link).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(-24),
               headline: title,
