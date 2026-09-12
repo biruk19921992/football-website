@@ -37,6 +37,17 @@
     .news-card:hover {
       transform: translateY(-4px);
     }
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    #newsList { width: 100%; min-width: 0; }
+    .news-card { width: 100%; min-width: 0; overflow: hidden; }
+    .news-card img { display: block; max-width: 100%; }
+    .news-card h3, .news-card p { overflow-wrap: anywhere; }
+    @media (max-width: 640px) {
+      main { width: 100%; min-width: 0; }
+      #newsList { grid-template-columns: minmax(0, 1fr) !important; gap: 16px !important; }
+      .news-card img, .news-card > div:first-child { max-width: 100%; }
+    }
+
   </style>
 </head>
 

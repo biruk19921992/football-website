@@ -1067,8 +1067,22 @@ app.get("/api/news", async (req, res) => {
         for (const match of items) {
           const item = match[1];
           const get = (tag) => {
-            const m = item.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`));
-            return m ? m[1].replace(/<!\[CDATA\[|\]\]>/g, "").trim() : "";
+            const m = item.match(
+              new RegExp("<" + tag + "(?:\\s[^>]*)?>([\\s\\S]*?)</" + tag + ">", "i")
+            );
+
+            return m
+              ? m[1]
+                  .replace(/<!\[CDATA\[|\]\]>/g, "")
+                  .replace(/<[^>]+>/g, " ")
+                  .replace(/&amp;/g, "&")
+                  .replace(/&lt;/g, "<")
+                  .replace(/&gt;/g, ">")
+                  .replace(/&#39;/g, "'")
+                  .replace(/&quot;/g, '"')
+                  .replace(/\s+/g, " ")
+                  .trim()
+              : "";
           };
 
           const title = get("title");
@@ -1185,6 +1199,58 @@ app.get("/api/news", async (req, res) => {
       }
     } catch (error) {
       console.error("❌ Guardian RSS error:", error.message || error);
+    }
+
+        try {
+      const rss = await fetch("https://www.skysports.com/rss/12040");
+
+      if (rss.ok) {
+        const xml = await rss.text();
+        const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)];
+
+        for (const match of items) {
+          const item = match[1];
+
+          const get = (tag) => {
+            const m = item.match(
+              new RegExp(`<${tag}(?:\\\\s[^>]*)?>([\\\\s\\\\S]*?)<\\\\/${tag}>`, "i")
+            );
+
+            return m
+              ? m[1]
+                  .replace(/<!\\[CDATA\\[|\\]\\]>/g, "")
+                  .replace(/<[^>]+>/g, " ")
+                  .replace(/&amp;/g, "&")
+                  .replace(/&lt;/g, "<")
+                  .replace(/&gt;/g, ">")
+                  .replace(/&#39;/g, "'")
+                  .replace(/&quot;/g, '"')
+                  .replace(/\\s+/g, " ")
+                  .trim()
+              : "";
+          };
+
+          const title = get("title");
+          const link = get("link");
+          const published = get("pubDate");
+          const description = get("description");
+
+          if (title && link && link.includes("/football/")) {
+            news.push({
+              id: "SKY-" + Buffer.from(link).toString("base64").replace(/[^a-zA-Z0-9]/g, "").slice(-24),
+              headline: title,
+              description,
+              published: published || null,
+              image: "",
+              link,
+              league: "Football",
+              source: "Sky Sports"
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("❌ Sky Sports API RSS error:", error.message || error);
     }
 
     const unique = Array.from(
