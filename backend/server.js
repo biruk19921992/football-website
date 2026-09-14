@@ -1,7 +1,76 @@
+require("dotenv").config();
 const { XMLParser } = require("fast-xml-parser");
 const express = require("express");
 const cors = require("cors");
 const amharicNewsCache = new Map();
+
+const TELEGRAM_CHANNEL = process.env.TELEGRAM_CHANNEL || "-1004488425491";
+
+async function sendTelegramMessage(text) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) throw new Error("TELEGRAM_BOT_TOKEN is missing");
+
+  const response = await fetch(
+    `https://api.telegram.org/bot${token}/sendMessage`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHANNEL,
+        text,
+        disable_web_page_preview: false
+      })
+    }
+  );
+
+  const data = await response.json();
+
+  if (!data.ok) {
+    throw new Error(data.description || "Telegram API error");
+  }
+
+  return data.result;
+}
+
+
+async function publishNewsToTelegram(item) {
+  if (!item?.id || !item?.headline) return null;
+
+  const docRef = firestore.collection("telegram_news").doc(String(item.id));
+  const existing = await docRef.get();
+
+  if (existing.exists && existing.data()?.sent === true) {
+    return { skipped: true, reason: "already_sent" };
+  }
+
+  const titleAm = item.titleAm || item.headline;
+  const descriptionAm = item.descriptionAm || item.description || "";
+
+  const text =
+    "⚽ VibeSport\n\n" +
+    titleAm +
+    (descriptionAm ? "\n\n" + descriptionAm : "") +
+    "\n\n📰 Source: " + (item.source || "Football") +
+    (item.link ? "\n🔗 " + item.link : "");
+
+  const message = await sendTelegramMessage(text);
+
+  await docRef.set({
+    sent: true,
+    messageId: message.message_id,
+    source: item.source || "",
+    headline: item.headline,
+    titleAm,
+    published: item.published || null,
+    sentAt: new Date().toISOString()
+  }, { merge: true });
+
+  return {
+    sent: true,
+    messageId: message.message_id
+  };
+}
+
 async function translateToAmharic(text) {
   if (!text || !text.trim()) return text;
 
@@ -1253,6 +1322,45 @@ app.get("/api/news", async (req, res) => {
       console.error("❌ Sky Sports API RSS error:", error.message || error);
     }
 
+    // LiveScore Firestore articles
+    try {
+      const snap = await firestore
+        .collection("news")
+        .where("source", "==", "LiveScore")
+        .get();
+
+      snap.forEach((doc) => {
+        const item = doc.data() || {};
+
+        const published = item.publishedAt?.toDate
+          ? item.publishedAt.toDate().toISOString()
+          : (item.publishedAt || item.createdAt || null);
+
+        if (item.title && (item.sourceUrl || item.liveScoreUrl)) {
+          news.push({
+            id: "LIVESCORE-" + doc.id,
+            headline: item.title,
+            description: item.description || "",
+            published,
+            image: item.image || "",
+            link: item.liveScoreUrl || item.sourceUrl || "",
+            source: "LiveScore",
+            sourcePublisher: item.sourcePublisher || "",
+            titleAm: item.titleAm || "",
+            descriptionAm: item.descriptionAm || ""
+          });
+        }
+      });
+
+      console.log(`🟢 LiveScore API: ${snap.size} Firestore articles added`);
+      console.log("🔎 LiveScore sample:", news.filter(n => n.source === "LiveScore").slice(0,3).map(n => ({headline:n.headline,published:n.published,id:n.id})));
+    } catch (error) {
+      console.error(
+        "❌ LiveScore Firestore API error:",
+        error.message || error
+      );
+    }
+
     const unique = Array.from(
       new Map(news.map((item) => [item.id, item])).values()
     );
@@ -1262,41 +1370,56 @@ app.get("/api/news", async (req, res) => {
       new Date(a.published || 0).getTime()
     );
 
-    const latestNews = unique.slice(0, 10);
+    const latestNews = unique.slice(0, 20);
 
     for (const item of latestNews) {
-      if (!item.headline) continue;
+      try {
+        const cacheKey = item.id + "|" + item.headline;
 
-      const cacheKey = item.id + "|" + item.headline;
+        if (item.titleAm) {
+          continue;
+        }
 
-      if (amharicNewsCache.has(cacheKey)) {
-        const cached = amharicNewsCache.get(cacheKey);
-        item.titleAm = cached.titleAm || item.headline;
-        item.descriptionAm = cached.descriptionAm || item.description || "";
-        continue;
+        if (amharicNewsCache.has(cacheKey)) {
+          const cached = amharicNewsCache.get(cacheKey);
+          item.titleAm = cached.titleAm || item.headline;
+          item.descriptionAm = cached.descriptionAm || item.description || "";
+          continue;
+        }
+
+        const translatedTitle = await translateToAmharic(item.headline);
+        const translatedDescription = await translateToAmharic(item.description || "");
+
+        const titleAm =
+          translatedTitle && /[ሀ-ፚ]/.test(translatedTitle)
+            ? translatedTitle
+            : item.headline;
+
+        const descriptionAm =
+          translatedDescription && /[ሀ-ፚ]/.test(translatedDescription)
+            ? translatedDescription
+            : (item.description || "");
+
+        const translatedData = {
+          titleAm,
+          descriptionAm
+        };
+
+        amharicNewsCache.set(cacheKey, translatedData);
+        item.titleAm = titleAm;
+        item.descriptionAm = descriptionAm;
+      } catch (error) {
+        console.error("Translation error:", error.message);
       }
+    }
 
-      const translatedTitle = await translateToAmharic(item.headline);
-      const translatedDescription = await translateToAmharic(item.description || "");
-
-      const titleAm =
-        translatedTitle && /[ሀ-ፚ]/.test(translatedTitle)
-          ? translatedTitle
-          : item.headline;
-
-      const descriptionAm =
-        translatedDescription && /[ሀ-ፚ]/.test(translatedDescription)
-          ? translatedDescription
-          : (item.description || "");
-
-      const translatedData = {
-        titleAm,
-        descriptionAm
-      };
-
-      amharicNewsCache.set(cacheKey, translatedData);
-      item.titleAm = titleAm;
-      item.descriptionAm = descriptionAm;
+    if (latestNews.length > 0) {
+      try {
+        const telegramResult = await publishNewsToTelegram(latestNews[0]);
+        console.log("📲 Telegram auto-publish:", telegramResult);
+      } catch (telegramError) {
+        console.error("❌ Telegram auto-publish error:", telegramError.message);
+      }
     }
 
     res.json({
@@ -1651,6 +1774,114 @@ async function importEspnGlobalNews() {
   }
 }
 
+
+importLiveScoreNews();
+async function importLiveScoreNews() {
+  let imported = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  try {
+    const response = await fetch("https://www.livescore.com/en/news/football/");
+
+    if (!response.ok) {
+      throw new Error(`LiveScore HTTP ${response.status}`);
+    }
+
+    const html = await response.text();
+    const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/i);
+
+    if (!match) {
+      throw new Error("LiveScore __NEXT_DATA__ not found");
+    }
+
+    const data = JSON.parse(match[1]);
+    const articles = data?.props?.pageProps?.initialData?.category?.articles || [];
+
+    console.log(`🟢 LiveScore feed: ${articles.length} articles`);
+
+    for (const article of articles) {
+      try {
+        const title = String(article?.title || "").trim();
+        const slug = String(article?.slug || "").trim();
+        const source = String(article?.metaData?.publisher?.name || "LiveScore").trim();
+        const sourceUrl = String(article?.metaData?.originalUrl || "").trim();
+        const image = String(article?.metaData?.imageUrl || "").trim();
+        const publishedAt = article?.sys?.firstPublishedAt || null;
+        const liveScoreUrl = slug ? `https://www.livescore.com${slug}` : "";
+
+        if (!title || !slug) {
+          skipped++;
+          continue;
+        }
+
+        const sourceId = String(article?.sys?.id || slug)
+          .replace(/[^a-zA-Z0-9]/g, "_")
+          .slice(-120);
+
+        const docId = `livescore_${sourceId}`;
+        const newsRef = firestore.collection("news").doc(docId);
+        const existing = await newsRef.get();
+
+        let titleAm = existing.exists
+          ? (existing.data()?.titleAm || title)
+          : await translateToAmharic(title);
+
+        const description = `Source: ${source}. Read the full story on LiveScore.`;
+        const descriptionAm = `ምንጭ፦ ${source}። ሙሉ ዜናውን LiveScore ላይ ያንብቡ።`;
+
+        const newsData = {
+          title,
+          titleAm,
+          type: "news",
+          author: source,
+          description,
+          descriptionAm,
+          image,
+          content: descriptionAm,
+          category: "Football",
+          source: "LiveScore",
+          sourcePublisher: source,
+          sourceId,
+          sourceUrl,
+          liveScoreUrl,
+          publishedAt,
+          updatedAt: new Date()
+        };
+
+        if (!existing.exists) {
+          newsData.createdAt = new Date();
+          await newsRef.set(newsData);
+          imported++;
+          console.log(`🆕 LiveScore imported: ${title}`);
+        } else {
+          const old = existing.data() || {};
+          const changed =
+            old.title !== title ||
+            old.titleAm !== titleAm ||
+            old.image !== image ||
+            old.sourceUrl !== sourceUrl ||
+            old.liveScoreUrl !== liveScoreUrl ||
+            old.publishedAt !== publishedAt;
+
+          if (changed) {
+            await newsRef.update(newsData);
+            updated++;
+            console.log(`♻️ LiveScore updated: ${title}`);
+          } else {
+            skipped++;
+          }
+        }
+      } catch (articleError) {
+        console.error("❌ LiveScore article error:", articleError.message);
+      }
+    }
+
+    console.log(`🟢 LiveScore finished | Imported: ${imported} | Updated: ${updated} | Skipped: ${skipped}`);
+  } catch (error) {
+    console.error("❌ LiveScore import error:", error.message);
+  }
+}
 
 async function importBbcNews() {
   let imported = 0;
@@ -2047,7 +2278,9 @@ async function importEspnNews() {
               title: headline,
               description,
               image,
-              content: description,
+              content: oldData.content || oldData.descriptionAm || description,
+              titleAm: oldData.titleAm || headline,
+              descriptionAm: oldData.descriptionAm || description,
               category: league.name,
               source: "ESPN",
               sourceId,
@@ -2094,7 +2327,7 @@ async function importEspnNews() {
 //setInterval(importEspnNews, 10 * 1000);
 //importBbcNews();
 //setInterval(importBbcNews, 60 * 1000);
-importSkySportsNews();
-setInterval(importSkySportsNews, 60 * 1000);
+//importSkySportsNews();
+//setInterval(importSkySportsNews, 60 * 1000);
 //setInterval(importEspnGlobalNews, 10 * 1000);
 

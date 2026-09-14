@@ -789,70 +789,69 @@ feed.addEventListener("click", async (event) => {
 
 
   async function loadFirestorePosts() {
-  console.log("FootballXtra: loadFirestorePosts started");
-  feed.innerHTML = "<div>HOME FEED JS IS RUNNING</div>";
+    console.log("FootballXtra: loadFirestorePosts STARTED");
+    console.log("FootballXtra: loading latest news from API");
+
+    feed.innerHTML =
+      '<div class="p-6 text-center text-gray-400">Loading latest news...</div>';
 
     try {
-
-      const postsQuery =
-        query(
-          collection(db, "posts"),
-          orderBy("createdAt", "desc"),
-          limit(20)
-        );
-
-      onSnapshot(
-        postsQuery,
-        (snapshot) => {
-
-          if (snapshot.empty) {
-
-            feed.innerHTML =
-              demoPosts
-                .map(renderPost)
-                .join("");
-
-            return;
-          }
-
-          const posts =
-            snapshot.docs.map(
-              item => ({
-                id: item.id,
-                ...item.data()
-              })
-            );
-
-          feed.innerHTML =
-            posts
-              .map(renderPost)
-              .join("");
-
-        },
-        (error) => {
-
-          console.error(
-            "Firestore feed error:",
-            error
-          );
-
-          feed.innerHTML =
-            demoPosts
-              .map(renderPost)
-              .join("");
-
-        }
+      const response = await fetch(
+        "https://footballxtra-website.onrender.com/api/news?refresh=" +
+        Date.now()
       );
 
-    } catch (error) {
-
-      console.error(
-        "Feed loading error:",
-        error
-
-        );
+      if (!response.ok) {
+        throw new Error("News API HTTP " + response.status);
       }
-  }
-  loadFirestorePosts();
 
+      const data = await response.json();
+      const news = Array.isArray(data.news) ? data.news : [];
+
+      if (!news.length) {
+        feed.innerHTML =
+          '<div class="p-6 text-center text-gray-400">No news available.</div>';
+        return;
+      }
+
+      const posts = news.slice(0, 20).map((item) => ({
+        id: "api-news-" + (item.id || crypto.randomUUID()),
+        type: "news",
+        authorName: item.source || "FootballXtra",
+        authorUsername: item.source
+          ? "@" + String(item.source).toLowerCase().replace(/[^a-z0-9]/g, "")
+          : "@footballxtra",
+        authorPhoto: "",
+        verified: true,
+        title: item.titleAm || item.headline || item.title || "",
+        content:
+          item.descriptionAm ||
+          item.description ||
+          "",
+        image: item.image || "",
+        likesCount: Number(item.likesCount || 0),
+        commentsCount: Number(item.commentsCount || 0),
+        repostsCount: Number(item.repostsCount || 0),
+        createdAt: item.published || null,
+        sourceUrl: item.sourceUrl || item.link || ""
+      }));
+
+      feed.innerHTML = posts.map(renderPost).join("");
+
+      console.log(
+        "FootballXtra: API news loaded:",
+        posts.length
+      );
+    } catch (error) {
+      console.error(
+        "News API loading error:",
+        error
+      );
+
+      feed.innerHTML =
+        '<div class="p-6 text-center text-red-400">Could not load latest news.</div>';
+    }
+  }
+
+  loadFirestorePosts();
 
