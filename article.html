@@ -237,7 +237,7 @@
       </section>
 
       <!-- TELEGRAM -->
-      <a href="https://t.me/FootballXtranews"
+      <a href="https://t.me/vibessports"
          target="_blank"
          rel="noopener noreferrer"
          class="mt-5 flex items-center justify-center gap-2 bg-[#229ED9] hover:opacity-90 rounded-xl px-5 py-4 font-bold">
@@ -303,6 +303,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const articleId = params.get("id");
+    let firestoreArticleId = articleId;
     console.log("ARTICLE URL:", window.location.href); console.log("ARTICLE ID:", articleId);
 
     const loading = document.getElementById("loading");
@@ -379,22 +380,24 @@
 
       try {
 
-        const response = await fetch("/api/news");
+        const response = await fetch(
+          "https://footballxtra-website.onrender.com/api/news/" +
+          encodeURIComponent(articleId) +
+          "?refresh=" + Date.now()
+        );
+
         if (!response.ok) {
-          throw new Error("Failed to load news from backend.");
+          throw new Error("Failed to load article from backend.");
         }
 
         const result = await response.json();
-        const articles = result.articles || result.news || result.data || [];
-        const data = articles.find(item =>
-          String(item.id) === String(articleId) ||
-          String(item._id) === String(articleId) ||
-          String(item.guid) === String(articleId)
-        );
+        const data = result.article;
 
         if (!data) {
           throw new Error("Article not found.");
         }
+
+        firestoreArticleId = data.firestoreId || articleId;
 
         titleEl.textContent =
           data.titleAm ||
@@ -424,25 +427,31 @@
           imageWrap.classList.add("hidden");
         }
 
-        const description =
+        const articleContent =
+          data.contentAm ||
           data.descriptionAm ||
-          data.description ||
           data.content ||
+          data.description ||
           "መግለጫ የለም።";
 
-        contentEl.innerHTML =
-          `<p>${escapeHTML(description)}</p>`;
+        const paragraphs = String(articleContent)
+          .split(/\\n\\s*\\n|\\n/)
+          .map(text => text.trim())
+          .filter(Boolean);
+
+        contentEl.innerHTML = paragraphs.length
+          ? paragraphs.map(text => `<p>${escapeHTML(text)}</p>`).join("")
+          : `<p>${escapeHTML(articleContent)}</p>`;
 
         const sourceUrl =
           data.sourceUrl ||
           data.link ||
           "";
 
-        if (
-          String(data.source || "").toUpperCase() === "ESPN" &&
-          sourceUrl
-        ) {
+        if (sourceUrl) {
           espnLink.href = sourceUrl;
+          espnLink.target = "_blank";
+          espnLink.rel = "noopener noreferrer";
           espnSource.classList.remove("hidden");
         }
 
@@ -491,7 +500,7 @@
         );
 
       const articleRef =
-        doc(db, "news", articleId);
+        doc(db, "news", firestoreArticleId);
 
       const existing =
         await getDoc(likeRef);
@@ -571,7 +580,7 @@
       );
 
       await updateDoc(
-        doc(db, "news", articleId),
+        doc(db, "news", firestoreArticleId),
         {
           commentsCount: increment(1)
         }
@@ -689,7 +698,7 @@
         );
 
       const articleRef =
-        doc(db, "news", articleId);
+        doc(db, "news", firestoreArticleId);
 
       const existing =
         await getDoc(repostRef);
