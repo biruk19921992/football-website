@@ -1615,6 +1615,77 @@ app.get("/api/news", async (req, res) => {
   }
 });
 
+
+/* =========================
+   SINGLE NEWS ARTICLE
+========================= */
+app.get("/api/news/:id", async (req, res) => {
+  try {
+    const articleId = String(req.params.id || "").trim();
+
+    if (!articleId) {
+      return res.status(400).json({
+        success: false,
+        message: "article id is required"
+      });
+    }
+
+    const directDocId =
+      articleId.startsWith("TELEGRAM-")
+        ? articleId.replace(/^TELEGRAM-/, "")
+        : articleId.startsWith("LIVESCORE-")
+          ? articleId.replace(/^LIVESCORE-/, "")
+          : articleId;
+
+    const doc = await firestore
+      .collection("news")
+      .doc(directDocId)
+      .get();
+
+    if (doc.exists) {
+      const item = doc.data() || {};
+
+      return res.json({
+        success: true,
+        article: {
+          id: articleId,
+          firestoreId: doc.id,
+          title: item.title || item.headline || "",
+          headline: item.headline || item.title || "",
+          description: item.description || "",
+          content: item.content || item.description || "",
+          titleAm: item.titleAm || item.title || item.headline || "",
+          descriptionAm: item.descriptionAm || item.description || "",
+          contentAm: item.contentAm || item.content || item.descriptionAm || item.description || "",
+          image: item.image || "",
+          source: item.source || "Football",
+          sourceUrl: item.sourceUrl || item.link || "",
+          link: item.link || item.sourceUrl || "",
+          publishedAt: item.publishedAt || item.published || item.createdAt || null,
+          category: item.category || item.league || "Football",
+          likesCount: Number(item.likesCount || 0),
+          commentsCount: Number(item.commentsCount || 0),
+          repostsCount: Number(item.repostsCount || 0)
+        }
+      });
+    }
+
+    return res.status(404).json({
+      success: false,
+      message: "Article not found.",
+      id: articleId
+    });
+
+  } catch (error) {
+    console.error("❌ Single article API error:", error.message || error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to load article."
+    });
+  }
+});
+
 /* =========================
    FIXTURES BY DATE
 ========================= */
