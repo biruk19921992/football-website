@@ -236,6 +236,12 @@
 
       </section>
 
+      <!-- RELATED NEWS -->
+      <section id="relatedNewsSection" class="mt-6">
+        <h2 class="text-lg font-bold mb-3">📰 ተዛማጅ ዜናዎች</h2>
+        <div id="relatedNewsList" class="grid gap-3"></div>
+      </section>
+
       <!-- TELEGRAM -->
       <a href="https://t.me/vibessports"
          target="_blank"
@@ -482,6 +488,8 @@
         loading.classList.add("hidden");
         article.classList.remove("hidden");
 
+        loadRelatedNews();
+
       } catch (error) {
 
         console.error("Article loading error:", error);
@@ -494,6 +502,81 @@
 
       }
 
+    }
+
+    async function loadRelatedNews() {
+      const section = document.getElementById("relatedNewsSection");
+      const list = document.getElementById("relatedNewsList");
+
+      if (!section || !list) return;
+
+      try {
+        const response = await fetch(
+          "https://footballxtra-website.onrender.com/api/news?refresh=" +
+          Date.now()
+        );
+
+        if (!response.ok) throw new Error("Related news request failed");
+
+        const result = await response.json();
+
+        const articles = Array.isArray(result.news)
+          ? result.news
+          : Array.isArray(result.articles)
+          ? result.articles
+          : [];
+
+        const related = articles
+          .filter(item => String(item.id || "") !== String(articleId))
+          .slice(0, 4);
+
+        if (!related.length) {
+          section.classList.add("hidden");
+          return;
+        }
+
+        list.innerHTML = related.map(item => {
+          const id = encodeURIComponent(item.id || "");
+          const title =
+            item.titleAm ||
+            item.title ||
+            item.headline ||
+            "የእግር ኳስ ዜና";
+
+          const image = item.image || "";
+
+          return `
+            <a href="article.html?id=${id}"
+               class="glass rounded-2xl p-3 flex gap-3 items-center hover:bg-white/10 transition">
+
+              ${
+                image
+                  ? `<img src="${escapeHTML(image)}"
+                          alt="${escapeHTML(title)}"
+                          class="w-24 h-20 object-cover rounded-xl flex-shrink-0">`
+                  : `<div class="w-24 h-20 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
+                       ⚽
+                     </div>`
+              }
+
+              <div class="min-w-0">
+                <h3 class="font-bold text-sm leading-5 line-clamp-3">
+                  ${escapeHTML(title)}
+                </h3>
+
+                <p class="text-xs text-gray-500 mt-2">
+                  ${escapeHTML(item.source || "Football")}
+                </p>
+              </div>
+
+            </a>
+          `;
+        }).join("");
+
+      } catch (error) {
+        console.error("Related news error:", error);
+        section.classList.add("hidden");
+      }
     }
 
     async function handleLike() {
