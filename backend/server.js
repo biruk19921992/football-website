@@ -1630,16 +1630,8 @@ app.get("/api/news/:id", async (req, res) => {
       });
     }
 
-    const directDocId =
-      articleId.startsWith("TELEGRAM-") ||
-      articleId.startsWith("LIVESCORE-")
-        ? articleId
-        : articleId;
-
-    const doc = await firestore
-      .collection("news")
-      .doc(directDocId)
-      .get();
+    // 1. Try Firestore first
+    const doc = await firestore.collection("news").doc(articleId).get();
 
     if (doc.exists) {
       const item = doc.data() || {};
@@ -1655,18 +1647,110 @@ app.get("/api/news/:id", async (req, res) => {
           content: item.content || item.description || "",
           titleAm: item.titleAm || item.title || item.headline || "",
           descriptionAm: item.descriptionAm || item.description || "",
-          contentAm: item.contentAm || item.content || item.descriptionAm || item.description || "",
+          contentAm:
+            item.contentAm ||
+            item.content ||
+            item.descriptionAm ||
+            item.description ||
+            "",
           image: item.image || "",
           source: item.source || "Football",
           sourceUrl: item.sourceUrl || item.link || "",
           link: item.link || item.sourceUrl || "",
-          publishedAt: item.publishedAt || item.published || item.createdAt || null,
+          publishedAt:
+            item.publishedAt ||
+            item.published ||
+            item.createdAt ||
+            null,
           category: item.category || item.league || "Football",
           likesCount: Number(item.likesCount || 0),
           commentsCount: Number(item.commentsCount || 0),
           repostsCount: Number(item.repostsCount || 0)
         }
       });
+    }
+
+    // 2. Firestore did not contain it.
+    // Reuse the same news aggregation used by /api/news.
+    const baseUrl =
+      "https://footballxtra-website.onrender.com/api/news?refresh=" +
+      Date.now();
+
+    const newsResponse = await fetch(baseUrl);
+
+    if (newsResponse.ok) {
+      const newsResult = await newsResponse.json();
+
+      const articles =
+        Array.isArray(newsResult.news)
+          ? newsResult.news
+          : Array.isArray(newsResult.articles)
+          ? newsResult.articles
+          : Array.isArray(newsResult.data)
+          ? newsResult.data
+          : [];
+
+      const found = articles.find((item) =>
+        String(item.id || "") === articleId ||
+        String(item._id || "") === articleId ||
+        String(item.guid || "") === articleId ||
+        String(item.sourceId || "") === articleId
+      );
+
+      if (found) {
+        return res.json({
+          success: true,
+          article: {
+            ...found,
+            id: articleId,
+            firestoreId: found.firestoreId || "",
+            title: found.title || found.headline || "",
+            headline: found.headline || found.title || "",
+            description: found.description || "",
+            content:
+              found.content ||
+              found.description ||
+              "",
+            titleAm:
+              found.titleAm ||
+              found.title ||
+              found.headline ||
+              "",
+            descriptionAm:
+              found.descriptionAm ||
+              found.description ||
+              "",
+            contentAm:
+              found.contentAm ||
+              found.content ||
+              found.descriptionAm ||
+              found.description ||
+              "",
+            image: found.image || "",
+            source: found.source || "Football",
+            sourceUrl:
+              found.sourceUrl ||
+              found.link ||
+              "",
+            link:
+              found.link ||
+              found.sourceUrl ||
+              "",
+            publishedAt:
+              found.publishedAt ||
+              found.published ||
+              found.createdAt ||
+              null,
+            category:
+              found.category ||
+              found.league ||
+              "Football",
+            likesCount: Number(found.likesCount || 0),
+            commentsCount: Number(found.commentsCount || 0),
+            repostsCount: Number(found.repostsCount || 0)
+          }
+        });
+      }
     }
 
     return res.status(404).json({
@@ -1676,11 +1760,16 @@ app.get("/api/news/:id", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Single article API error:", error.message || error);
+    console.error(
+      "❌ Single article API error:",
+      error.message || error
+    );
 
     return res.status(500).json({
       success: false,
-      message: error.message || "Failed to load article."
+      message:
+        error.message ||
+        "Failed to load article."
     });
   }
 });
