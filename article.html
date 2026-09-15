@@ -350,13 +350,28 @@
     function formatDate(value) {
       if (!value) return "";
 
-      const date = value?.toDate
-        ? value.toDate()
-        : new Date(value);
+      let date;
+
+      if (typeof value?.toDate === "function") {
+        date = value.toDate();
+      } else if (typeof value === "object" && value?._seconds != null) {
+        date = new Date(
+          Number(value._seconds) * 1000 +
+          Math.floor(Number(value._nanoseconds || 0) / 1000000)
+        );
+      } else {
+        date = new Date(value);
+      }
 
       if (Number.isNaN(date.getTime())) return "";
 
-      return date.toLocaleString();
+      return date.toLocaleString("am-ET", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
     }
 
     function showLoginMessage() {
