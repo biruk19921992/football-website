@@ -174,6 +174,79 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("."));
 
+
+/* =========================
+   TELEGRAM -> WEBSITE WEBHOOK
+========================= */
+
+app.post("/api/telegram/webhook", async (req, res) => {
+  try {
+    const update = req.body || {};
+    const post = update.channel_post;
+
+    if (!post) {
+      return res.json({ ok: true, ignored: true });
+    }
+
+    const chatId = String(post.chat?.id || "");
+    const messageId = String(post.message_id || "");
+
+    if (!chatId || !messageId) {
+      return res.json({ ok: true, ignored: true });
+    }
+
+    const expectedChannel = String(
+      process.env.TELEGRAM_CHANNEL_ID || "-1004488425491"
+    );
+
+    if (chatId !== expectedChannel) {
+      console.log("⚠️ Ignored Telegram post from:", chatId);
+      return res.json({ ok: true, ignored: true });
+    }
+
+    const text = post.text || post.caption || "";
+
+    if (!text.trim()) {
+      return res.json({ ok: true, ignored: true });
+    }
+
+    const docId = `TELEGRAM-${chatId}-${messageId}`;
+
+    await firestore.collection("news").doc(docId).set(
+      {
+        title: text.trim(),
+        description: "",
+        titleAm: text.trim(),
+        descriptionAm: "",
+        source: "VibeSport Telegram",
+        sourceUrl: `https://t.me/${post.chat?.username || "vibessports"}/${messageId}`,
+        telegramChatId: chatId,
+        telegramMessageId: Number(post.message_id),
+        publishedAt: post.date
+          ? new Date(post.date * 1000)
+          : new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      { merge: true }
+    );
+
+    console.log("📥 Telegram -> Website imported:", docId);
+
+    return res.json({
+      ok: true,
+      imported: true,
+      id: docId
+    });
+  } catch (error) {
+    console.error("❌ Telegram webhook error:", error.message);
+    return res.status(500).json({
+      ok: false,
+      error: "Webhook processing failed"
+    });
+  }
+});
+
 /* =========================
    HOME
 ========================= */
