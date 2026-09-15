@@ -1434,6 +1434,40 @@ app.get("/api/news", async (req, res) => {
       );
     }
 
+    // VibeSport Telegram articles
+    try {
+      const telegramSnap = await firestore
+        .collection("news")
+        .where("source", "==", "VibeSport Telegram")
+        .get();
+
+      telegramSnap.forEach((doc) => {
+        const item = doc.data() || {};
+
+        const published = item.publishedAt?.toDate
+          ? item.publishedAt.toDate().toISOString()
+          : (item.publishedAt || item.createdAt || null);
+
+        if (item.title) {
+          news.push({
+            id: "TELEGRAM-" + doc.id,
+            headline: item.title,
+            description: item.description || "",
+            published,
+            image: item.image || "",
+            link: item.sourceUrl || "",
+            source: "VibeSport Telegram",
+            titleAm: item.titleAm || item.title,
+            descriptionAm: item.descriptionAm || item.description || ""
+          });
+        }
+      });
+
+      console.log(`📥 Telegram API: ${telegramSnap.size} articles added`);
+    } catch (error) {
+      console.error("❌ Telegram Firestore API error:", error.message || error);
+    }
+
     const unique = Array.from(
       new Map(news.map((item) => [item.id, item])).values()
     );
