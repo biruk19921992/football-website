@@ -1631,11 +1631,10 @@ app.get("/api/news/:id", async (req, res) => {
     }
 
     const directDocId =
-      articleId.startsWith("TELEGRAM-")
-        ? articleId.replace(/^TELEGRAM-/, "")
-        : articleId.startsWith("LIVESCORE-")
-          ? articleId.replace(/^LIVESCORE-/, "")
-          : articleId;
+      articleId.startsWith("TELEGRAM-") ||
+      articleId.startsWith("LIVESCORE-")
+        ? articleId
+        : articleId;
 
     const doc = await firestore
       .collection("news")
