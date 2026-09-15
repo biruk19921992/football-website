@@ -1,4 +1,11 @@
 require("dotenv").config();
+const { v2: cloudinary } = require("cloudinary");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 const { XMLParser } = require("fast-xml-parser");
 const express = require("express");
 const cors = require("cors");
@@ -223,12 +230,42 @@ app.post("/api/telegram/webhook", async (req, res) => {
           const fileData = await fileResponse.json();
 
           if (fileData.ok && fileData.result?.file_path) {
-            imageUrl =
+            const telegramFileUrl =
               `https://api.telegram.org/file/bot${token}/${fileData.result.file_path}`;
+
+            const imageResponse = await fetch(telegramFileUrl);
+
+            if (!imageResponse.ok) {
+              throw new Error(
+                `Telegram image download HTTP ${imageResponse.status}`
+              );
+            }
+
+            const arrayBuffer = await imageResponse.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            const uploadResult = await new Promise((resolve, reject) => {
+              const stream = cloudinary.uploader.upload_stream(
+                {
+                  folder: "vibesport/telegram",
+                  resource_type: "image"
+                },
+                (error, result) => {
+                  if (error) reject(error);
+                  else resolve(result);
+                }
+              );
+
+              stream.end(buffer);
+            });
+
+            imageUrl = uploadResult.secure_url;
+
+            console.log("☁️ Telegram photo uploaded to Cloudinary");
           }
         }
       } catch (photoError) {
-        console.error("❌ Telegram photo error:", photoError.message);
+        console.error("❌ Telegram photo/Cloudinary error:", photoError.message);
       }
     }
 
