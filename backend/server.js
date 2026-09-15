@@ -206,22 +206,51 @@ app.post("/api/telegram/webhook", async (req, res) => {
 
     const text = post.text || post.caption || "";
 
-    if (!text.trim()) {
+    const docId = `TELEGRAM-${chatId}-${messageId}`;
+
+    let imageUrl = "";
+
+    if (Array.isArray(post.photo) && post.photo.length > 0) {
+      try {
+        const largestPhoto = post.photo[post.photo.length - 1];
+        const token = process.env.TELEGRAM_BOT_TOKEN;
+
+        if (token && largestPhoto.file_id) {
+          const fileResponse = await fetch(
+            `https://api.telegram.org/bot${token}/getFile?file_id=${encodeURIComponent(largestPhoto.file_id)}`
+          );
+
+          const fileData = await fileResponse.json();
+
+          if (fileData.ok && fileData.result?.file_path) {
+            imageUrl =
+              `https://api.telegram.org/file/bot${token}/${fileData.result.file_path}`;
+          }
+        }
+      } catch (photoError) {
+        console.error("❌ Telegram photo error:", photoError.message);
+      }
+    }
+
+    if (!text.trim() && !imageUrl) {
       return res.json({ ok: true, ignored: true });
     }
 
-    const docId = `TELEGRAM-${chatId}-${messageId}`;
-
     await firestore.collection("news").doc(docId).set(
       {
-        title: text.trim(),
+        title: text.trim() || "VibeSport",
         description: "",
-        titleAm: text.trim(),
+        titleAm: text.trim() || "VibeSport",
         descriptionAm: "",
+        image: imageUrl,
         source: "VibeSport Telegram",
         sourceUrl: `https://t.me/${post.chat?.username || "vibessports"}/${messageId}`,
         telegramChatId: chatId,
         telegramMessageId: Number(post.message_id),
+        telegramPhotoFileId:
+          Array.isArray(post.photo) && post.photo.length > 0
+            ? post.photo[post.photo.length - 1].file_id
+            : "",
         publishedAt: post.date
           ? new Date(post.date * 1000)
           : new Date(),
@@ -231,12 +260,17 @@ app.post("/api/telegram/webhook", async (req, res) => {
       { merge: true }
     );
 
-    console.log("📥 Telegram -> Website imported:", docId);
+    console.log(
+      "📥 Telegram -> Website imported:",
+      docId,
+      imageUrl ? "📸 photo included" : "📝 text only"
+    );
 
     return res.json({
       ok: true,
       imported: true,
-      id: docId
+      id: docId,
+      image: imageUrl
     });
   } catch (error) {
     console.error("❌ Telegram webhook error:", error.message);
