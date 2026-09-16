@@ -271,7 +271,7 @@
 
 <script>
 
-const API_BASE = "http://localhost:3000";
+const API_BASE = "https://footballxtra-website.onrender.com";
 const params = new URLSearchParams(window.location.search);
 
 const fixtureId = params.get("fixture") || new URLSearchParams(window.location.hash.slice(1)).get("fixture") || window.location.pathname.split("/").filter(Boolean).pop();
@@ -323,7 +323,7 @@ async function loadStatistics() {
 
   try {
     const response = await fetch(
-      `http://127.0.0.1:3000/api/matches/${encodeURIComponent(fixtureId)}/statistics`
+      `https://footballxtra-website.onrender.com/api/matches/${encodeURIComponent(fixtureId)}/statistics`
     );
     const data = await response.json();
 

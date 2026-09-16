@@ -131,7 +131,7 @@ async function handleAddAdmin(event) {
 
     const token = await user.getIdToken();
 
-    const response = await fetch("http://localhost:3000/api/admins", {
+    const response = await fetch("https://footballxtra-website.onrender.com/api/admins", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

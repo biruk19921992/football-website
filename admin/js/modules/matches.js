@@ -10,7 +10,7 @@ import {
 
 import { db, auth } from "../../../js/firebase.js";
 
-const API_BASE = "http://localhost:3000";
+const API_BASE = "https://footballxtra-website.onrender.com";
 
 let currentMatches = [];
 let currentFilter = "all";

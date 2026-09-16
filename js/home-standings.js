@@ -1,4 +1,4 @@
-const STANDINGS_API = "http://localhost:3000/api/standings/premier-league";
+const STANDINGS_API = "https://footballxtra-website.onrender.com/api/standings/premier-league";
 
 async function loadHomeStandings() {
   const table = document.getElementById("homeLeagueTable");
