@@ -254,12 +254,6 @@ if (markAllReadBtn) {
         return;
       }
 
-      const articleId = item.dataset.articleId || id;
-      if (articleId && articleId !== "test1") {
-        window.location.href = `article.html?id=${encodeURIComponent(articleId)}`;
-        return;
-      }
-
       try {
         await update(
           ref(rtdb),
