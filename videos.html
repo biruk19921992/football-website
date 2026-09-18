@@ -959,7 +959,32 @@ async function loadVideos() {
       if (sharedVideo) {
         console.log("✅ SHARED VIDEO FOUND:", sharedVideo.id, sharedVideo.youtubeId, sharedVideo.videoUrl);
         alert("VIDEO FOUND ✅\nID: " + sharedVideo.id + "\nYouTube ID: " + (sharedVideo.youtubeId || "MISSING") + "\nVideo URL: " + (sharedVideo.videoUrl || "MISSING"));
-        setTimeout(() => playVideo(sharedVideo), 300);
+        function playVideoWhenReady(video, attempts = 20) {
+  const youtubeId =
+    video.youtubeId ||
+    getYouTubeId(video.videoUrl || "");
+
+  if (!youtubeId) return;
+
+  if (window.FootballXtraMiniPlayer?.play) {
+    window.FootballXtraMiniPlayer.play(
+      youtubeId,
+      video.title || "VibeSport Video"
+    );
+    return;
+  }
+
+  if (attempts <= 0) {
+    console.error("❌ Mini Player API not ready");
+    return;
+  }
+
+  setTimeout(() => {
+    playVideoWhenReady(video, attempts - 1);
+  }, 250);
+}
+
+playVideoWhenReady(sharedVideo);
       } else {
         console.log("❌ SHARED VIDEO NOT FOUND:", sharedVideoId);
         console.log("Available video IDs:", allVideos.map(video => video.id));
