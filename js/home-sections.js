@@ -613,7 +613,12 @@ async function checkEspnNotifications() {
     return;
   }
 
+  const CHECK_KEY = "footballxtra_espn_notification_last_check";
+
   try {
+    const now = Date.now();
+    const lastCheck = Number(localStorage.getItem(CHECK_KEY) || 0);
+
     const snapshot = await getDocs(
       query(
         collection(db, "news"),
@@ -631,31 +636,33 @@ async function checkEspnNotifications() {
         String(item.source || "").toLowerCase() === "espn"
       );
 
-    const saved = JSON.parse(
-      localStorage.getItem(ESPN_NOTIFICATION_KEY) || "[]"
-    );
-
-    const currentIds = espnNews.map(item => item.id);
-
-    /* First visit: save existing news without notifying */
-    if (!saved.length) {
-      localStorage.setItem(
-        ESPN_NOTIFICATION_KEY,
-        JSON.stringify(currentIds)
-      );
-      console.log("🔔 ESPN notification list initialized.");
+    /* First run: remember the current time, but do NOT notify old news. */
+    if (!lastCheck) {
+      localStorage.setItem(CHECK_KEY, String(now));
+      console.log("🔔 ESPN notification checker initialized.");
       return;
     }
 
-    const newNews = espnNews.filter(
-      item => !saved.includes(item.id)
-    );
+    const newNews = espnNews.filter(item => {
+      const published = item.publishedAt || item.createdAt;
+      let time = 0;
+
+      if (published?.toDate) {
+        time = published.toDate().getTime();
+      } else if (published?._seconds) {
+        time = Number(published._seconds) * 1000;
+      } else {
+        time = new Date(published || 0).getTime();
+      }
+
+      return Number.isFinite(time) && time > lastCheck;
+    });
 
     for (const item of newNews.reverse()) {
       const notification = new Notification(
         "⚽ Football Xtra — NEW ESPN News",
         {
-          body: item.title || "New football news available",
+          body: item.titleAm || item.title || "New football news available",
           icon: item.image || "/favicon.ico",
           tag: item.id
         }
@@ -668,22 +675,13 @@ async function checkEspnNotifications() {
       };
     }
 
-    localStorage.setItem(
-      ESPN_NOTIFICATION_KEY,
-      JSON.stringify(currentIds)
-    );
+    localStorage.setItem(CHECK_KEY, String(now));
 
     if (newNews.length) {
-      console.log(
-        `🔔 ${newNews.length} new ESPN notification(s).`
-      );
+      console.log(`🔔 ${newNews.length} new ESPN notification(s).`);
     }
-
   } catch (error) {
-    console.error(
-      "❌ ESPN notification check failed:",
-      error
-    );
+    console.error("❌ ESPN notification check failed:", error);
   }
 }
 
