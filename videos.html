@@ -84,8 +84,7 @@ function escapeHTML(value = "") {
 
 async function loadVideos() {
   try {
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(collection(db, "posts"));
     const videos = snapshot.docs.filter(doc => doc.data().type === "video");
 
     if (!videos.length) {
