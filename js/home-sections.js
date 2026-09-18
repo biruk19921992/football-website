@@ -716,17 +716,3 @@ setInterval(() => {
 
 
 console.log("🚀 HOME-SECTIONS JS LOADED");
-
-
-/* TEMPORARY ESPN NOTIFICATION TEST */
-setTimeout(() => {
-  if ("Notification" in window) {
-    new Notification("⚽ Football Xtra — NEW ESPN News", {
-      body: "🔔 ESPN notification system is working!",
-      icon: "/favicon.ico"
-    });
-    console.log("✅ ESPN TEST notification sent.");
-  } else {
-    alert("⚠️ Notification permission is not granted.");
-  }
-}, 5000);
