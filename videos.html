@@ -71,6 +71,13 @@ import { collection, query, orderBy, getDocs } from "https://www.gstatic.com/fir
 
 const videoList = document.getElementById("videoList");
 
+function getYouTubeId(url = "") {
+  const match = String(url).match(
+    /(?:youtube\\.com\\/(?:watch\\?v=|shorts\\/|embed\\/)|youtu\\.be\\/)([^&?/]+)/
+  );
+  return match ? match[1] : "";
+}
+
 function escapeHTML(value = "") {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
@@ -88,7 +95,7 @@ async function loadVideos() {
 
     videoList.innerHTML = videos.map(doc => {
       const v = doc.data();
-      const youtubeId = v.youtubeId || "";
+      const youtubeId = v.youtubeId || getYouTubeId(v.videoUrl || "");
       return `<article class="overflow-hidden rounded-2xl bg-white/5 border border-white/10">
         <a href="#" onclick="event.preventDefault(); window.FootballXtraMiniPlayer?.play('${youtubeId}', ${JSON.stringify(v.title || "Football Video")});">
           <div class="relative aspect-video bg-black">
