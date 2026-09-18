@@ -613,7 +613,7 @@ async function checkEspnNotifications() {
     return;
   }
 
-  const CHECK_KEY = "footballxtra_espn_notification_last_check";
+  const CHECK_KEY = "footballxtra_news_notification_last_check";
 
   try {
     const now = Date.now();
@@ -627,23 +627,20 @@ async function checkEspnNotifications() {
       )
     );
 
-    const espnNews = snapshot.docs
+    const allNews = snapshot.docs
       .map(doc => ({
         id: doc.id,
         ...doc.data()
-      }))
-      .filter(item =>
-        String(item.source || "").toLowerCase() === "espn"
-      );
+      }));
 
     /* First run: remember the current time, but do NOT notify old news. */
     if (!lastCheck) {
       localStorage.setItem(CHECK_KEY, String(now));
-      console.log("🔔 ESPN notification checker initialized.");
+      console.log("🔔 Football Xtra notification checker initialized.");
       return;
     }
 
-    const newNews = espnNews.filter(item => {
+    const newNews = allNews.filter(item => {
       const published = item.publishedAt || item.createdAt;
       let time = 0;
 
@@ -660,7 +657,7 @@ async function checkEspnNotifications() {
 
     for (const item of newNews.reverse()) {
       const notification = new Notification(
-        "⚽ Football Xtra — NEW ESPN News",
+        "⚽ Football Xtra — NEW NEWS",
         {
           body: item.titleAm || item.title || "New football news available",
           icon: item.image || "/favicon.ico",
@@ -678,7 +675,7 @@ async function checkEspnNotifications() {
     localStorage.setItem(CHECK_KEY, String(now));
 
     if (newNews.length) {
-      console.log(`🔔 ${newNews.length} new ESPN notification(s).`);
+      console.log(`🔔 ${newNews.length} new Football Xtra notification(s).`);
     }
   } catch (error) {
     console.error("❌ ESPN notification check failed:", error);
