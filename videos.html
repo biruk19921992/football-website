@@ -90,7 +90,7 @@ async function loadVideos() {
       const v = doc.data();
       const youtubeId = v.youtubeId || "";
       return `<article class="overflow-hidden rounded-2xl bg-white/5 border border-white/10">
-        <a href="#" onclick="event.preventDefault(); window.FootballXtraMiniPlayer?.play(youtubeId, v.title);">
+        <a href="#" onclick="event.preventDefault(); window.FootballXtraMiniPlayer?.play('${youtubeId}', ${JSON.stringify(v.title || "Football Video")});">
           <div class="relative aspect-video bg-black">
             <img src="${escapeHTML(v.thumbnailUrl || v.image || "")}" alt="${escapeHTML(v.title || "Video")}" class="w-full h-full object-cover">
             <div class="absolute inset-0 flex items-center justify-center bg-black/20">
