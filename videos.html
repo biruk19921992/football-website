@@ -3,120 +3,987 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Videos</title>
+
+  <title>Videos | VibeSport</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+
+  <style>
+    body {
+      background:
+        radial-gradient(circle at 10% 0%, rgba(34,197,94,.10), transparent 30%),
+        radial-gradient(circle at 90% 10%, rgba(168,85,247,.12), transparent 30%),
+        #070b11;
+    }
+
+    .video-card {
+      background: linear-gradient(
+        145deg,
+        rgba(255,255,255,.075),
+        rgba(255,255,255,.025)
+      );
+      border: 1px solid rgba(255,255,255,.09);
+      transition: .25s ease;
+    }
+
+    .video-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(34,197,94,.35);
+      box-shadow: 0 18px 45px rgba(0,0,0,.30);
+    }
+
+    .video-thumb {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .video-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .35s ease;
+    }
+
+    .video-card:hover .video-thumb img {
+      transform: scale(1.05);
+    }
+
+    .play-button {
+      width: 58px;
+      height: 58px;
+      border-radius: 999px;
+      background: linear-gradient(135deg,#22c55e,#06b6d4);
+      color: #06100d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 30px rgba(34,197,94,.35);
+      transition: .25s ease;
+    }
+
+    .video-card:hover .play-button {
+      transform: scale(1.1);
+    }
+
+    .featured {
+      background:
+        linear-gradient(135deg,rgba(34,197,94,.14),rgba(168,85,247,.12)),
+        rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .category-btn.active {
+      background: linear-gradient(135deg,#22c55e,#06b6d4);
+      color: #04100c;
+      border-color: transparent;
+    }
+
+    .bottom-nav {
+      box-shadow: 0 -10px 30px rgba(0,0,0,.25);
+    }
+  </style>
+<style>
+.video-social-btn {
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:6px !important;
+  min-height:40px !important;
+  padding:8px 12px !important;
+  border-radius:12px !important;
+  background:rgba(255,255,255,.06) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  color:#e5e7eb !important;
+  font-size:14px !important;
+  font-weight:700 !important;
+  white-space:nowrap !important;
+  transition:all .2s ease !important;
+}
+.video-social-btn:hover {
+  background:rgba(34,197,94,.14) !important;
+  border-color:rgba(34,197,94,.35) !important;
+  color:#4ade80 !important;
+  transform:translateY(-1px) !important;
+}
+.video-social-btn:active {
+  transform:scale(.96) !important;
+}
+.video-social-btn span {
+  font-size:13px !important;
+  font-weight:800 !important;
+}
+@media (max-width:640px) {
+  .video-social-btn {
+    min-height:42px !important;
+    padding:9px 11px !important;
+    font-size:13px !important;
+    flex:1 !important;
+  }
+}
+</style>
+<style>
+.video-social-btn i{font-size:16px;transition:transform .2s ease,color .2s ease}
+.video-social-btn:hover i{transform:scale(1.18)}
+.video-social-btn:active i{transform:scale(.82)}
+.video-social-btn:hover{box-shadow:0 0 14px rgba(34,197,94,.18)}
+.video-social-btn:first-child:hover i{color:#ef4444}
+.video-social-btn:nth-child(2):hover i{color:#22c55e}
+.video-social-btn:nth-child(3):hover i{color:#06b6d4}
+.video-social-btn:nth-child(4):hover i{color:#a855f7}
+</style>
 </head>
-<body class="bg-[#0b0f15] text-white min-h-screen">
+
+<body class="text-white min-h-screen">
 
 <header class="sticky top-0 z-50 border-b border-white/10 bg-[#07090d]/90 backdrop-blur-xl">
   <div class="max-w-7xl mx-auto px-4">
     <div class="h-16 flex items-center justify-between">
+
       <a href="index.html" class="flex items-center gap-2">
-        <div class="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-cyan-400 flex items-center justify-center shadow-lg shadow-green-500/20">
           <i class="fa-solid fa-futbol text-black text-xl"></i>
         </div>
+
         <div>
           <h1 class="font-black text-xl tracking-tight">
-            FOOTBALL<span class="text-green-400">XTRA</span>
+            VIBE<span class="text-green-400">SPORT</span>
           </h1>
-          <p class="text-[9px] text-gray-500 tracking-[3px]">FOOTBALL MEDIA</p>
+
+          <p class="text-[9px] text-gray-500 tracking-[3px]">
+            FOOTBALL MEDIA
+          </p>
         </div>
       </a>
+
+      <a
+        href="index.html"
+        class="hidden sm:flex items-center gap-2 text-sm text-gray-400 hover:text-green-400"
+      >
+        <i class="fa-solid fa-house"></i>
+        Home
+      </a>
+
     </div>
   </div>
 </header>
 
-  <main class="max-w-4xl mx-auto px-4 py-8 pb-24">
-    <h1 class="text-2xl font-bold mb-6">Videos</h1>
 
-    <div id="videoList" class="grid gap-6 sm:grid-cols-2"></div>
-  </main>
+<main class="max-w-6xl mx-auto px-4 py-7 pb-28">
 
-  <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0b0f15]/95 backdrop-blur-xl border-t border-white/10">
-    <div class="grid grid-cols-5 h-16">
+  <!-- HERO -->
+  <section class="mb-7">
 
-      <a href="index.html" class="flex flex-col items-center justify-center text-gray-500">
-        <i class="fa-solid fa-house"></i>
-        <span class="text-[9px] mt-1">Home</span>
-      </a>
+    <div class="flex items-end justify-between gap-4 mb-4">
+      <div>
+        <p class="text-xs font-bold text-green-400 uppercase tracking-[3px]">
+          VibeSport Media
+        </p>
 
-      <a href="news.html" class="flex flex-col items-center justify-center text-gray-500">
-        <i class="fa-regular fa-newspaper"></i>
-        <span class="text-[9px] mt-1">News</span>
-      </a>
+        <h1 class="text-3xl sm:text-4xl font-black mt-1">
+          Latest Videos
+        </h1>
 
-      <a href="scores.html" class="flex flex-col items-center justify-center text-gray-500">
-        <i class="fa-solid fa-futbol"></i>
-        <span class="text-[9px] mt-1">Scores</span>
-      </a>
+        <p class="text-gray-400 text-sm mt-2">
+          Football highlights, goals, interviews and the latest action.
+        </p>
+      </div>
 
-      <a href="videos.html" class="flex flex-col items-center justify-center text-green-400">
-        <i class="fa-brands fa-youtube"></i>
-        <span class="text-[9px] mt-1">Videos</span>
-      </a>
-
-      <a href="profile.html" class="flex flex-col items-center justify-center text-gray-500">
-        <i class="fa-regular fa-user"></i>
-        <span class="text-[9px] mt-1">Profile</span>
-      </a>
-
+      <div class="hidden sm:flex items-center gap-2 text-xs text-gray-500">
+        <i class="fa-solid fa-circle text-green-400 text-[7px]"></i>
+        Fresh football content
+      </div>
     </div>
-  </nav>
+
+  </section>
+
+
+  <!-- SEARCH -->
+  <section class="mb-5">
+
+    <div class="relative">
+      <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+
+      <input
+        id="videoSearch"
+        type="search"
+        placeholder="Search videos..."
+        class="w-full bg-white/5 border border-white/10 rounded-2xl pl-11 pr-4 py-3.5 outline-none focus:border-green-500/50 focus:ring-2 focus:ring-green-500/10"
+      >
+    </div>
+
+  </section>
+
+
+  <!-- CATEGORIES -->
+  <section class="flex gap-2 overflow-x-auto pb-2 mb-7">
+
+    <button
+      class="category-btn active shrink-0 px-4 py-2 rounded-full border border-white/10 text-sm font-bold"
+      data-category="all"
+    >
+      All
+    </button>
+
+    <button
+      class="category-btn shrink-0 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-bold text-gray-300"
+      data-category="highlights"
+    >
+      <i class="fa-solid fa-fire mr-1"></i>
+      Highlights
+    </button>
+
+    <button
+      class="category-btn shrink-0 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-bold text-gray-300"
+      data-category="goals"
+    >
+      <i class="fa-solid fa-futbol mr-1"></i>
+      Goals
+    </button>
+
+    <button
+      class="category-btn shrink-0 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-bold text-gray-300"
+      data-category="interviews"
+    >
+      <i class="fa-solid fa-microphone mr-1"></i>
+      Interviews
+    </button>
+
+    <button
+      class="category-btn shrink-0 px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm font-bold text-gray-300"
+      data-category="news"
+    >
+      <i class="fa-regular fa-newspaper mr-1"></i>
+      News
+    </button>
+
+  </section>
+
+
+  <!-- FEATURED -->
+  <section id="featuredVideo" class="mb-8"></section>
+
+
+  <!-- VIDEO LIST -->
+  <section>
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-black">
+        <i class="fa-solid fa-play text-green-400 mr-2"></i>
+        Latest
+      </h2>
+
+      <span
+        id="videoCount"
+        class="text-xs text-gray-500"
+      >
+        0 videos
+      </span>
+    </div>
+
+    <div
+      id="videoList"
+      class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      <div class="sm:col-span-2 lg:col-span-3 text-center py-20 text-gray-500">
+        <i class="fa-solid fa-spinner fa-spin text-2xl mb-3"></i>
+        <p>Loading videos...</p>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+
+<!-- MOBILE NAV -->
+<nav class="bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0b0f15]/95 backdrop-blur-xl border-t border-white/10">
+
+  <div class="grid grid-cols-5 h-16">
+
+    <a href="index.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-house"></i>
+      <span class="text-[9px] mt-1">Home</span>
+    </a>
+
+    <a href="news.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-regular fa-newspaper"></i>
+      <span class="text-[9px] mt-1">News</span>
+    </a>
+
+    <a href="scores.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-futbol"></i>
+      <span class="text-[9px] mt-1">Scores</span>
+    </a>
+
+    <a href="videos.html" class="flex flex-col items-center justify-center text-green-400">
+      <i class="fa-brands fa-youtube"></i>
+      <span class="text-[9px] mt-1">Videos</span>
+    </a>
+
+    <a href="profile.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-regular fa-user"></i>
+      <span class="text-[9px] mt-1">Profile</span>
+    </a>
+
+  </div>
+
+</nav>
+
 
 <script src="./js/mini-player.js?v=2"></script>
+
+
 <script type="module">
-import { db } from "./js/firebase.js";
-import { collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+import { db, auth } from "./js/firebase.js";
+
+import {
+  collection,
+  query,
+  orderBy,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  increment,
+  serverTimestamp,
+  addDoc
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
 
 const videoList = document.getElementById("videoList");
+const videoSearch = document.getElementById("videoSearch");
+const videoCount = document.getElementById("videoCount");
+const featuredVideo = document.getElementById("featuredVideo");
+
+let allVideos = [];
+let activeCategory = "all";
+
 
 function getYouTubeId(url = "") {
+
   const match = String(url).match(
-    /(?:youtube\\.com\\/(?:watch\\?v=|shorts\\/|embed\\/)|youtu\\.be\\/)([^&?/]+)/
+    /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([^&?/]+)/
   );
+
   return match ? match[1] : "";
 }
 
+
 function escapeHTML(value = "") {
-  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
 }
 
-async function loadVideos() {
-  try {
-    const snapshot = await getDocs(collection(db, "posts"));
-    const videos = snapshot.docs.filter(doc => doc.data().type === "video");
 
-    if (!videos.length) {
-      videoList.innerHTML = '<div class="sm:col-span-2 text-center py-20 text-gray-400"><i class="fa-brands fa-youtube text-5xl mb-4"></i><p class="text-lg">No videos available yet.</p></div>';
+function formatDate(timestamp) {
+
+  if (!timestamp) return "";
+
+  try {
+
+    if (timestamp?.toDate) {
+      return timestamp.toDate().toLocaleDateString("am-ET");
+    }
+
+    if (timestamp?._seconds) {
+      return new Date(
+        Number(timestamp._seconds) * 1000
+      ).toLocaleDateString("am-ET");
+    }
+
+    const date = new Date(timestamp);
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    return date.toLocaleDateString("am-ET");
+
+  } catch {
+
+    return "";
+
+  }
+
+}
+
+
+function categoryName(category = "") {
+
+  const names = {
+    highlights: "Highlights",
+    goals: "Goals",
+    interviews: "Interviews",
+    news: "News"
+  };
+
+  return names[category] || "Football";
+
+}
+
+
+function playVideo(video) {
+
+  const youtubeId =
+    video.youtubeId ||
+    getYouTubeId(video.videoUrl || "");
+
+  if (!youtubeId) return;
+
+  window.FootballXtraMiniPlayer?.play(
+    youtubeId,
+    video.title || "Football Video"
+  );
+
+}
+
+
+function renderFeatured(video) {
+
+  if (!video) {
+    featuredVideo.innerHTML = "";
+    return;
+  }
+
+  const youtubeId =
+    video.youtubeId ||
+    getYouTubeId(video.videoUrl || "");
+
+  if (!youtubeId) return;
+
+  const thumbnail =
+    video.thumbnailUrl ||
+    video.image ||
+    `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
+
+  featuredVideo.innerHTML = `
+
+    <article
+      class="featured overflow-hidden rounded-3xl"
+    >
+
+      <div class="grid md:grid-cols-2">
+
+        <button
+          type="button"
+          class="relative video-thumb min-h-[230px] md:min-h-[330px] text-left"
+          data-featured-id="${escapeHTML(video.id)}"
+        >
+
+          <img
+            src="${escapeHTML(thumbnail)}"
+            alt="${escapeHTML(video.title || "Featured video")}"
+          >
+
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
+
+          <div class="absolute inset-0 flex items-center justify-center">
+
+            <span class="play-button">
+              <i class="fa-solid fa-play ml-1 text-xl"></i>
+            </span>
+
+          </div>
+
+          <span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-green-500 text-black text-[10px] font-black uppercase">
+            Featured
+          </span>
+
+        </button>
+
+        <div class="p-5 md:p-7 flex flex-col justify-center">
+
+          <span class="text-xs font-bold text-cyan-400 uppercase tracking-widest">
+            ${escapeHTML(categoryName(video.category))}
+          </span>
+
+          <h2 class="text-2xl md:text-3xl font-black mt-2 leading-tight">
+            ${escapeHTML(video.title || "Featured Video")}
+          </h2>
+
+          <p class="text-sm text-gray-400 mt-3 line-clamp-3">
+            ${escapeHTML(video.content || "Watch the latest football action on VibeSport.")}
+          </p>
+
+          <div class="flex items-center gap-3 mt-5 text-xs text-gray-500">
+            <span>
+              <i class="fa-regular fa-calendar mr-1"></i>
+              ${formatDate(video.createdAt || video.updatedAt)}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            data-featured-id="${escapeHTML(video.id)}"
+            class="featured-play mt-5 w-fit px-5 py-2.5 rounded-xl bg-white text-black font-black text-sm"
+          >
+            <i class="fa-solid fa-play mr-2"></i>
+            Watch now
+          </button>
+
+        </div>
+
+      </div>
+
+    </article>
+
+  `;
+
+}
+
+
+function renderVideos() {
+
+  const search =
+    videoSearch.value.trim().toLowerCase();
+
+  const filtered = allVideos.filter(video => {
+
+    const title =
+      String(video.title || "").toLowerCase();
+
+    const content =
+      String(video.content || "").toLowerCase();
+
+    const category =
+      String(video.category || "").toLowerCase();
+
+    const matchesSearch =
+      !search ||
+      title.includes(search) ||
+      content.includes(search);
+
+    const matchesCategory =
+      activeCategory === "all" ||
+      category === activeCategory;
+
+    return matchesSearch && matchesCategory;
+
+  });
+
+
+  videoCount.textContent =
+    `${filtered.length} ${filtered.length === 1 ? "video" : "videos"}`;
+
+
+  if (!filtered.length) {
+
+    videoList.innerHTML = `
+      <div class="sm:col-span-2 lg:col-span-3 text-center py-20 text-gray-500">
+
+        <i class="fa-brands fa-youtube text-5xl mb-4"></i>
+
+        <p class="text-lg font-bold">
+          No videos found
+        </p>
+
+        <p class="text-sm mt-2">
+          Try another search or category.
+        </p>
+
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  renderFeatured(filtered[0]);
+
+
+  videoList.innerHTML =
+    filtered.slice(1).map(video => {
+
+      const youtubeId =
+        video.youtubeId ||
+        getYouTubeId(video.videoUrl || "");
+
+      const thumbnail =
+        video.thumbnailUrl ||
+        video.image ||
+        `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
+
+      return `
+
+        <article
+          class="video-card overflow-hidden rounded-2xl"
+        >
+
+          <button
+            type="button"
+            class="relative video-thumb w-full text-left"
+            data-video-id="${escapeHTML(video.id)}"
+          >
+
+            <img
+              src="${escapeHTML(thumbnail)}"
+              alt="${escapeHTML(video.title || "Video")}"
+              loading="lazy"
+            >
+
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+
+            <div class="absolute inset-0 flex items-center justify-center">
+
+              <span class="play-button">
+                <i class="fa-solid fa-play ml-1"></i>
+              </span>
+
+            </div>
+
+            <span class="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur text-[10px] font-bold text-white">
+              ${escapeHTML(categoryName(video.category))}
+            </span>
+
+          </button>
+
+          <div class="p-4">
+
+            <h3 class="font-black text-base leading-snug line-clamp-2">
+              ${escapeHTML(video.title || "Untitled video")}
+            </h3>
+
+            <p class="text-sm text-gray-400 mt-2 line-clamp-2">
+              ${escapeHTML(video.content || "")}
+            </p>
+
+            <div class="flex items-center justify-between mt-4 text-[11px] text-gray-500">
+
+              <span>
+                <i class="fa-regular fa-calendar mr-1"></i>
+                ${formatDate(video.createdAt || video.updatedAt)}
+              </span>
+
+              <div class="flex items-center gap-3 text-[11px]">
+                <button type="button" class="video-social-btn" data-video-action="like" data-video-id="${escapeHTML(video.id)}">
+                  <i class="fa-solid fa-heart"></i><span>${Number(video.likesCount || 0)}</span>
+                </button>
+
+                <button type="button" class="video-social-btn" data-video-action="comment" data-video-id="${escapeHTML(video.id)}">
+                  <i class="fa-solid fa-comment"></i><span>${Number(video.commentsCount || 0)}</span>
+                </button>
+
+                <button type="button" class="video-social-btn" data-video-action="repost" data-video-id="${escapeHTML(video.id)}">
+                  <i class="fa-solid fa-retweet"></i><span>${Number(video.repostsCount || 0)}</span>
+                </button>
+
+                <button type="button" class="video-social-btn" data-video-action="share" data-video-id="${escapeHTML(video.id)}">
+                  <i class="fa-solid fa-share-nodes"></i><span>Share</span><span>${Number(video.sharesCount || 0)}</span>
+                </button>
+
+                <span class="text-green-400 font-bold">
+                  <i class="fa-solid fa-play mr-1"></i>
+                  Watch
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </article>
+
+      `;
+
+    }).join("");
+
+}
+
+
+
+async function handleVideoSocialAction(action, videoId) {
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Please login first to use social features.");
+    return;
+  }
+
+  try {
+    const postRef = doc(db, "posts", videoId);
+
+    if (action === "like") {
+      const likeRef = doc(db, "posts", videoId, "likes", user.uid);
+      const likeSnap = await getDoc(likeRef);
+
+      if (likeSnap.exists()) {
+        await deleteDoc(likeRef);
+        await setDoc(
+          postRef,
+          { likesCount: increment(-1) },
+          { merge: true }
+        );
+      } else {
+        await setDoc(likeRef, {
+          uid: user.uid,
+          createdAt: serverTimestamp()
+        });
+
+        await setDoc(
+          postRef,
+          { likesCount: increment(1) },
+          { merge: true }
+        );
+      }
+
+      await loadVideos();
       return;
     }
 
-    videoList.innerHTML = videos.map(doc => {
-      const v = doc.data();
-      const youtubeId = v.youtubeId || getYouTubeId(v.videoUrl || "");
-      return `<article class="overflow-hidden rounded-2xl bg-white/5 border border-white/10">
-        <a href="#" onclick="event.preventDefault(); window.FootballXtraMiniPlayer?.play('${youtubeId}', ${JSON.stringify(v.title || "Football Video")});">
-          <div class="relative aspect-video bg-black">
-            <img src="${escapeHTML(v.thumbnailUrl || v.image || "")}" alt="${escapeHTML(v.title || "Video")}" class="w-full h-full object-cover">
-            <div class="absolute inset-0 flex items-center justify-center bg-black/20">
-              <i class="fa-brands fa-youtube text-5xl text-white"></i>
-            </div>
-          </div>
-        </a>
-        <div class="p-4">
-          <h2 class="font-semibold text-lg">${escapeHTML(v.title || "Untitled video")}</h2>
-          <p class="text-sm text-gray-400 mt-2">${escapeHTML(v.content || "")}</p>
-        </div>
-      </article>`;
-    }).join("");
+    if (action === "comment") {
+      const text = prompt("Write your comment:");
+
+      if (!text || !text.trim()) return;
+
+      await addDoc(
+        collection(db, "posts", videoId, "comments"),
+        {
+          uid: user.uid,
+          userName: user.displayName || "FootballXtra User",
+          userPhoto: user.photoURL || "",
+          text: text.trim(),
+          createdAt: serverTimestamp()
+        }
+      );
+
+      await setDoc(
+        postRef,
+        { commentsCount: increment(1) },
+        { merge: true }
+      );
+
+      alert("Comment added ✅");
+      await loadVideos();
+      return;
+    }
+
+    if (action === "repost") {
+      const repostRef = doc(db, "posts", videoId, "reposts", user.uid);
+      const repostSnap = await getDoc(repostRef);
+
+      if (repostSnap.exists()) {
+        alert("You already reposted this video.");
+        return;
+      }
+
+      await setDoc(repostRef, {
+        uid: user.uid,
+        createdAt: serverTimestamp()
+      });
+
+      await setDoc(
+        postRef,
+        { repostsCount: increment(1) },
+        { merge: true }
+      );
+
+      alert("Video reposted 🔁");
+      await loadVideos();
+      return;
+    }
+
+    if (action === "share") {
+      const url =
+        `${window.location.origin}/videos.html?video=${encodeURIComponent(videoId)}`;
+
+      const postRef = doc(db, "posts", videoId);
+
+      await setDoc(
+        postRef,
+        { sharesCount: increment(1) },
+        { merge: true }
+      );
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "VibeSport",
+            text: "Check this football video on VibeSport",
+            url
+          });
+        } catch {
+          console.log("Share cancelled");
+        }
+      } else {
+        try {
+          await navigator.clipboard.writeText(url);
+          alert("Video link copied ✅");
+        } catch {
+          alert(url);
+        }
+      }
+    }
+
   } catch (error) {
-    console.error("Videos error:", error);
-    videoList.innerHTML = '<div class="sm:col-span-2 text-center py-20 text-red-400">Failed to load videos.</div>';
+    console.error("Video social action error:", error);
+    alert("Something went wrong. Please try again.");
   }
 }
 
+
+document.addEventListener("click", event => {
+
+  const socialButton =
+    event.target.closest("[data-video-action]");
+
+  if (!socialButton) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+
+  const action = socialButton.dataset.videoAction;
+  const videoId = socialButton.dataset.videoId;
+
+  if (action && videoId) {
+    handleVideoSocialAction(action, videoId);
+  }
+
+});
+
+
+document.addEventListener("click", event => {
+
+  const socialButton =
+    event.target.closest("[data-video-action]");
+
+  if (socialButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+
+  const card =
+    event.target.closest("[data-video-id]");
+
+  if (card) {
+
+    const video =
+      allVideos.find(
+        item => item.id === card.dataset.videoId
+      );
+
+    if (video) playVideo(video);
+
+    return;
+  }
+
+  const featured =
+    event.target.closest("[data-featured-id]");
+
+  if (featured) {
+
+    const video =
+      allVideos.find(
+        item => item.id === featured.dataset.featuredId
+      );
+
+    if (video) playVideo(video);
+  }
+
+});
+
+
+videoSearch.addEventListener(
+  "input",
+  renderVideos
+);
+
+
+document.querySelectorAll(".category-btn").forEach(
+  button => {
+
+    button.addEventListener("click", () => {
+
+      document
+        .querySelectorAll(".category-btn")
+        .forEach(btn => btn.classList.remove("active"));
+
+      button.classList.add("active");
+
+      activeCategory =
+        button.dataset.category;
+
+      renderVideos();
+});
+
+  }
+);
+
+
+async function loadVideos() {
+
+  try {
+
+    const q =
+      query(
+        collection(db, "posts"),
+        orderBy("createdAt", "desc")
+      );
+
+    const snapshot =
+      await getDocs(q);
+
+    allVideos =
+      snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(
+          video => video.type === "video"
+        );
+
+    renderVideos();
+    
+    const sharedVideoId =
+      new URLSearchParams(window.location.search).get("video");
+
+    if (sharedVideoId) {
+      const sharedVideo =
+        allVideos.find(video => video.id === sharedVideoId);
+
+      if (sharedVideo) {
+        console.log("✅ SHARED VIDEO FOUND:", sharedVideo.id, sharedVideo.youtubeId, sharedVideo.videoUrl);
+        alert("VIDEO FOUND ✅\nID: " + sharedVideo.id + "\nYouTube ID: " + (sharedVideo.youtubeId || "MISSING") + "\nVideo URL: " + (sharedVideo.videoUrl || "MISSING"));
+        setTimeout(() => playVideo(sharedVideo), 300);
+      } else {
+        console.log("❌ SHARED VIDEO NOT FOUND:", sharedVideoId);
+        console.log("Available video IDs:", allVideos.map(video => video.id));
+      }
+    }
+
+  } catch (error) {
+
+    console.error("Videos error:", error);
+
+    videoList.innerHTML = `
+      <div class="sm:col-span-2 lg:col-span-3 text-center py-20 text-red-400">
+        Failed to load videos.
+      </div>
+    `;
+
+  }
+
+}
+
+
 loadVideos();
+
 </script>
+
 </body>
 </html>
