@@ -2838,6 +2838,12 @@ async function importExternalYouTubeVideos() {
       name: "OneFootball",
       channelId: "UCi9ACGG8NptsQhaMyezITEw"
     }
+,
+    {
+      key: "ETHIOFOOTBALLREACTION",
+      name: "Ethio Football Reaction Reviewer",
+      channelId: "UC6HK9rjSuxhqzQpqCKRpe2w"
+    }
   ];
 
   let imported = 0;
