@@ -368,6 +368,10 @@ let allVideos = [];
 let activeCategory = "all";
 
 
+function formatNumber(value) {
+  return Number(value || 0).toLocaleString("en-US");
+}
+
 function getYouTubeId(url = "") {
 
   const match = String(url).match(
@@ -421,6 +425,38 @@ function formatDate(timestamp) {
 }
 
 
+function sourceName(video = {}) {
+  const source = String(
+    video.source ||
+    video.authorName ||
+    video.externalVideoSource ||
+    ""
+  ).trim();
+
+  if (source) return source;
+
+  const id = String(video.id || "");
+  const match = id.match(/^EXTVIDEO-([^-]+)/);
+
+  if (match) {
+    const names = {
+      BBCSPORT: "BBC Sport",
+      ESPNFC: "ESPN FC",
+      FABRIZIOROMANO: "Fabrizio Romano",
+      FIFA: "FIFA",
+      FOOTBALLDAILY: "Football Daily",
+      GUARDIAN: "The Guardian",
+      ONEFOOTBALL: "OneFootball",
+      SKYSPORTS: "Sky Sports",
+      UEFA: "UEFA"
+    };
+
+    return names[match[1]] || match[1];
+  }
+
+  return "VibeSport";
+}
+
 function categoryName(category = "") {
 
   const names = {
@@ -435,13 +471,27 @@ function categoryName(category = "") {
 }
 
 
-function playVideo(video) {
+async function playVideo(video) {
 
   const youtubeId =
     video.youtubeId ||
     getYouTubeId(video.videoUrl || "");
 
   if (!youtubeId) return;
+
+  try {
+    await setDoc(
+      doc(db, "posts", video.id),
+      {
+        viewsCount: increment(1)
+      },
+      { merge: true }
+    );
+
+    video.viewsCount = Number(video.viewsCount || 0) + 1;
+  } catch (error) {
+    console.error("Video view count error:", error);
+  }
 
   window.FootballXtraMiniPlayer?.play(
     youtubeId,
@@ -498,9 +548,15 @@ function renderFeatured(video) {
 
           </div>
 
-          <span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-green-500 text-black text-[10px] font-black uppercase">
-            Featured
-          </span>
+          <div class="absolute top-3 left-3 flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full bg-green-500 text-black text-[10px] font-black uppercase">
+              Featured
+            </span>
+            <span class="px-3 py-1 rounded-full bg-black/70 backdrop-blur text-white text-[10px] font-bold">
+              <i class="fa-solid fa-circle-play mr-1"></i>
+              ${escapeHTML(sourceName(video))}
+            </span>
+          </div>
 
         </button>
 
@@ -545,12 +601,30 @@ function renderFeatured(video) {
 }
 
 
+function isYouTubeUnavailable(video) {
+  const youtubeId =
+    video.youtubeId ||
+    getYouTubeId(video.videoUrl || "");
+
+  if (!youtubeId) return false;
+
+  return (
+    localStorage.getItem(
+      "footballxtra_unavailable_youtube_" + youtubeId
+    ) === "1"
+  );
+}
+
 function renderVideos() {
 
   const search =
     videoSearch.value.trim().toLowerCase();
 
   const filtered = allVideos.filter(video => {
+
+    if (isYouTubeUnavailable(video)) {
+      return false;
+    }
 
     const title =
       String(video.title || "").toLowerCase();
@@ -602,11 +676,16 @@ function renderVideos() {
   }
 
 
-  renderFeatured(filtered[0]);
+  const sortedVideos = [...filtered].sort(
+    (a, b) =>
+      Number(b.viewsCount || 0) -
+      Number(a.viewsCount || 0)
+  );
 
+  renderFeatured(sortedVideos[0]);
 
   videoList.innerHTML =
-    filtered.slice(1).map(video => {
+    sortedVideos.slice(1).map(video => {
 
       const youtubeId =
         video.youtubeId ||
@@ -645,9 +724,15 @@ function renderVideos() {
 
             </div>
 
-            <span class="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur text-[10px] font-bold text-white">
-              ${escapeHTML(categoryName(video.category))}
-            </span>
+            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+              <span class="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur text-[10px] font-bold text-white">
+                <i class="fa-solid fa-circle-play mr-1"></i>
+                ${escapeHTML(sourceName(video))}
+              </span>
+              <span class="px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur text-[10px] font-bold text-white">
+                ${escapeHTML(categoryName(video.category))}
+              </span>
+            </div>
 
           </button>
 
@@ -684,6 +769,11 @@ function renderVideos() {
                 <button type="button" class="video-social-btn" data-video-action="share" data-video-id="${escapeHTML(video.id)}">
                   <i class="fa-solid fa-share-nodes"></i><span>Share</span><span>${Number(video.sharesCount || 0)}</span>
                 </button>
+
+                <span class="text-gray-400 font-bold">
+                  <i class="fa-solid fa-eye mr-1"></i>
+                  ${formatNumber(video.viewsCount || 0)}
+                </span>
 
                 <span class="text-green-400 font-bold">
                   <i class="fa-solid fa-play mr-1"></i>
