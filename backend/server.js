@@ -2768,7 +2768,7 @@ function classifyExternalVideoCategory(title = "", description = "") {
     text.includes("ሀይላይት") ||
     text.includes("ምርጥ ጨዋታ") ||
     /\b(best moments?|moments of the (week|match|game)|top moments?)\b/.test(text) ||
-    text.includes("moments")
+    text.includes("moments") || text.includes("resumen") || text.includes("résumé") || text.includes("resume") || text.includes("sintesi") || text.includes("zusammenfassung") || text.includes("resumo")
   ) {
     return "highlights";
   }
@@ -2789,6 +2789,35 @@ function classifyExternalVideoCategory(title = "", description = "") {
   }
 
   return "news";
+}
+
+function isOfficialMatchHighlight(title = "", description = "") {
+  const text = `${title} ${description}`.normalize("NFKC").toLowerCase();
+
+  const blocked =
+    /#?shorts?\b|press conference|rueda de prensa|conférence de presse|interview|ask me anything|\blive\b|livestream|en vivo|previa|preview|bench cam|pitchside|podcast|reaction|exclusive/.test(text);
+
+  if (blocked) return false;
+
+  const titleText = String(title || "").normalize("NFKC").toLowerCase();
+
+  const hasHighlightTerm =
+    /\b(highlights?|match highlights?|extended highlights?|full match|match recap|recap)\b/.test(titleText) ||
+    titleText.includes("resumen") ||
+    titleText.includes("résumé") ||
+    titleText.includes("resume") ||
+    titleText.includes("sintesi") ||
+    titleText.includes("zusammenfassung") ||
+    titleText.includes("resumo");
+
+  if (!hasHighlightTerm) return false;
+
+  const hasScore = /\b\d+\s*[-–]\s*\d+\b/.test(text);
+  const hasMatchup = /\bvs\.?\b|\bversus\b/.test(text);
+
+  if (!hasScore && !hasMatchup) return false;
+
+  return hasScore || hasMatchup;
 }
 
 async function importExternalYouTubeVideos() {
@@ -2832,6 +2861,36 @@ async function importExternalYouTubeVideos() {
       key: "FIFA",
       name: "FIFA",
       channelId: "UCpcTrCXblq78GZrTUTLWeBw"
+    },
+    {
+      key: "PREMIERLEAGUE",
+      highlightsOnly: true,
+      name: "Premier League",
+      channelId: "UCpryVRk_VDudG8SHXgWcG0w"
+    },
+    {
+      key: "LALIGA",
+      highlightsOnly: true,
+      name: "LaLiga",
+      channelId: "UCTv-XvfzLX3i4IGWAm4sbmA"
+    },
+    {
+      key: "BUNDESLIGA",
+      highlightsOnly: true,
+      name: "Bundesliga",
+      channelId: "UC6UL29enLNe4mqwTfAyeNuw"
+    },
+    {
+      key: "LIGUE1",
+      highlightsOnly: true,
+      name: "Ligue 1",
+      channelId: "UCQsH5XtIc9hONE1BQjucM0g"
+    },
+    {
+      key: "SERIEA",
+      highlightsOnly: true,
+      name: "Serie A",
+      channelId: "UCxfPjORdISQSn2fV8tcVmgA"
     },
     {
       key: "ONEFOOTBALL",
@@ -2903,7 +2962,7 @@ async function importExternalYouTubeVideos() {
           entries = entries ? [entries] : [];
         }
 
-        for (const entry of entries.slice(0, 10)) {
+        for (const entry of entries.slice(0, channel.highlightsOnly ? 30 : 10)) {
           const youtubeId =
             entry?.["yt:videoId"] ||
             entry?.["yt:videoID"] ||
@@ -2936,6 +2995,11 @@ async function importExternalYouTubeVideos() {
 
           const category =
             classifyExternalVideoCategory(title, description);
+
+          if (channel.highlightsOnly && !isOfficialMatchHighlight(title, description)) {
+            skipped++;
+            continue;
+          }
 
           const publishedAt =
             entry?.published ||
