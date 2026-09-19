@@ -2848,6 +2848,16 @@ async function importExternalYouTubeVideos() {
       key: "EPHREMYEMANE",
       name: "Ephrem Yemane Official",
       channelId: "UCG-hUkClYxmqkfUcz7KqPJg"
+    },
+    {
+      key: "MENSURABDULKENI",
+      name: "Mensur Abdulkeni Official",
+      channelId: "UCNcgwQcSC4K4W3MTOszQKQw"
+    },
+    {
+      key: "ALAZARASGEDOM",
+      name: "Alazar Asgedom Official",
+      channelId: "UCrLO12af9yM6VJqjrJTyo1g"
     }
   ];
 
