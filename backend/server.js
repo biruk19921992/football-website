@@ -286,17 +286,22 @@ app.post("/api/telegram/webhook", async (req, res) => {
 
       if (
         lowerText.includes("highlight") ||
-        lowerText.includes("highlights")
+        lowerText.includes("highlights") ||
+        lowerText.includes("ሀይላይት") ||
+        lowerText.includes("ምርጥ ጨዋታ")
       ) {
         category = "highlights";
       } else if (
         lowerText.includes("goal") ||
-        lowerText.includes("goals")
+        lowerText.includes("goals") ||
+        lowerText.includes("ጎል") ||
+        lowerText.includes("ጎሎች")
       ) {
         category = "goals";
       } else if (
         lowerText.includes("interview") ||
-        lowerText.includes("interviews")
+        lowerText.includes("interviews") ||
+        lowerText.includes("ቃለ መጠይቅ")
       ) {
         category = "interviews";
       }
@@ -2748,6 +2753,206 @@ async function importEspnNews() {
   }
 }
 
+
+/* =========================================================
+   EXTERNAL FOOTBALL VIDEO IMPORTER
+   ESPN FC + BBC Sport + Sky Sports Football + Guardian Football
+   YouTube Atom RSS -> Firestore posts
+========================================================= */
+
+function classifyExternalVideoCategory(title = "", description = "") {
+  const text = `${title} ${description}`.toLowerCase();
+
+  if (
+    /\b(highlights?|match highlights|full match)\b/.test(text) ||
+    text.includes("ሀይላይት") ||
+    text.includes("ምርጥ ጨዋታ") ||
+    /\b(best moments?|moments of the (week|match|game)|top moments?)\b/.test(text)
+  ) {
+    return "highlights";
+  }
+
+  if (
+    /\b(goals?|best goals?|goal of the (week|month))\b/.test(text) ||
+    text.includes("ጎል") ||
+    text.includes("ጎሎች")
+  ) {
+    return "goals";
+  }
+
+  if (
+    /\b(interviews?|exclusive interview|one[- ]on[- ]one)\b/.test(text) ||
+    text.includes("ቃለ መጠይቅ")
+  ) {
+    return "interviews";
+  }
+
+  return "news";
+}
+
+async function importExternalYouTubeVideos() {
+  const channels = [
+    {
+      key: "ESPNFC",
+      name: "ESPN FC",
+      channelId: "UC6c1z7bA__85CIWZ_jpCK-Q"
+    },
+    {
+      key: "BBCSPORT",
+      name: "BBC Sport",
+      channelId: "UCW6-BQWFA70Dyyc7ZpZ9Xlg"
+    },
+    {
+      key: "SKYSPORTS",
+      name: "Sky Sports Football",
+      channelId: "UCZ7wY7MRDSygp63HIEfdQZA"
+    },
+    {
+      key: "GUARDIAN",
+      name: "The Guardian Football",
+      channelId: "UCNHqb1IRxQ5WBsWtO53JL2g"
+    },
+    {
+      key: "FABRIZIOROMANO",
+      name: "Fabrizio Romano",
+      channelId: "UCX1em-uaFMS02Rrk_Bowyng"
+    }
+  ];
+
+  let imported = 0;
+  let skipped = 0;
+
+  try {
+    const parser = new XMLParser({
+      ignoreAttributes: false
+    });
+
+    for (const channel of channels) {
+      try {
+        const response = await fetch(
+          `https://www.youtube.com/feeds/videos.xml?channel_id=${channel.channelId}`,
+          {
+            headers: {
+              "User-Agent": "Mozilla/5.0",
+              "Accept":
+                "application/atom+xml,application/xml,text/xml;q=0.9,*/*;q=0.8"
+            }
+          }
+        );
+
+        if (!response.ok) {
+          console.error(
+            `❌ ${channel.name} YouTube RSS HTTP ${response.status}`
+          );
+          continue;
+        }
+
+        const xml = await response.text();
+        const feed = parser.parse(xml);
+
+        let entries = feed?.feed?.entry || [];
+
+        if (!Array.isArray(entries)) {
+          entries = entries ? [entries] : [];
+        }
+
+        for (const entry of entries.slice(0, 10)) {
+          const youtubeId =
+            entry?.["yt:videoId"] ||
+            entry?.["yt:videoID"] ||
+            "";
+
+          if (!youtubeId) {
+            skipped++;
+            continue;
+          }
+
+          const title =
+            typeof entry?.title === "string"
+              ? entry.title.trim()
+              : String(entry?.title?.["#text"] || "").trim();
+
+          if (!title) {
+            skipped++;
+            continue;
+          }
+
+          const description =
+            typeof entry?.["media:group"]?.["media:description"] === "string"
+              ? entry["media:group"]["media:description"].trim()
+              : String(
+                  entry?.["media:group"]?.["media:description"]?.["#text"] || ""
+                ).trim();
+
+          const videoUrl =
+            `https://www.youtube.com/watch?v=${youtubeId}`;
+
+          const category =
+            classifyExternalVideoCategory(title, description);
+
+          const publishedAt =
+            entry?.published ||
+            entry?.updated ||
+            new Date().toISOString();
+
+          const docId =
+            `EXTVIDEO-${channel.key}-${youtubeId}`;
+
+          const thumbnailUrl =
+            `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
+
+          await firestore
+            .collection("posts")
+            .doc(docId)
+            .set(
+              {
+                type: "video",
+                title,
+                content: description,
+                videoUrl,
+                youtubeId,
+                thumbnailUrl,
+                image: thumbnailUrl,
+                category,
+                authorId: "",
+                authorName: channel.name,
+                source: channel.name,
+                sourceUrl: videoUrl,
+                externalVideoSource: "youtube",
+                publishedAt: new Date(publishedAt),
+                createdAt: new Date(publishedAt),
+                updatedAt: new Date()
+              },
+              { merge: true }
+            );
+
+          imported++;
+
+          console.log(
+            `🎥 ${channel.name} -> ${category}: ${title}`
+          );
+        }
+      } catch (channelError) {
+        console.error(
+          `❌ ${channel.name} video importer error:`,
+          channelError.message
+        );
+      }
+    }
+
+    console.log(
+      `🎥 External video import finished | Imported: ${imported} | Skipped: ${skipped}`
+    );
+  } catch (error) {
+    console.error(
+      "❌ External video importer error:",
+      error.message
+    );
+  }
+}
+
+importExternalYouTubeVideos();
+setInterval(importExternalYouTubeVideos, 60 * 60 * 1000);
 //importEspnNews();
 //importEspnGlobalNews();
 //
