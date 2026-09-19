@@ -2858,6 +2858,11 @@ async function importExternalYouTubeVideos() {
       key: "ALAZARASGEDOM",
       name: "Alazar Asgedom Official",
       channelId: "UCrLO12af9yM6VJqjrJTyo1g"
+    },
+    {
+      key: "CLASSICDYNAMIC",
+      name: "Classic Dynamic Sport Official",
+      channelId: "UCQlyoH2t2RlsfdVY7g5QuQQ"
     }
   ];
 
