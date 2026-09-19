@@ -479,6 +479,13 @@ async function playVideo(video) {
 
   if (!youtubeId) return;
 
+  if (youtubeId === "7AXQCDnaWaI") {
+    window.location.href =
+      "https://www.youtube.com/watch?v=" +
+      encodeURIComponent(youtubeId);
+    return;
+  }
+
   try {
     await setDoc(
       doc(db, "posts", video.id),
@@ -601,19 +608,6 @@ function renderFeatured(video) {
 }
 
 
-function isYouTubeUnavailable(video) {
-  const youtubeId =
-    video.youtubeId ||
-    getYouTubeId(video.videoUrl || "");
-
-  if (!youtubeId) return false;
-
-  return (
-    localStorage.getItem(
-      "footballxtra_unavailable_youtube_" + youtubeId
-    ) === "1"
-  );
-}
 
 function renderVideos() {
 
@@ -622,9 +616,6 @@ function renderVideos() {
 
   const filtered = allVideos.filter(video => {
 
-    if (isYouTubeUnavailable(video)) {
-      return false;
-    }
 
     const title =
       String(video.title || "").toLowerCase();
@@ -1055,6 +1046,13 @@ async function loadVideos() {
     getYouTubeId(video.videoUrl || "");
 
   if (!youtubeId) return;
+
+  if (youtubeId === "7AXQCDnaWaI") {
+    window.location.href =
+      "https://www.youtube.com/watch?v=" +
+      encodeURIComponent(youtubeId);
+    return;
+  }
 
   if (window.FootballXtraMiniPlayer?.play) {
     window.FootballXtraMiniPlayer.play(
