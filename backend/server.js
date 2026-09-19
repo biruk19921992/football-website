@@ -2817,6 +2817,26 @@ async function importExternalYouTubeVideos() {
       key: "FABRIZIOROMANO",
       name: "Fabrizio Romano",
       channelId: "UCX1em-uaFMS02Rrk_Bowyng"
+    },
+    {
+      key: "FOOTBALLDAILY",
+      name: "Football Daily",
+      channelId: "UCbWUEnTRHb3bRdrnovq8iuA"
+    },
+    {
+      key: "UEFA",
+      name: "UEFA",
+      channelId: "UCyGa1YEx9ST66rYrJTGIKOw"
+    },
+    {
+      key: "FIFA",
+      name: "FIFA",
+      channelId: "UCpcTrCXblq78GZrTUTLWeBw"
+    },
+    {
+      key: "ONEFOOTBALL",
+      name: "OneFootball",
+      channelId: "UCi9ACGG8NptsQhaMyezITEw"
     }
   ];
 
