@@ -2843,6 +2843,11 @@ async function importExternalYouTubeVideos() {
       key: "ETHIOFOOTBALLREACTION",
       name: "Ethio Football Reaction Reviewer",
       channelId: "UC6HK9rjSuxhqzQpqCKRpe2w"
+    },
+    {
+      key: "EPHREMYEMANE",
+      name: "Ephrem Yemane Official",
+      channelId: "UCG-hUkClYxmqkfUcz7KqPJg"
     }
   ];
 
