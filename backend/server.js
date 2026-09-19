@@ -269,6 +269,96 @@ app.post("/api/telegram/webhook", async (req, res) => {
       }
     }
 
+    // =========================================
+    // TELEGRAM -> WEBSITE VIDEO (YOUTUBE)
+    // =========================================
+    const youtubeMatch = text.match(
+      /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([^&\s?/]+)/i
+    );
+
+    if (youtubeMatch) {
+      const youtubeId = youtubeMatch[1];
+      const videoUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
+
+      let category = "news";
+
+      const lowerText = text.toLowerCase();
+
+      if (
+        lowerText.includes("highlight") ||
+        lowerText.includes("highlights")
+      ) {
+        category = "highlights";
+      } else if (
+        lowerText.includes("goal") ||
+        lowerText.includes("goals")
+      ) {
+        category = "goals";
+      } else if (
+        lowerText.includes("interview") ||
+        lowerText.includes("interviews")
+      ) {
+        category = "interviews";
+      }
+
+      const title =
+        text
+          .replace(youtubeMatch[0], "")
+          .trim()
+          .replace(/\s+/g, " ") ||
+        "VibeSport Football Video";
+
+      const thumbnailUrl =
+        `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+
+      await firestore.collection("posts").doc(docId).set(
+        {
+          type: "video",
+          title,
+          content: text.trim(),
+          videoUrl,
+          youtubeId,
+          thumbnailUrl: imageUrl || thumbnailUrl,
+          image: imageUrl || thumbnailUrl,
+          category,
+          authorId: "",
+          authorName: "VibeSport",
+          source: "VibeSport Telegram",
+          sourceUrl: `https://t.me/${post.chat?.username || "vibessports"}/${messageId}`,
+          telegramChatId: chatId,
+          telegramMessageId: Number(post.message_id),
+          likesCount: 0,
+          commentsCount: 0,
+          repostsCount: 0,
+          sharesCount: 0,
+          publishedAt: post.date
+            ? new Date(post.date * 1000)
+            : new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        { merge: true }
+      );
+
+      console.log(
+        "🎥 Telegram -> Website VIDEO imported:",
+        docId,
+        "YouTube:",
+        youtubeId,
+        "Category:",
+        category
+      );
+
+      return res.json({
+        ok: true,
+        imported: true,
+        type: "video",
+        id: docId,
+        youtubeId,
+        category
+      });
+    }
+
     if (!text.trim() && !imageUrl) {
       return res.json({ ok: true, ignored: true });
     }
@@ -2112,7 +2202,7 @@ async function importEspnGlobalNews() {
 }
 
 
-importLiveScoreNews();
+//importLiveScoreNews();
 async function importLiveScoreNews() {
   let imported = 0;
   let updated = 0;
