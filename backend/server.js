@@ -3062,6 +3062,79 @@ async function importExternalYouTubeVideos() {
   }
 }
 
+// ESPN Match Details
+app.get("/api/matches/espn/:eventId", async (req, res) => {
+  try {
+    const eventId = String(req.params.eventId || "").trim();
+
+    if (!/^\d+$/.test(eventId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ESPN event ID"
+      });
+    }
+
+    const competitions = [
+      "eng.1",
+      "esp.1",
+      "ita.1",
+      "ger.1",
+      "fra.1",
+      "uefa.champions"
+    ];
+
+    let summary = null;
+    let competition = null;
+
+    for (const leagueCode of competitions) {
+      const url =
+        `https://site.api.espn.com/apis/site/v2/sports/soccer/${leagueCode}/summary?event=${eventId}`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) continue;
+
+      const data = await response.json();
+
+      if (data?.header?.competitions?.length || data?.header?.id === eventId) {
+        summary = data;
+        competition = leagueCode;
+        break;
+      }
+    }
+
+    if (!summary) {
+      return res.status(404).json({
+        success: false,
+        message: "ESPN match not found",
+        eventId
+      });
+    }
+
+    res.json({
+      success: true,
+      source: "espn",
+      eventId,
+      competition,
+      header: summary.header || null,
+      plays: summary.plays || summary.header?.competitions?.[0]?.details || [],
+      boxscore: summary.boxscore || null,
+      rosters: summary.rosters || [],
+      leaders: summary.leaders || [],
+      broadcasts: summary.broadcasts || [],
+      pickcenter: summary.pickcenter || null
+    });
+
+  } catch (error) {
+    console.error("❌ ESPN match details error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
 importExternalYouTubeVideos();
 setInterval(importExternalYouTubeVideos, 60 * 60 * 1000);
 //importEspnNews();
