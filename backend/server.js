@@ -2761,13 +2761,14 @@ async function importEspnNews() {
 ========================================================= */
 
 function classifyExternalVideoCategory(title = "", description = "") {
-  const text = `${title} ${description}`.toLowerCase();
+  const text = `${title} ${description}`.normalize("NFKC").toLowerCase();
 
   if (
     /\b(highlights?|match highlights|full match)\b/.test(text) ||
     text.includes("ሀይላይት") ||
     text.includes("ምርጥ ጨዋታ") ||
-    /\b(best moments?|moments of the (week|match|game)|top moments?)\b/.test(text)
+    /\b(best moments?|moments of the (week|match|game)|top moments?)\b/.test(text) ||
+    text.includes("moments")
   ) {
     return "highlights";
   }
