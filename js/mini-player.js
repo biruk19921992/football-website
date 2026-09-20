@@ -284,6 +284,29 @@
             }, 1000);
           },
 
+          onError: () => {
+            try {
+              localStorage.setItem(
+                "footballxtra_unavailable_youtube_" + state.youtubeId,
+                "1"
+              );
+
+              if (saveTimer) {
+                clearInterval(saveTimer);
+                saveTimer = null;
+              }
+
+              player?.destroy?.();
+              player = null;
+
+              window.location.href =
+                "https://www.youtube.com/watch?v=" +
+                encodeURIComponent(state.youtubeId);
+            } catch (error) {
+              console.error("YouTube playback error:", error);
+            }
+          },
+
           onStateChange: (event) => {
             try {
               if (

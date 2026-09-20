@@ -210,9 +210,13 @@
     </section>
 
 
+    <!-- EVENTS + STATISTICS -->
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+
     <!-- EVENTS -->
 
-    <section class="mt-8">
+    <section>
 
       <h2 class="text-xl font-black mb-4">
 
@@ -233,7 +237,7 @@
 
 
     <!-- MATCH STATISTICS -->
-    <section class="mt-8">
+    <section>
       <h2 class="text-xl font-black mb-4">
         <i class="fa-solid fa-chart-simple text-green-400 mr-2"></i>
         Match Statistics
@@ -243,6 +247,8 @@
         <p class="text-gray-400 text-center">Loading statistics...</p>
       </div>
     </section>
+
+    </div>
 
     <!-- LINEUPS -->
 
@@ -317,21 +323,330 @@ function showError(message) {
 }
 
 
+
+async function loadEvents() {
+  const box = document.getElementById("events");
+  if (!box || !fixtureId) return;
+
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/matches/espn/${encodeURIComponent(fixtureId)}`,
+      { cache: "no-store" }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to load events");
+    }
+
+    const plays = Array.isArray(data.plays) ? data.plays : [];
+    const competition = data.header?.competitions?.[0] || {};
+    const competitors = competition.competitors || [];
+
+    const home = competitors.find(x => x.homeAway === "home") || {};
+    const away = competitors.find(x => x.homeAway === "away") || {};
+
+    const homeTeam = home.team || {};
+    const awayTeam = away.team || {};
+
+    const homeId = String(homeTeam.id || home.id || "");
+    const awayId = String(awayTeam.id || away.id || "");
+
+    const homeEvents = plays.filter(play =>
+      String(play.team?.id || "") === homeId
+    );
+
+    const awayEvents = plays.filter(play =>
+      String(play.team?.id || "") === awayId
+    );
+
+    const renderEvent = (play, align = "left") => {
+      const minute = play.clock?.displayValue || "";
+      const team = play.team?.displayName || "";
+
+      const players = Array.isArray(play.participants)
+        ? play.participants
+            .map(p => p.athlete?.displayName)
+            .filter(Boolean)
+        : [];
+
+      let icon = "⚽";
+      let title = "Goal";
+
+      if (play.yellowCard) {
+        icon = "🟨";
+        title = "Yellow Card";
+      } else if (play.redCard) {
+        icon = "🟥";
+        title = "Red Card";
+      } else if (play.substitution) {
+        icon = "🔄";
+        title = "Substitution";
+      } else if (play.penaltyKick) {
+        icon = "⚽";
+        title = "Penalty";
+      }
+
+      return `
+        <div class="flex items-start gap-3 py-3 border-b border-white/10 last:border-0 ${
+          align === "right" ? "flex-row-reverse text-right" : ""
+        }">
+          <div class="w-12 shrink-0 text-center font-black text-green-400">
+            ${escapeHTML(minute)}
+          </div>
+
+          <div class="text-xl shrink-0">
+            ${icon}
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <div class="font-bold">
+              ${escapeHTML(title)}
+            </div>
+
+            ${
+              players.length
+                ? `<div class="text-sm mt-1 text-gray-300">
+                    ${players.map(escapeHTML).join(" · ")}
+                  </div>`
+                : `<div class="text-xs text-gray-500 mt-1">
+                    ${escapeHTML(team)}
+                  </div>`
+            }
+          </div>
+        </div>
+      `;
+    };
+
+    const renderColumn = (team, events, align) => `
+      <div class="glass rounded-2xl p-4">
+        <div class="flex items-center ${
+          align === "right" ? "justify-end" : "justify-start"
+        } gap-3 mb-3">
+          ${
+            team.logos?.[0]?.href
+              ? `<img src="${team.logos[0].href}" class="w-8 h-8 object-contain">`
+              : ""
+          }
+
+          <h3 class="font-black text-base">
+            ${escapeHTML(team.displayName || team.name || "Team")}
+          </h3>
+        </div>
+
+        ${
+          events.length
+            ? events.map(event => renderEvent(event, align)).join("")
+            : `<div class="text-center py-6 text-gray-500 text-sm">
+                No events
+              </div>`
+        }
+      </div>
+    `;
+
+    box.innerHTML = `
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        ${renderColumn(homeTeam, homeEvents, "left")}
+        ${renderColumn(awayTeam, awayEvents, "right")}
+      </div>
+    `;
+
+  } catch (error) {
+    console.error("❌ ESPN Events error:", error);
+
+    box.innerHTML = `
+      <div class="text-center py-6 text-gray-400">
+        Match events could not be loaded.
+      </div>`;
+  }
+}
+
+async function loadLineups() {
+  const box = document.getElementById("lineups");
+  if (!box || !fixtureId) return;
+
+  try {
+    const response = await fetch(
+      `${API_BASE}/api/matches/espn/${encodeURIComponent(fixtureId)}`,
+      { cache: "no-store" }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to load lineups");
+    }
+
+    let rosters = Array.isArray(data.rosters) ? [...data.rosters] : [];
+
+    const competitors =
+      data.header?.competitions?.[0]?.competitors || [];
+
+    const homeId = String(
+      competitors.find(c => c.homeAway === "home")?.team?.id || ""
+    );
+
+    const awayId = String(
+      competitors.find(c => c.homeAway === "away")?.team?.id || ""
+    );
+
+    rosters.sort((a, b) => {
+      const aId = String(a.team?.id || "");
+      const bId = String(b.team?.id || "");
+
+      if (aId === homeId) return -1;
+      if (bId === homeId) return 1;
+      if (aId === awayId) return 1;
+      if (bId === awayId) return -1;
+
+      return 0;
+    });
+
+    if (!rosters.length) {
+      box.innerHTML = `
+        <div class="md:col-span-2 text-center py-6 text-gray-400">
+          Lineups are not available yet.
+        </div>`;
+      return;
+    }
+
+    box.innerHTML = rosters.map(teamRoster => {
+      const team = teamRoster.team || {};
+      const players = Array.isArray(teamRoster.roster)
+        ? teamRoster.roster
+        : [];
+
+      const starters = players.filter(player => player.starter);
+      const substitutes = players.filter(player => !player.starter);
+
+      const renderPlayer = player => {
+        const athlete = player.athlete || {};
+        const position = player.position || {};
+
+        const name =
+          athlete.displayName ||
+          athlete.fullName ||
+          "Unknown Player";
+
+        const positionName =
+          position.displayName ||
+          position.name ||
+          "";
+
+        const jersey = player.jersey || "";
+
+        let badge = "SUB";
+
+        if (player.starter) {
+          badge = "START";
+        } else if (player.subbedIn) {
+          badge = "IN";
+        } else if (player.subbedOut) {
+          badge = "OUT";
+        }
+
+        return `
+          <div class="flex items-center gap-3 py-3 border-b border-white/10 last:border-0">
+            <div class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center font-black text-sm">
+              ${escapeHTML(jersey)}
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <div class="font-bold truncate">
+                ${escapeHTML(name)}
+              </div>
+
+              <div class="text-xs text-gray-400">
+                ${escapeHTML(positionName)}
+              </div>
+            </div>
+
+            <span class="text-[10px] font-black px-2 py-1 rounded-full bg-white/10">
+              ${escapeHTML(badge)}
+            </span>
+          </div>
+        `;
+      };
+
+      return `
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-3 mb-4">
+            ${
+              team.logo
+                ? `<img src="${team.logo}" class="w-10 h-10 object-contain">`
+                : ""
+            }
+
+            <div>
+              <h3 class="font-black text-lg">
+                ${escapeHTML(team.displayName || team.name || "Team")}
+              </h3>
+              <p class="text-xs text-gray-400">
+                ${players.length} players
+              </p>
+            </div>
+          </div>
+
+          <h4 class="text-sm font-black text-green-400 mb-2">
+            Starting XI
+          </h4>
+
+          <div>
+            ${
+              starters.length
+                ? starters.map(renderPlayer).join("")
+                : `<p class="text-sm text-gray-500 py-3">No starting lineup available.</p>`
+            }
+          </div>
+
+          <h4 class="text-sm font-black text-blue-400 mt-5 mb-2">
+            Substitutes
+          </h4>
+
+          <div>
+            ${
+              substitutes.length
+                ? substitutes.map(renderPlayer).join("")
+                : `<p class="text-sm text-gray-500 py-3">No substitutes available.</p>`
+            }
+          </div>
+        </div>
+      `;
+    }).join("");
+
+  } catch (error) {
+    console.error("❌ ESPN Lineups error:", error);
+
+    box.innerHTML = `
+      <div class="md:col-span-2 text-center py-6 text-gray-400">
+        Lineups could not be loaded.
+      </div>`;
+  }
+}
+
+
 async function loadStatistics() {
   const box = document.getElementById("statistics");
   if (!box || !fixtureId) return;
 
   try {
     const response = await fetch(
-      `https://footballxtra-website.onrender.com/api/matches/${encodeURIComponent(fixtureId)}/statistics`
+      `${API_BASE}/api/matches/espn/${encodeURIComponent(fixtureId)}`,
+      { cache: "no-store" }
     );
+
     const data = await response.json();
 
-    if (!response.ok) {
+    if (!response.ok || !data.success) {
       throw new Error(data.message || "Failed to load statistics");
     }
 
-    if (!data.statistics || !data.statistics.length) {
+    const teams = Array.isArray(data.boxscore?.teams)
+      ? data.boxscore.teams
+      : [];
+
+    if (teams.length < 2) {
       box.innerHTML = `
         <div class="text-center py-6">
           <i class="fa-solid fa-chart-simple text-3xl text-gray-500 mb-3"></i>
@@ -340,65 +655,90 @@ async function loadStatistics() {
       return;
     }
 
-    const teams = data.statistics;
+    const home = teams.find(t => t.homeAway === "home") || teams[0];
+    const away = teams.find(t => t.homeAway === "away") || teams[1];
 
-    const getValue = (teamStats, type) => {
-      const item = (teamStats.statistics || []).find(
-        x => x.type === type
+    const getStat = (teamStats, name) => {
+      const item = (teamStats?.statistics || []).find(
+        x => String(x.name || "").toLowerCase() === name.toLowerCase()
       );
-      return item?.value ?? "-";
+
+      return item?.displayValue ?? "-";
     };
 
     const stats = [
-      ["Ball Possession", "fa-chart-pie"],
-      ["Total Shots", "fa-bullseye"],
-      ["Shots on Goal", "fa-crosshairs"],
-      ["Shots off Goal", "fa-arrow-up"],
-      ["Blocked Shots", "fa-shield"],
-      ["Corner Kicks", "fa-flag"],
-      ["Offsides", "fa-person-running"],
-      ["Fouls", "fa-hand"],
-      ["Yellow Cards", "fa-square"],
-      ["Red Cards", "fa-square"],
-      ["Goalkeeper Saves", "fa-hand"],
-      ["Total passes", "fa-arrows-left-right"],
-      ["Passes accurate", "fa-check"],
-      ["Passes %", "fa-percent"]
+      ["possessionPct", "Possession", "fa-chart-pie"],
+      ["totalShots", "Total Shots", "fa-bullseye"],
+      ["shotsOnTarget", "Shots on Goal", "fa-crosshairs"],
+      ["wonCorners", "Corner Kicks", "fa-flag"],
+      ["offsides", "Offsides", "fa-person-running"],
+      ["foulsCommitted", "Fouls", "fa-hand"],
+      ["yellowCards", "Yellow Cards", "fa-square"],
+      ["redCards", "Red Cards", "fa-square"],
+      ["saves", "Goalkeeper Saves", "fa-hand"],
+      ["totalPasses", "Total Passes", "fa-arrows-left-right"],
+      ["accuratePasses", "Accurate Passes", "fa-check"],
+      ["passPct", "Pass Completion", "fa-percent"],
+      ["blockedShots", "Blocked Shots", "fa-shield"]
     ];
 
-    const home = teams[0];
-    const away = teams[1];
+    const homeTeam = home.team || {};
+    const awayTeam = away.team || {};
 
-    box.innerHTML = `
-      <div class="mb-5 flex justify-between items-center">
-        <div class="font-bold text-center w-2/5">
-          ${home?.team?.logo ? `<img src="${home.team.logo}" class="w-10 h-10 mx-auto mb-2 object-contain">` : ""}
-          ${home?.team?.name || "Home"}
-        </div>
-        <div class="text-gray-500 font-bold">VS</div>
-        <div class="font-bold text-center w-2/5">
-          ${away?.team?.logo ? `<img src="${away.team.logo}" class="w-10 h-10 mx-auto mb-2 object-contain">` : ""}
-          ${away?.team?.name || "Away"}
-        </div>
-      </div>
+    const renderStats = (team) => `
+      <div class="space-y-2">
+        ${stats.map(([name, label, icon]) => `
+          <div class="flex items-center justify-between gap-3 py-2 border-b border-white/10 last:border-0">
+            <span class="font-black text-sm">
+              ${getStat(team, name)}
+            </span>
 
-      <div class="space-y-3">
-        ${stats.map(([type, icon]) => `
-          <div class="grid grid-cols-5 items-center gap-2 text-sm">
-            <div class="text-right font-bold">${getValue(home, type)}</div>
-
-            <div class="col-span-3 text-center text-gray-400">
-              <i class="fa-solid ${icon} mr-1"></i>${type}
-            </div>
-
-            <div class="font-bold">${getValue(away, type)}</div>
+            <span class="text-xs text-gray-400 text-center flex-1">
+              <i class="fa-solid ${icon} mr-1"></i>${label}
+            </span>
           </div>
         `).join("")}
       </div>
     `;
 
+    box.innerHTML = `
+      <div class="grid grid-cols-2 gap-2">
+
+        <div class="glass rounded-2xl p-3">
+          <div class="flex items-center justify-center gap-3 mb-4">
+            ${
+              homeTeam.logo
+                ? `<img src="${homeTeam.logo}" class="w-9 h-9 object-contain">`
+                : ""
+            }
+            <h3 class="font-black text-center">
+              ${escapeHTML(homeTeam.displayName || homeTeam.name || "Home")}
+            </h3>
+          </div>
+
+          ${renderStats(home)}
+        </div>
+
+        <div class="glass rounded-2xl p-3">
+          <div class="flex items-center justify-center gap-3 mb-4">
+            ${
+              awayTeam.logo
+                ? `<img src="${awayTeam.logo}" class="w-9 h-9 object-contain">`
+                : ""
+            }
+            <h3 class="font-black text-center">
+              ${escapeHTML(awayTeam.displayName || awayTeam.name || "Away")}
+            </h3>
+          </div>
+
+          ${renderStats(away)}
+        </div>
+
+      </div>
+    `;
   } catch (error) {
-    console.error("❌ Statistics error:", error);
+    console.error("❌ ESPN Statistics error:", error);
+
     box.innerHTML = `
       <div class="text-center py-6">
         <i class="fa-solid fa-triangle-exclamation text-yellow-400 text-2xl mb-2"></i>
@@ -406,160 +746,139 @@ async function loadStatistics() {
       </div>`;
   }
 }
-
-
-
-
 async function loadMatch() {
-
   if (!fixtureId) {
-
     showError("No fixture ID found.");
-
     return;
-
   }
 
-
   try {
-
-    const response =
-      await fetch(
-        `${API_BASE}/api/matches/${encodeURIComponent(fixtureId)}`,
-        { cache:"no-store" }
-      );
-
+    const response = await fetch(
+      `${API_BASE}/api/matches/espn/${encodeURIComponent(fixtureId)}`,
+      { cache: "no-store" }
+    );
 
     if (!response.ok) {
-
-      throw new Error(
-        `HTTP ${response.status}`
-      );
-
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || `HTTP ${response.status}`);
     }
 
+    const data = await response.json();
 
-    const data =
-      await response.json();
-
-
-    if (!data.success || !data.match) {
-
-      throw new Error(
-        "Match data unavailable"
-      );
-
+    if (!data.success || !data.header) {
+      throw new Error("Match data unavailable");
     }
 
+    const header = data.header || {};
+    const competition = header.competitions?.[0] || {};
+    const competitors = competition.competitors || [];
 
-    const match =
-      data.match;
+    const home = competitors.find(x => x.homeAway === "home") || {};
+    const away = competitors.find(x => x.homeAway === "away") || {};
 
+    const homeTeam = home.team || {};
+    const awayTeam = away.team || {};
 
-    const fixture =
-      match.fixture || {};
+    const statusType = competition.status?.type || {};
 
+    const homeScore = home.score ?? 0;
+    const awayScore = away.score ?? 0;
 
-    const teams =
-      match.teams || {};
+    const state = String(statusType.state || "").toLowerCase();
+    const detail = statusType.detail || statusType.shortDetail || "";
 
+    const isLive = state === "in";
+    const isFinished = state === "post";
 
-    const home =
-      teams.home || {};
+    const leagueName =
+      header.season?.name ||
+      homeTeam.groups?.name ||
+      "Football";
 
+    const countryMap = {
+      "eng.1": "England",
+      "esp.1": "Spain",
+      "ita.1": "Italy",
+      "ger.1": "Germany",
+      "fra.1": "France",
+      "uefa.champions": "Europe"
+    };
 
-    const away =
-      teams.away || {};
+    const country = countryMap[data.competition] || "";
 
+    const kickoff = competition.date
+      ? new Date(competition.date).toLocaleString("en-GB", {
+          dateStyle: "medium",
+          timeStyle: "short",
+          timeZone: "Africa/Addis_Ababa"
+        })
+      : "-";
 
-    const league =
-      match.league || {};
-
-
-    const goals =
-      match.goals || {};
-
-
-    const matchStatus =
-      fixture.status || {};
-
-
-    document.getElementById("league").textContent =
-      league.name || "Football";
-
-
-    document.getElementById("country").textContent =
-      league.country || "";
-
+    document.getElementById("league").textContent = leagueName;
+    document.getElementById("country").textContent = country;
 
     document.getElementById("homeName").textContent =
-      home.name || "Home";
-
+      homeTeam.displayName || homeTeam.name || "Home";
 
     document.getElementById("awayName").textContent =
-      away.name || "Away";
+      awayTeam.displayName || awayTeam.name || "Away";
 
+    const homeLogo =
+      homeTeam.logos?.[0]?.href || "";
 
-    document.getElementById("homeLogo").src =
-      home.logo || "";
+    const awayLogo =
+      awayTeam.logos?.[0]?.href || "";
 
+    document.getElementById("homeLogo").src = homeLogo;
+    document.getElementById("awayLogo").src = awayLogo;
 
-    document.getElementById("awayLogo").src =
-      away.logo || "";
+    document.getElementById("homeLogo").style.display =
+      homeLogo ? "" : "none";
 
+    document.getElementById("awayLogo").style.display =
+      awayLogo ? "" : "none";
 
-    document.getElementById("homeLogo").onerror =
-      function() {
-        this.style.display="none";
-      };
+    document.getElementById("homeLogo").onerror = function () {
+      this.style.display = "none";
+    };
 
-
-    document.getElementById("awayLogo").onerror =
-      function() {
-        this.style.display="none";
-      };
-
+    document.getElementById("awayLogo").onerror = function () {
+      this.style.display = "none";
+    };
 
     document.getElementById("score").textContent =
-      `${goals.home ?? 0} - ${goals.away ?? 0}`;
-
+      `${homeScore} - ${awayScore}`;
 
     document.getElementById("status").textContent =
-      matchStatus.long ||
-      matchStatus.short ||
-      "MATCH";
-
+      isLive
+        ? `🔴 LIVE ${detail}`
+        : isFinished
+          ? "⚪ FT"
+          : `🕐 ${detail || "Scheduled"}`;
 
     document.getElementById("time").textContent =
-      matchStatus.elapsed != null
-        ? `${matchStatus.elapsed}'`
-        : "";
-
+      isLive ? detail : "";
 
     document.getElementById("venue").textContent =
-      fixture.venue?.name || "Unknown";
-
+      competition.venue?.fullName ||
+      competition.venue?.name ||
+      "Unknown";
 
     document.getElementById("round").textContent =
-      league.round || "-";
-
-
-    document.getElementById("referee").textContent =
-      fixture.referee || "Unknown";
-
-
-    document.getElementById("date").textContent =
-      fixture.date
-        ? new Date(fixture.date).toLocaleString()
+      competition.week?.number
+        ? `Week ${competition.week.number}`
         : "-";
 
+    document.getElementById("referee").textContent =
+      competition.officials?.[0]?.fullName ||
+      competition.officials?.[0]?.displayName ||
+      "Unknown";
+
+    document.getElementById("date").textContent = kickoff;
 
     loading.classList.add("hidden");
-
     errorBox.classList.add("hidden");
-
     content.classList.remove("hidden");
-
 
     await Promise.all([
       loadEvents(),
@@ -567,336 +886,11 @@ async function loadMatch() {
       loadStatistics()
     ]);
 
-
   } catch (error) {
-
-    console.error(error);
-
-    showError(
-      "Unable to load match details."
-    );
-
-  }
-
-}
-
-
-async function loadEvents() {
-  const container = document.getElementById("events");
-
-  try {
-    const response = await fetch(
-      `${API_BASE}/api/matches/${encodeURIComponent(fixtureId)}/events`,
-      { cache: "no-store" }
-    );
-
-    const data = await response.json();
-    const events = Array.isArray(data.events) ? data.events : [];
-
-    if (!events.length) {
-      container.innerHTML = `
-        <div class="text-center py-8 text-gray-500">
-          No events available
-        </div>
-      `;
-      return;
-    }
-
-    container.innerHTML = events.map(event => {
-      const minute = event.time?.elapsed != null
-        ? `${event.time.elapsed}${event.time?.extra ? `+${event.time.extra}` : ""}'`
-        : "";
-
-      const player = event.player?.name || "";
-      const assist = event.assist?.name || "";
-      const team = event.team?.name || "";
-      const type = (event.type || "").toLowerCase();
-      const detail = event.detail || "";
-      const detailLower = detail.toLowerCase();
-
-      let icon = "⚽";
-      let label = event.type || "Event";
-
-      if (type.includes("card")) {
-        if (detailLower.includes("red")) {
-          icon = "🟥";
-          label = "Red Card";
-        } else {
-          icon = "🟨";
-          label = "Yellow Card";
-        }
-      } else if (type.includes("subst")) {
-        icon = "🔄";
-        label = "Substitution";
-      } else if (type.includes("goal")) {
-        icon = detailLower.includes("missed") ? "❌" : "⚽";
-        label = detail || "Goal";
-      }
-
-      return `
-        <div class="flex items-start gap-3 py-4 border-b border-white/5 last:border-0">
-          <div class="w-12 shrink-0 text-center">
-            <div class="text-sm font-black text-white">
-              ${escapeHTML(minute)}
-            </div>
-          </div>
-
-          <div class="w-10 h-10 shrink-0 rounded-xl bg-white/5 flex items-center justify-center text-xl">
-            ${icon}
-          </div>
-
-          <div class="flex-1 min-w-0">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-black text-white">
-                ${escapeHTML(player || label)}
-              </p>
-
-              <span class="text-[10px] uppercase tracking-wider px-2 py-1 rounded-full bg-white/5 text-gray-400">
-                ${escapeHTML(label)}
-              </span>
-            </div>
-
-            <p class="text-xs text-green-400 mt-1">
-              ${escapeHTML(team)}
-            </p>
-
-            ${assist ? `
-              <p class="text-xs text-gray-400 mt-1">
-                Assist: ${escapeHTML(assist)}
-              </p>
-            ` : ""}
-
-            ${detail && player ? `
-              <p class="text-xs text-gray-500 mt-1">
-                ${escapeHTML(detail)}
-                ${event.comments ? ` · ${escapeHTML(event.comments)}` : ""}
-              </p>
-            ` : ""}
-          </div>
-        </div>
-      `;
-    }).join("");
-
-  } catch (error) {
-    console.error(error);
-
-    container.innerHTML = `
-      <div class="text-center py-6 text-red-400">
-        Unable to load events
-      </div>
-    `;
+    console.error("❌ ESPN match load error:", error);
+    showError(error.message || "Unable to load match.");
   }
 }
-
-async function loadLineups() {
-
-  const container =
-    document.getElementById("lineups");
-
-
-  try {
-
-    const response =
-      await fetch(
-        `${API_BASE}/api/matches/${encodeURIComponent(fixtureId)}/lineups`,
-        { cache:"no-store" }
-      );
-
-
-    const data =
-      await response.json();
-
-
-    const lineups =
-      Array.isArray(data.lineups)
-        ? data.lineups
-        : [];
-
-
-    if (!lineups.length) {
-
-      container.innerHTML = `
-        <div class="md:col-span-2 glass rounded-2xl p-6 text-center text-gray-500">
-          Lineups not available
-        </div>
-      `;
-
-      return;
-
-    }
-
-
-    container.innerHTML =
-      lineups.map(lineup => {
-
-        const team =
-          lineup.team || {};
-
-
-        const coach =
-          lineup.coach || {};
-
-
-        const starters =
-          Array.isArray(lineup.startXI)
-            ? lineup.startXI
-            : [];
-
-
-        const substitutes =
-          Array.isArray(lineup.substitutes)
-            ? lineup.substitutes
-            : [];
-
-
-        return `
-
-          <div class="glass rounded-2xl p-5">
-
-            <div class="flex items-center gap-3 mb-4">
-
-              <img
-                src="${escapeHTML(team.logo || "")}"
-                class="w-12 h-12 object-contain"
-                onerror="this.style.display='none'"
-              >
-
-              <div>
-
-                <h3 class="font-black text-lg">
-                  ${escapeHTML(team.name || "Team")}
-                </h3>
-
-                <p class="text-xs text-green-400">
-                  Formation:
-                  ${escapeHTML(lineup.formation || "-")}
-                </p>
-
-              </div>
-
-            </div>
-
-
-            <div class="mb-5">
-
-              <p class="text-xs text-gray-500 font-bold mb-2">
-                COACH
-              </p>
-
-              <p class="font-bold">
-                ${escapeHTML(coach.name || "-")}
-              </p>
-
-            </div>
-
-
-            <div>
-
-              <p class="text-xs text-gray-500 font-bold mb-2">
-                STARTING XI
-              </p>
-
-
-              ${
-                starters.length
-                  ? starters.map(item => {
-
-                      const player =
-                        item.player || {};
-
-
-                      return `
-
-                        <div class="flex items-center justify-between py-2 border-b border-white/5">
-
-                          <span class="text-sm font-semibold">
-                            ${escapeHTML(player.name || "Player")}
-                          </span>
-
-                          <span class="text-xs text-gray-500">
-                            #${escapeHTML(player.number ?? "")}
-                            ${escapeHTML(player.pos || "")}
-                          </span>
-
-                        </div>
-
-                      `;
-
-                    }).join("")
-                  : `
-                      <p class="text-sm text-gray-500">
-                        No starting XI
-                      </p>
-                    `
-              }
-
-            </div>
-
-
-            <div class="mt-5">
-
-              <p class="text-xs text-gray-500 font-bold mb-2">
-                SUBSTITUTES
-              </p>
-
-
-              ${
-                substitutes.length
-                  ? substitutes.map(item => {
-
-                      const player =
-                        item.player || {};
-
-
-                      return `
-
-                        <div class="flex items-center justify-between py-2 border-b border-white/5">
-
-                          <span class="text-sm">
-                            ${escapeHTML(player.name || "Player")}
-                          </span>
-
-                          <span class="text-xs text-gray-500">
-                            #${escapeHTML(player.number ?? "")}
-                            ${escapeHTML(player.pos || "")}
-                          </span>
-
-                        </div>
-
-                      `;
-
-                    }).join("")
-                  : `
-                      <p class="text-sm text-gray-500">
-                        No substitutes
-                      </p>
-                    `
-              }
-
-            </div>
-
-          </div>
-
-        `;
-
-      }).join("");
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    container.innerHTML = `
-      <div class="md:col-span-2 glass rounded-2xl p-6 text-center text-red-400">
-        Unable to load lineups
-      </div>
-    `;
-
-  }
-
-}
-
-
 loadMatch();
 
 

@@ -68,6 +68,24 @@
     </div>
 
 
+    <div class="flex gap-2 overflow-x-auto pb-2 mb-5" id="scoreDateNav">
+      <button data-score-tab="yesterday" class="score-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        Yesterday
+      </button>
+
+      <button data-score-tab="today" class="score-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        Today
+      </button>
+
+      <button data-score-tab="live" class="score-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        🔴 Live
+      </button>
+
+      <button data-score-tab="tomorrow" class="score-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        Tomorrow
+      </button>
+    </div>
+
     <div
       id="scoresStatus"
       class="text-sm text-gray-500 mb-5">
@@ -188,22 +206,6 @@ console.log("SCORES JS STARTED");
         : "--:--";
 
       let liveMinute = detail || (matchStatus.elapsed != null ? `${matchStatus.elapsed}'` : "");
-
-      if (isLive) {
-        const startDate = match.fixture?.date || match.date;
-        if (startDate) {
-          const startedAt = new Date(startDate).getTime();
-          if (!Number.isNaN(startedAt)) {
-            const minutesSinceKickoff = Math.max(
-              0,
-              Math.floor((Date.now() - startedAt) / 60000)
-            );
-            if (minutesSinceKickoff <= 130) {
-              liveMinute = `${Math.min(minutesSinceKickoff, 120)}'`;
-            }
-          }
-        }
-      }
 
       const displayStatus = isLive
         ? `🔴 LIVE ${liveMinute}`.trim()
@@ -331,17 +333,70 @@ console.log("SCORES JS STARTED");
     }
 
 
-    async function loadLiveScores() {
+    let selectedScoreTab = "today";
+
+    function getAddisDate(offset = 0) {
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Africa/Addis_Ababa",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(new Date());
+
+      const y = Number(parts.find(p => p.type === "year").value);
+      const m = Number(parts.find(p => p.type === "month").value);
+      const d = Number(parts.find(p => p.type === "day").value);
+
+      const date = new Date(Date.UTC(y, m - 1, d + offset));
+
+      return date.toISOString().slice(0, 10);
+    }
+
+
+    function updateScoreTabs() {
+      document.querySelectorAll(".score-tab").forEach(tab => {
+        const active = tab.dataset.scoreTab === selectedScoreTab;
+
+        tab.classList.toggle("border-green-400", active);
+        tab.classList.toggle("text-green-400", active);
+        tab.classList.toggle("bg-green-500/10", active);
+      });
+    }
+
+
+    async function loadLiveScores(tab = selectedScoreTab) {
+
+      selectedScoreTab = tab;
+      updateScoreTabs();
+
+      const labels = {
+        yesterday: "Yesterday",
+        today: "Today",
+        live: "🔴 Live",
+        tomorrow: "Tomorrow"
+      };
 
       status.textContent =
-        "Loading live matches...";
+        `Loading ${labels[selectedScoreTab]} matches...`;
 
 
       try {
 
+        const offset = {
+          yesterday: -1,
+          today: 0,
+          tomorrow: 1
+        };
+
+        const date =
+          getAddisDate(
+            offset[selectedScoreTab] ?? 0
+          );
+
+
         const response =
           await fetch(
-            `${API_BASE}/api/matches/today-espn?date=${new Date().toLocaleDateString("en-CA", {timeZone: "Africa/Addis_Ababa"})}`,
+            `${API_BASE}/api/matches/today-espn?date=${date}`,
             {
               cache: "no-store"
             }
@@ -373,15 +428,29 @@ console.log("SCORES JS STARTED");
         }
 
 
-        const matches =
-          data.matches;
+        let matches = data.matches;
+
+
+        if (selectedScoreTab === "live") {
+
+          matches =
+            matches.filter(match => {
+              const state =
+                String(
+                  match?.status?.short || ""
+                ).toLowerCase();
+
+              return state === "in";
+            });
+
+        }
 
 
         status.innerHTML = `
           <span class="text-green-400 font-bold">
             ● ${matches.length}
           </span>
-          live matches
+          ${labels[selectedScoreTab]} matches
         `;
 
 
@@ -397,11 +466,15 @@ console.log("SCORES JS STARTED");
               </div>
 
               <p class="font-bold text-gray-300">
-                No live matches right now
+                ${
+                  selectedScoreTab === "live"
+                    ? "No live matches right now"
+                    : `No matches for ${labels[selectedScoreTab]}`
+                }
               </p>
 
               <p class="text-xs text-gray-500 mt-2">
-                Check back later.
+                Check again later.
               </p>
 
             </div>
@@ -422,13 +495,13 @@ console.log("SCORES JS STARTED");
       } catch (error) {
 
         console.error(
-          "Live Scores Error:",
+          "Scores Error:",
           error
         );
 
 
         status.textContent =
-          "Unable to load live scores";
+          "Unable to load scores";
 
 
         container.innerHTML = `
@@ -441,7 +514,7 @@ console.log("SCORES JS STARTED");
             </i>
 
             <p class="font-bold text-gray-300">
-              Live scores unavailable
+              Scores unavailable
             </p>
 
             <p class="text-xs text-gray-500 mt-2">
@@ -457,6 +530,19 @@ console.log("SCORES JS STARTED");
     }
 
 
+    document.querySelectorAll(".score-tab").forEach(tab => {
+
+      tab.addEventListener("click", () => {
+
+        loadLiveScores(
+          tab.dataset.scoreTab
+        );
+
+      });
+
+    });
+
+
     refreshButton.addEventListener(
       "click",
       loadLiveScores
@@ -467,15 +553,9 @@ console.log("SCORES JS STARTED");
 
 
     setInterval(
-      loadLiveScores,
-      60000
+      () => loadLiveScores(selectedScoreTab),
+      30000
     );
-
-    setInterval(() => {
-      if (typeof loadLiveScores === "function") {
-        loadLiveScores();
-      }
-    }, 30000);
 
 window.openMatchDetails = function(fixtureId) {
   console.log("Opening fixture:", fixtureId);
