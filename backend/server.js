@@ -1605,6 +1605,7 @@ app.get("/api/news", async (req, res) => {
       const telegramSnap = await firestore
         .collection("news")
         .where("source", "==", "VibeSport Telegram")
+        .limit(20)
         .get();
 
       telegramSnap.forEach((doc) => {
@@ -1725,127 +1726,144 @@ app.get("/api/news/:id", async (req, res) => {
       });
     }
 
-    // 1. Try Firestore first
-    const doc = await firestore.collection("news").doc(articleId).get();
-
-    if (doc.exists) {
-      const item = doc.data() || {};
-
-      return res.json({
-        success: true,
-        article: {
-          id: articleId,
-          firestoreId: doc.id,
-          title: item.title || item.headline || "",
-          headline: item.headline || item.title || "",
-          description: item.description || "",
-          content: item.content || item.description || "",
-          titleAm: item.titleAm || item.title || item.headline || "",
-          descriptionAm: item.descriptionAm || item.description || "",
-          contentAm:
-            item.contentAm ||
-            item.content ||
-            item.descriptionAm ||
-            item.description ||
-            "",
-          image: item.image || "",
-          source: item.source || "Football",
-          sourceUrl: item.sourceUrl || item.link || "",
-          link: item.link || item.sourceUrl || "",
-          publishedAt:
-            item.publishedAt ||
-            item.published ||
-            item.createdAt ||
-            null,
-          category: item.category || item.league || "Football",
-          likesCount: Number(item.likesCount || 0),
-          commentsCount: Number(item.commentsCount || 0),
-          repostsCount: Number(item.repostsCount || 0)
-        }
-      });
-    }
-
-    // 2. Firestore did not contain it.
-    // Reuse the same news aggregation used by /api/news.
-    const baseUrl =
-      "https://footballxtra-website.onrender.com/api/news?refresh=" +
-      Date.now();
-
-    const newsResponse = await fetch(baseUrl);
-
-    if (newsResponse.ok) {
-      const newsResult = await newsResponse.json();
-
-      const articles =
-        Array.isArray(newsResult.news)
-          ? newsResult.news
-          : Array.isArray(newsResult.articles)
-          ? newsResult.articles
-          : Array.isArray(newsResult.data)
-          ? newsResult.data
-          : [];
-
-      const found = articles.find((item) =>
-        String(item.id || "") === articleId ||
-        String(item._id || "") === articleId ||
-        String(item.guid || "") === articleId ||
-        String(item.sourceId || "") === articleId
+    // ESPN_DIRECT_ARTICLE_START
+    // Read ESPN articles directly so a single article does not trigger
+    // the full /api/news aggregation and Firestore quota usage.
+    if (/^\d+$/.test(articleId)) {
+      const espnResponse = await fetch(
+        `https://content.core.api.espn.com/v1/sports/news/${encodeURIComponent(articleId)}`
       );
 
-      if (found) {
+      if (!espnResponse.ok) {
+        return res.status(502).json({
+          success: false,
+          message: "Could not load ESPN article."
+        });
+      }
+
+      const espnResult = await espnResponse.json();
+      const item = espnResult?.headlines?.[0];
+
+      if (item && String(item.id) === articleId) {
+        const headline = item.headline || item.title || "";
+        const description = item.description || "";
+        const story = item.story || description;
+
+        const image =
+          item.images?.find((img) => img.type === "header")?.url ||
+          item.images?.[0]?.url ||
+          "";
+
+        const sourceUrl =
+          item.links?.web?.href ||
+          item.link ||
+          `https://www.espn.com/soccer/story/_/id/${articleId}`;
+
+        let titleAm = headline;
+        let descriptionAm = description;
+
+        try {
+          if (typeof translateToAmharic === "function") {
+            titleAm = await translateToAmharic(headline);
+            descriptionAm = await translateToAmharic(description);
+          }
+        } catch (translationError) {
+          console.warn("⚠️ ESPN article translation fallback:", translationError.message);
+        }
+
         return res.json({
           success: true,
           article: {
-            ...found,
             id: articleId,
-            firestoreId: found.firestoreId || "",
-            title: found.title || found.headline || "",
-            headline: found.headline || found.title || "",
-            description: found.description || "",
-            content:
-              found.content ||
-              found.description ||
-              "",
-            titleAm:
-              found.titleAm ||
-              found.title ||
-              found.headline ||
-              "",
-            descriptionAm:
-              found.descriptionAm ||
-              found.description ||
-              "",
-            contentAm:
-              found.contentAm ||
-              found.content ||
-              found.descriptionAm ||
-              found.description ||
-              "",
-            image: found.image || "",
-            source: found.source || "Football",
-            sourceUrl:
-              found.sourceUrl ||
-              found.link ||
-              "",
-            link:
-              found.link ||
-              found.sourceUrl ||
-              "",
-            publishedAt:
-              found.publishedAt ||
-              found.published ||
-              found.createdAt ||
-              null,
-            category:
-              found.category ||
-              found.league ||
-              "Football",
-            likesCount: Number(found.likesCount || 0),
-            commentsCount: Number(found.commentsCount || 0),
-            repostsCount: Number(found.repostsCount || 0)
+            firestoreId: "",
+            title: headline,
+            headline,
+            description,
+            content: story,
+            titleAm: titleAm || headline,
+            descriptionAm: descriptionAm || description,
+            contentAm: story,
+            image,
+            source: "ESPN",
+            sourceUrl,
+            link: sourceUrl,
+            publishedAt: item.published || item.lastModified || null,
+            category: item.section || "Soccer",
+            likesCount: 0,
+            commentsCount: 0,
+            repostsCount: 0
           }
         });
       }
+    }
+    // ESPN_DIRECT_ARTICLE_END
+
+    // Use the main news aggregation route.
+    // This avoids an extra Firestore read that can exhaust quota.
+    const baseUrl =
+      `${req.protocol}://${req.get("host")}/api/news?refresh=${Date.now()}`;
+
+    const newsResponse = await fetch(baseUrl);
+
+    if (!newsResponse.ok) {
+      return res.status(502).json({
+        success: false,
+        message: "Could not load news feed."
+      });
+    }
+
+    const newsResult = await newsResponse.json();
+
+    const articles =
+      Array.isArray(newsResult.news)
+        ? newsResult.news
+        : Array.isArray(newsResult.articles)
+        ? newsResult.articles
+        : Array.isArray(newsResult.data)
+        ? newsResult.data
+        : [];
+
+    const found = articles.find((item) =>
+      String(item.id || "") === articleId ||
+      String(item._id || "") === articleId ||
+      String(item.guid || "") === articleId ||
+      String(item.sourceId || "") === articleId
+    );
+
+    if (found) {
+      return res.json({
+        success: true,
+        article: {
+          ...found,
+          id: articleId,
+          firestoreId: found.firestoreId || "",
+          title: found.title || found.headline || "",
+          headline: found.headline || found.title || "",
+          description: found.description || "",
+          content: found.content || found.description || "",
+          titleAm: found.titleAm || found.title || found.headline || "",
+          descriptionAm: found.descriptionAm || found.description || "",
+          contentAm:
+            found.contentAm ||
+            found.content ||
+            found.descriptionAm ||
+            found.description ||
+            "",
+          image: found.image || "",
+          source: found.source || "Football",
+          sourceUrl: found.sourceUrl || found.link || "",
+          link: found.link || found.sourceUrl || "",
+          publishedAt:
+            found.publishedAt ||
+            found.published ||
+            found.createdAt ||
+            null,
+          category: found.category || found.league || "Football",
+          likesCount: Number(found.likesCount || 0),
+          commentsCount: Number(found.commentsCount || 0),
+          repostsCount: Number(found.repostsCount || 0)
+        }
+      });
     }
 
     return res.status(404).json({
@@ -1853,25 +1871,14 @@ app.get("/api/news/:id", async (req, res) => {
       message: "Article not found.",
       id: articleId
     });
-
   } catch (error) {
-    console.error(
-      "❌ Single article API error:",
-      error.message || error
-    );
-
+    console.error("❌ Single news route error:", error);
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to load article."
+      message: error.message
     });
   }
 });
-
-/* =========================
-   FIXTURES BY DATE
-========================= */
 
 app.get("/api/matches/fixtures", async (req, res) => {
   try {
