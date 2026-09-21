@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Fixtures - FootballXtra</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    body {
+      background: #07110d;
+      color: white;
+      min-height: 100vh;
+    }
+
+    .glass {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(12px);
+    }
+
+    .fixture-tab.active,
+    .league-tab.active {
+      border-color: rgba(74,222,128,.6);
+      color: #4ade80;
+      background: rgba(34,197,94,.10);
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="sticky top-0 z-50 glass">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+
+    <a href="index.html" class="font-black text-xl">
+      <span class="text-green-400">Football</span>Xtra
+    </a>
+
+    <a href="index.html"
+       class="text-sm text-gray-300 hover:text-green-400">
+      <i class="fa-solid fa-arrow-left mr-2"></i>
+      Home
+    </a>
+
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-8">
+
+  <div class="flex items-center justify-between gap-3 mb-6">
+
+    <div>
+      <h1 class="text-3xl font-black">
+        Fixtures
+      </h1>
+
+      <p class="text-sm text-gray-500 mt-1">
+        Upcoming football matches
+      </p>
+    </div>
+
+    <button
+      id="refreshFixtures"
+      type="button"
+      class="glass px-4 py-2 rounded-xl text-sm font-bold hover:border-green-400/40 transition">
+
+      <i class="fa-solid fa-rotate mr-2"></i>
+      Refresh
+
+    </button>
+
+  </div>
+
+
+  <div
+    id="fixtureDateNav"
+    class="flex gap-2 overflow-x-auto pb-2 mb-5">
+
+    <button
+      data-offset="-1"
+      class="fixture-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      Yesterday
+    </button>
+
+    <button
+      data-offset="0"
+      class="fixture-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      Today
+    </button>
+
+    <button
+      data-offset="1"
+      class="fixture-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      Tomorrow
+    </button>
+
+  </div>
+
+
+  <div
+    id="leagueNav"
+    class="flex gap-2 overflow-x-auto pb-2 mb-6">
+
+    <button
+      data-league="all"
+      class="league-tab active glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      All
+    </button>
+
+    <button
+      data-league="English Premier League"
+      class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      Premier League
+    </button>
+
+    <button
+      data-league="LaLiga"
+      class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      LaLiga
+    </button>
+
+    <button
+      data-league="Serie A"
+      class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      Serie A
+    </button>
+
+    <button
+      data-league="Bundesliga"
+      class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      Bundesliga
+    </button>
+
+    <button
+      data-league="Ligue 1"
+      class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      Ligue 1
+    </button>
+
+    <button
+      data-league="UEFA Champions League"
+      class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      Champions League
+    </button>
+
+  </div>
+
+
+  <div
+    id="fixturesStatus"
+    class="text-sm text-gray-500 mb-5">
+    Loading fixtures...
+  </div>
+
+
+  <div
+    id="fixturesContainer"
+    class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+  </div>
+
+</main>
+
+
+<script type="module">
+
+  const API_BASE =
+    "https://footballxtra-website.onrender.com";
+
+  const container =
+    document.getElementById("fixturesContainer");
+
+  const status =
+    document.getElementById("fixturesStatus");
+
+  const refreshButton =
+    document.getElementById("refreshFixtures");
+
+  let selectedOffset = 0;
+  let selectedLeague = "all";
+
+
+  function escapeHTML(value = "") {
+
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  function logo(url, name = "") {
+
+    const safeUrl =
+      escapeHTML(url || "");
+
+    const initials =
+      escapeHTML(
+        String(name || "FC")
+          .split(" ")
+          .map(word => word[0])
+          .join("")
+          .slice(0, 3)
+          .toUpperCase()
+      );
+
+    if (!safeUrl) {
+
+      return `
+        <div
+          class="w-12 h-12 mx-auto rounded-full glass
+                 flex items-center justify-center
+                 text-xs font-black text-green-400">
+          ${initials}
+        </div>
+      `;
+
+    }
+
+    return `
+      <img
+        src="${safeUrl}"
+        alt="${escapeHTML(name)}"
+        class="w-12 h-12 mx-auto object-contain"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+      <div
+        style="display:none"
+        class="w-12 h-12 mx-auto rounded-full glass
+               items-center justify-center
+               text-xs font-black text-green-400">
+        ${initials}
+      </div>
+    `;
+
+  }
+
+
+  function getAddisDate(offset = 0) {
+
+    const parts =
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Africa/Addis_Ababa",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(new Date());
+
+    const year =
+      Number(
+        parts.find(p => p.type === "year").value
+      );
+
+    const month =
+      Number(
+        parts.find(p => p.type === "month").value
+      );
+
+    const day =
+      Number(
+        parts.find(p => p.type === "day").value
+      );
+
+    const date =
+      new Date(
+        Date.UTC(
+          year,
+          month - 1,
+          day + offset
+        )
+      );
+
+    return date
+      .toISOString()
+      .slice(0, 10);
+
+  }
+
+
+  function updateTabs() {
+
+    document
+      .querySelectorAll(".fixture-tab")
+      .forEach(tab => {
+
+        const active =
+          Number(tab.dataset.offset) ===
+          selectedOffset;
+
+        tab.classList.toggle(
+          "active",
+          active
+        );
+
+      });
+
+
+    document
+      .querySelectorAll(".league-tab")
+      .forEach(tab => {
+
+        const active =
+          tab.dataset.league ===
+          selectedLeague;
+
+        tab.classList.toggle(
+          "active",
+          active
+        );
+
+      });
+
+  }
+
+
+  function formatKickoff(date) {
+
+    if (!date) {
+      return "--:--";
+    }
+
+    return new Date(date)
+      .toLocaleTimeString(
+        "en-GB",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "Africa/Addis_Ababa"
+        }
+      );
+
+  }
+
+
+  function renderFixture(match) {
+
+    const home =
+      match.home || {};
+
+    const away =
+      match.away || {};
+
+    const league =
+      match.league || {};
+
+    const matchStatus =
+      match.status || {};
+
+    const homeScore =
+      match.goals?.home;
+
+    const awayScore =
+      match.goals?.away;
+
+    const short =
+      String(
+        matchStatus.short || ""
+      ).toLowerCase();
+
+    const longStatus =
+      String(
+        matchStatus.long || ""
+      ).toLowerCase();
+
+    const isLive =
+      short === "in" ||
+      ["1h", "2h", "et", "p", "live", "bt"]
+        .includes(short);
+
+    const isFinished =
+      short === "post" ||
+      ["ft", "aet", "pen"]
+        .includes(short) ||
+      longStatus.includes("final") ||
+      longStatus.includes("full time");
+
+    const kickoff =
+      formatKickoff(
+        match.fixture?.date
+      );
+
+    const displayStatus =
+      isLive
+        ? "🔴 LIVE"
+        : isFinished
+          ? "⚪ FT"
+          : `🕐 ${kickoff}`;
+
+    const score =
+      isFinished || isLive
+        ? `${homeScore ?? 0} - ${awayScore ?? 0}`
+        : "vs";
+
+    const fixtureId =
+      match.fixtureId || "";
+
+
+    return `
+      <article
+        onclick="window.location.href='match.html?id=${encodeURIComponent(fixtureId)}'"
+        class="glass rounded-2xl p-5
+               hover:border-green-400/30
+               transition cursor-pointer">
+
+        <div
+          class="flex items-center justify-between
+                 gap-3 mb-5">
+
+          <div class="min-w-0">
+
+            <p
+              class="font-bold text-gray-300 truncate">
+              ${escapeHTML(
+                league.name || "Football"
+              )}
+            </p>
+
+            <p
+              class="text-xs text-gray-500 truncate">
+              ${escapeHTML(
+                league.country || ""
+              )}
+            </p>
+
+          </div>
+
+          <span
+            class="text-green-400 font-black
+                   text-xs whitespace-nowrap">
+
+            ${displayStatus}
+
+          </span>
+
+        </div>
+
+
+        <div
+          class="flex items-center
+                 justify-between gap-3">
+
+          <div
+            class="text-center flex-1 min-w-0">
+
+            ${logo(
+              home.logo,
+              home.name
+            )}
+
+            <p
+              class="font-bold text-sm mt-2 truncate">
+              ${escapeHTML(
+                home.name || "Home"
+              )}
+            </p>
+
+          </div>
+
+
+          <div
+            class="text-center shrink-0">
+
+            <div
+              class="text-2xl font-black">
+              ${escapeHTML(score)}
+            </div>
+
+            <div
+              class="text-[10px]
+                     text-gray-500
+                     font-bold mt-1">
+              ${escapeHTML(
+                match.fixture?.venue || ""
+              )}
+            </div>
+
+          </div>
+
+
+          <div
+            class="text-center flex-1 min-w-0">
+
+            ${logo(
+              away.logo,
+              away.name
+            )}
+
+            <p
+              class="font-bold text-sm mt-2 truncate">
+              ${escapeHTML(
+                away.name || "Away"
+              )}
+            </p>
+
+          </div>
+
+        </div>
+
+      </article>
+    `;
+
+  }
+
+
+  async function loadFixtures() {
+
+    updateTabs();
+
+    const date =
+      getAddisDate(
+        selectedOffset
+      );
+
+    status.textContent =
+      "Loading fixtures...";
+
+    try {
+
+      const response =
+        await fetch(
+          `${API_BASE}/api/matches/today-espn?date=${date}`,
+          {
+            cache: "no-store"
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          `HTTP ${response.status}`
+        );
+      }
+
+      const data =
+        await response.json();
+
+      if (
+        !data.success ||
+        !Array.isArray(data.matches)
+      ) {
+        throw new Error(
+          "Invalid API response"
+        );
+      }
+
+      let matches =
+        data.matches;
+
+      if (selectedLeague !== "all") {
+
+        matches =
+          matches.filter(
+            match =>
+              match.league?.name ===
+              selectedLeague
+          );
+
+      }
+
+
+      if (selectedOffset === 1) {
+
+        matches =
+          matches.filter(match => {
+
+            const short =
+              String(
+                match.status?.short || ""
+              ).toLowerCase();
+
+            return ![
+              "post",
+              "ft",
+              "aet",
+              "pen"
+            ].includes(short);
+
+          });
+
+      }
+
+
+      status.innerHTML = `
+        <span
+          class="text-green-400
+                 font-bold">
+          ● ${matches.length}
+        </span>
+        fixtures
+      `;
+
+
+      if (!matches.length) {
+
+        container.innerHTML = `
+          <div
+            class="md:col-span-2
+                   lg:col-span-3
+                   glass rounded-2xl
+                   p-10 text-center">
+
+            <div class="text-5xl mb-4">
+              ⚽
+            </div>
+
+            <p
+              class="font-bold
+                     text-gray-300">
+              No fixtures found
+            </p>
+
+            <p
+              class="text-xs
+                     text-gray-500 mt-2">
+              Try another date or league.
+            </p>
+
+          </div>
+        `;
+
+        return;
+
+      }
+
+
+      container.innerHTML =
+        matches
+          .map(renderFixture)
+          .join("");
+
+    } catch (error) {
+
+      console.error(
+        "Fixtures Error:",
+        error
+      );
+
+      status.textContent =
+        "Unable to load fixtures";
+
+      container.innerHTML = `
+        <div
+          class="md:col-span-2
+                 lg:col-span-3
+                 glass rounded-2xl
+                 p-8 text-center">
+
+          <i
+            class="fa-solid
+                   fa-circle-exclamation
+                   text-red-400
+                   text-3xl mb-4">
+          </i>
+
+          <p
+            class="font-bold
+                   text-gray-300">
+            Fixtures unavailable
+          </p>
+
+          <p
+            class="text-xs
+                   text-gray-500 mt-2">
+            Please try again shortly.
+          </p>
+
+        </div>
+      `;
+
+    }
+
+  }
+
+
+  document
+    .querySelectorAll(".fixture-tab")
+    .forEach(tab => {
+
+      tab.addEventListener(
+        "click",
+        () => {
+
+          selectedOffset =
+            Number(
+              tab.dataset.offset
+            );
+
+          loadFixtures();
+
+        }
+      );
+
+    });
+
+
+  document
+    .querySelectorAll(".league-tab")
+    .forEach(tab => {
+
+      tab.addEventListener(
+        "click",
+        () => {
+
+          selectedLeague =
+            tab.dataset.league;
+
+          loadFixtures();
+
+        }
+      );
+
+    });
+
+
+  refreshButton.addEventListener(
+    "click",
+    loadFixtures
+  );
+
+
+  loadFixtures();
+
+
+  setInterval(
+    loadFixtures,
+    30000
+  );
+
+</script>
+
+</body>
+</html>
