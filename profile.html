@@ -179,6 +179,56 @@
     </section>
 
 
+
+    <!-- EDIT PROFILE MODAL -->
+    <div id="editProfileModal"
+         class="hidden fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm px-5 flex items-center justify-center">
+
+      <div class="glass w-full max-w-md rounded-3xl p-6 border border-white/10">
+
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-black">Edit Profile</h2>
+
+          <button id="closeEditProfile"
+                  type="button"
+                  class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <label class="block text-sm font-semibold mb-2">
+          Display Name
+        </label>
+
+        <input id="editNameInput"
+               type="text"
+               maxlength="40"
+               class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-green-400"
+               placeholder="Enter your name">
+
+        <p id="editProfileMessage"
+           class="hidden text-sm mt-3">
+        </p>
+
+        <div class="flex gap-3 mt-6">
+
+          <button id="cancelEditProfile"
+                  type="button"
+                  class="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 font-bold">
+            Cancel
+          </button>
+
+          <button id="saveEditProfile"
+                  type="button"
+                  class="flex-1 py-3 rounded-xl bg-green-400 hover:bg-green-300 text-black font-black">
+            Save Changes
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+
     <!-- ACCOUNT -->
     <section class="mt-8">
 
@@ -214,7 +264,7 @@
         </div>
 
 
-        <a href="javascript:void(0)"
+        <a id="changePasswordBtn" href="javascript:void(0)"
            class="p-5 flex items-center justify-between
                   hover:bg-white/5 transition">
 
@@ -378,6 +428,8 @@
 
     import { watchAuth, logout } from "./js/auth.js";
 
+    import { updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
     import {
       doc,
       getDoc,
@@ -476,6 +528,164 @@
 
     });
 
+
+
+    // EDIT PROFILE
+    const editBtn =
+      document.getElementById("editBtn");
+
+    const editProfileModal =
+      document.getElementById("editProfileModal");
+
+    const closeEditProfile =
+      document.getElementById("closeEditProfile");
+
+    const cancelEditProfile =
+      document.getElementById("cancelEditProfile");
+
+    const editNameInput =
+      document.getElementById("editNameInput");
+
+    const saveEditProfile =
+      document.getElementById("saveEditProfile");
+
+    const editProfileMessage =
+      document.getElementById("editProfileMessage");
+
+    function closeEditModal() {
+      editProfileModal?.classList.add("hidden");
+      editProfileMessage?.classList.add("hidden");
+    }
+
+    editBtn?.addEventListener("click", () => {
+      const user = auth.currentUser;
+
+      if (!user) {
+        window.location.replace("login.html");
+        return;
+      }
+
+      editNameInput.value =
+        userName.textContent.trim() === "Loading..."
+          ? (user.displayName || "")
+          : userName.textContent.trim();
+
+      editProfileModal.classList.remove("hidden");
+      editNameInput.focus();
+    });
+
+    closeEditProfile?.addEventListener(
+      "click",
+      closeEditModal
+    );
+
+    cancelEditProfile?.addEventListener(
+      "click",
+      closeEditModal
+    );
+
+    editProfileModal?.addEventListener("click", (event) => {
+      if (event.target === editProfileModal) {
+        closeEditModal();
+      }
+    });
+
+    saveEditProfile?.addEventListener("click", async () => {
+      const user = auth.currentUser;
+      const name = editNameInput.value.trim();
+
+      if (!user) {
+        window.location.replace("login.html");
+        return;
+      }
+
+      if (!name) {
+        editProfileMessage.textContent =
+          "Please enter your name.";
+
+        editProfileMessage.className =
+          "text-sm mt-3 text-red-400";
+
+        return;
+      }
+
+      saveEditProfile.disabled = true;
+      saveEditProfile.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Saving...';
+
+      try {
+        await updateProfile(user, {
+          displayName: name
+        });
+
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            name: name
+          },
+          {
+            merge: true
+          }
+        );
+
+        userName.textContent = name;
+
+        editProfileMessage.textContent =
+          "Profile updated successfully.";
+
+        editProfileMessage.className =
+          "text-sm mt-3 text-green-400";
+
+        setTimeout(() => {
+          closeEditModal();
+        }, 700);
+
+      } catch (error) {
+        console.error(
+          "Edit profile error:",
+          error
+        );
+
+        editProfileMessage.textContent =
+          "Could not update profile. Please try again.";
+
+        editProfileMessage.className =
+          "text-sm mt-3 text-red-400";
+
+      } finally {
+        saveEditProfile.disabled = false;
+        saveEditProfile.innerHTML =
+          "Save Changes";
+      }
+    });
+
+    // CHANGE PASSWORD
+    const changePasswordBtn = document.getElementById("changePasswordBtn");
+
+    changePasswordBtn?.addEventListener("click", async (event) => {
+      event.preventDefault();
+
+      const user = auth.currentUser;
+
+      if (!user?.email) {
+        alert("Please log in again before changing your password.");
+        return;
+      }
+
+      changePasswordBtn.style.pointerEvents = "none";
+      changePasswordBtn.style.opacity = "0.6";
+
+      try {
+        await sendPasswordResetEmail(auth, user.email);
+        alert("Password reset email sent. Please check your email inbox and spam folder.");
+      } catch (error) {
+        console.error("Password reset error:", error);
+        alert("Could not send the password reset email. Please try again.");
+      } finally {
+        changePasswordBtn.style.pointerEvents = "";
+        changePasswordBtn.style.opacity = "";
+      }
+    });
 
     // SAVE FAVORITE TEAM
     saveTeam.addEventListener("click", async () => {
