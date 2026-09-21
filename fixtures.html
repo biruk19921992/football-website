@@ -94,17 +94,34 @@
     </button>
 
     <button
+      data-offset="live"
+      class="fixture-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+      🔴 Live
+    </button>
+
+    <button
       data-offset="1"
       class="fixture-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
       Tomorrow
     </button>
+
+    <label
+      class="glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap cursor-pointer">
+      📅
+      <input
+        id="fixtureDatePicker"
+        type="date"
+        class="ml-2 bg-transparent text-gray-200 outline-none"
+        aria-label="Choose fixture date">
+    </label>
 
   </div>
 
 
   <div
     id="leagueNav"
-    class="flex gap-2 overflow-x-auto pb-2 mb-6">
+    class="flex gap-2 overflow-x-auto pb-3 mb-6 sticky top-[73px] z-40"
+    style="background:rgba(7,17,13,.94);backdrop-filter:blur(14px);">
 
     <button
       data-league="all"
@@ -182,6 +199,8 @@
 
   let selectedOffset = 0;
   let selectedLeague = "all";
+  let selectedCustomDate = "";
+  let selectedMode = "date";
 
 
   function escapeHTML(value = "") {
@@ -290,9 +309,14 @@
       .querySelectorAll(".fixture-tab")
       .forEach(tab => {
 
+        const value = tab.dataset.offset;
         const active =
-          Number(tab.dataset.offset) ===
-          selectedOffset;
+          selectedMode === "live"
+            ? value === "live"
+            : selectedMode === "date" &&
+              value !== "live" &&
+              Number(value) === selectedOffset &&
+              !selectedCustomDate;
 
         tab.classList.toggle(
           "active",
@@ -515,6 +539,7 @@
     updateTabs();
 
     const date =
+      selectedCustomDate ||
       getAddisDate(
         selectedOffset
       );
@@ -687,10 +712,17 @@
         "click",
         () => {
 
-          selectedOffset =
-            Number(
-              tab.dataset.offset
-            );
+          const value = tab.dataset.offset;
+
+          if (value === "live") {
+            selectedMode = "live";
+            selectedOffset = 0;
+            selectedCustomDate = "";
+          } else {
+            selectedMode = "date";
+            selectedOffset = Number(value);
+            selectedCustomDate = "";
+          }
 
           loadFixtures();
 
@@ -718,6 +750,19 @@
 
     });
 
+
+  const fixtureDatePicker =
+    document.getElementById("fixtureDatePicker");
+
+  if (fixtureDatePicker) {
+    fixtureDatePicker.addEventListener("change", () => {
+      if (!fixtureDatePicker.value) return;
+
+      selectedMode = "date";
+      selectedCustomDate = fixtureDatePicker.value;
+      loadFixtures();
+    });
+  }
 
   refreshButton.addEventListener(
     "click",
