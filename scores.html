@@ -86,6 +86,57 @@
       </button>
     </div>
 
+    <div class="flex items-center gap-3 mb-5">
+      <label for="scoreDatePicker" class="text-sm font-bold whitespace-nowrap">📅 Date</label>
+      <input
+        type="date"
+        id="scoreDatePicker"
+        class="glass px-4 py-2 rounded-xl text-sm font-bold outline-none text-white bg-transparent"
+      >
+    </div>
+
+    <div
+      id="leagueNav"
+      class="flex gap-2 overflow-x-auto pb-3 mb-6 sticky top-[73px] z-40"
+      style="background:rgba(7,17,13,.94);backdrop-filter:blur(14px);">
+
+      <button data-league="all"
+        class="league-tab active glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        All
+      </button>
+
+      <button data-league="English Premier League"
+        class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        Premier League
+      </button>
+
+      <button data-league="LaLiga"
+        class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        LaLiga
+      </button>
+
+      <button data-league="Serie A"
+        class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        Serie A
+      </button>
+
+      <button data-league="Bundesliga"
+        class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        Bundesliga
+      </button>
+
+      <button data-league="Ligue 1"
+        class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        Ligue 1
+      </button>
+
+      <button data-league="UEFA Champions League"
+        class="league-tab glass px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap">
+        Champions League
+      </button>
+
+    </div>
+
     <div
       id="scoresStatus"
       class="text-sm text-gray-500 mb-5">
@@ -129,9 +180,7 @@ console.log("SCORES JS STARTED");
 
 
     function logo(url, name) {
-
       if (url) {
-
         return `
           <img
             src="${escapeHTML(url)}"
@@ -140,42 +189,29 @@ console.log("SCORES JS STARTED");
             loading="lazy"
             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
           >
-
-          <div
-            class="hidden w-14 h-14 rounded-full bg-white/10 mx-auto items-center justify-center text-xl">
+          <div class="hidden w-14 h-14 rounded-full bg-white/10 mx-auto items-center justify-center text-xl">
             ⚽
           </div>
         `;
-
       }
 
       return `
-        <div
-          class="w-14 h-14 rounded-full bg-white/10 mx-auto flex items-center justify-center text-xl">
+        <div class="w-14 h-14 rounded-full bg-white/10 mx-auto flex items-center justify-center text-xl">
           ⚽
         </div>
       `;
-
     }
 
 
     function renderMatch(match) {
-
       const home = match.home || {};
       const away = match.away || {};
       const league = match.league || {};
       const matchStatus = match.status || {};
-  const fixtureId = match.fixtureId;
+      const fixtureId = match.fixtureId;
 
-      const homeScore =
-        home.score ??
-        match.goals?.home ??
-        0;
-
-      const awayScore =
-        away.score ??
-        match.goals?.away ??
-        0;
+      const homeScore = home.score ?? match.goals?.home ?? 0;
+      const awayScore = away.score ?? match.goals?.away ?? 0;
 
       const short = String(matchStatus.short || "").toLowerCase();
       const longStatus = String(matchStatus.long || "").toLowerCase();
@@ -205,135 +241,84 @@ console.log("SCORES JS STARTED");
           })
         : "--:--";
 
-      let liveMinute = detail || (matchStatus.elapsed != null ? `${matchStatus.elapsed}'` : "");
-
       const displayStatus = isLive
-        ? `🔴 LIVE ${liveMinute}`.trim()
+        ? `🔴 LIVE ${detail}`.trim()
         : isHalfTime
           ? "🟡 HT"
           : isFinished
             ? "⚪ FT"
             : `🕐 ${kickoffTime}`;
 
+      const scoreStatus = isLive
+        ? (detail || "LIVE")
+        : isHalfTime
+          ? "HT"
+          : isFinished
+            ? "FT"
+            : "";
+
       return `
         <article
-          onclick="window.openMatchDetails('${fixtureId}'); return false;"
+          onclick="window.openMatchDetails('${fixtureId || ""}'); return false;"
           class="glass rounded-2xl p-5 hover:border-green-400/30 transition cursor-pointer">
 
-          <div
-            class="flex items-center justify-between gap-3 mb-5">
-
+          <div class="flex items-center justify-between gap-3 mb-5">
             <div class="min-w-0">
-
-              <p
-                class="font-bold text-gray-300 truncate">
-
-                ${escapeHTML(
-                  league.name || "Football"
-                )}
-
+              <p class="font-bold text-gray-300 truncate">
+                ${escapeHTML(league.name || "Football")}
               </p>
 
-              <p
-                class="text-xs text-gray-500 truncate">
-
-                ${escapeHTML(
-                  league.country || ""
-                )}
-
+              <p class="text-xs text-gray-500 truncate">
+                ${escapeHTML(league.country || "")}
               </p>
-
             </div>
 
-
-            <span
-              class="text-red-400 font-black text-xs whitespace-nowrap">
-
+            <span class="text-red-400 font-black text-xs whitespace-nowrap">
               ${isLive ? '<span class="animate-pulse">●</span> ' : ""}
               ${escapeHTML(displayStatus)}
-
             </span>
-
           </div>
 
+          <div class="flex items-center justify-between gap-3">
 
-          <div
-            class="flex items-center justify-between gap-3">
+            <div class="text-center flex-1 min-w-0">
+              ${logo(home.logo, home.name)}
 
-
-            <div
-              class="text-center flex-1 min-w-0">
-
-              ${logo(
-                home.logo,
-                home.name
-              )}
-
-              <p
-                class="font-bold text-sm mt-2 truncate">
-
-                ${escapeHTML(
-                  home.name || "Home"
-                )}
-
+              <p class="font-bold text-sm mt-2 truncate">
+                ${escapeHTML(home.name || "Home")}
               </p>
-
             </div>
 
-
-            <div
-              class="text-center shrink-0">
-
-              <div
-                class="text-2xl font-black">
-
-                ${escapeHTML(homeScore)}
-                -
-                ${escapeHTML(awayScore)}
-
+            <div class="text-center shrink-0">
+              <div class="text-2xl font-black">
+                ${escapeHTML(homeScore)} - ${escapeHTML(awayScore)}
               </div>
 
-              <div
-                class="text-[10px] text-red-400 font-bold mt-1">
-
-                ${escapeHTML(
-                  matchStatus.short || "LIVE"
-                )}
-
-              </div>
-
+              ${scoreStatus ? `
+                <div class="text-[10px] text-gray-400 font-bold mt-1">
+                  ${escapeHTML(scoreStatus)}
+                </div>
+              ` : ""}
             </div>
 
+            <div class="text-center flex-1 min-w-0">
+              ${logo(away.logo, away.name)}
 
-            <div
-              class="text-center flex-1 min-w-0">
-
-              ${logo(
-                away.logo,
-                away.name
-              )}
-
-              <p
-                class="font-bold text-sm mt-2 truncate">
-
-                ${escapeHTML(
-                  away.name || "Away"
-                )}
-
+              <p class="font-bold text-sm mt-2 truncate">
+                ${escapeHTML(away.name || "Away")}
               </p>
-
             </div>
 
           </div>
 
         </article>
-
       `;
-
     }
 
 
     let selectedScoreTab = "today";
+    let selectedLeague = "all";
+    let selectedDateOverride = null;
 
     function getAddisDate(offset = 0) {
       const parts = new Intl.DateTimeFormat("en-CA", {
@@ -352,6 +337,10 @@ console.log("SCORES JS STARTED");
       return date.toISOString().slice(0, 10);
     }
 
+    const scoreDatePicker = document.getElementById("scoreDatePicker");
+    if (scoreDatePicker) {
+      scoreDatePicker.value = getAddisDate(0);
+    }
 
     function updateScoreTabs() {
       document.querySelectorAll(".score-tab").forEach(tab => {
@@ -389,6 +378,7 @@ console.log("SCORES JS STARTED");
         };
 
         const date =
+          selectedDateOverride ||
           getAddisDate(
             offset[selectedScoreTab] ?? 0
           );
@@ -446,6 +436,22 @@ console.log("SCORES JS STARTED");
         }
 
 
+        if (selectedLeague !== "all") {
+
+          matches =
+            matches.filter(match => {
+              const leagueName =
+                String(
+                  match?.league?.name || ""
+                ).trim().toLowerCase();
+
+              return leagueName ===
+                selectedLeague.trim().toLowerCase();
+            });
+
+        }
+
+
         status.innerHTML = `
           <span class="text-green-400 font-bold">
             ● ${matches.length}
@@ -458,8 +464,7 @@ console.log("SCORES JS STARTED");
 
           container.innerHTML = `
 
-            <div
-              class="md:col-span-2 lg:col-span-3 glass rounded-2xl p-10 text-center">
+              <div class="md:col-span-2 lg:col-span-3 glass rounded-2xl p-10 text-center">
 
               <div class="text-5xl mb-4">
                 ⚽
@@ -506,8 +511,7 @@ console.log("SCORES JS STARTED");
 
         container.innerHTML = `
 
-          <div
-            class="md:col-span-2 lg:col-span-3 glass rounded-2xl p-8 text-center">
+            <div class="md:col-span-2 lg:col-span-3 glass rounded-2xl p-8 text-center">
 
             <i
               class="fa-solid fa-circle-exclamation text-red-400 text-3xl mb-4">
@@ -534,9 +538,74 @@ console.log("SCORES JS STARTED");
 
       tab.addEventListener("click", () => {
 
-        loadLiveScores(
-          tab.dataset.scoreTab
-        );
+        selectedDateOverride = null;
+
+        const tabName = tab.dataset.scoreTab;
+        const tabOffset = {
+          yesterday: -1,
+          today: 0,
+          live: 0,
+          tomorrow: 1
+        };
+
+        if (scoreDatePicker) {
+          scoreDatePicker.value =
+            getAddisDate(tabOffset[tabName] ?? 0);
+        }
+
+        loadLiveScores(tabName);
+
+      });
+
+    });
+
+    if (scoreDatePicker) {
+
+      scoreDatePicker.addEventListener("change", () => {
+        selectedDateOverride =
+          scoreDatePicker.value || null;
+
+        loadLiveScores(selectedScoreTab);
+      });
+
+    }
+
+
+    document.querySelectorAll(".league-tab").forEach(tab => {
+
+      tab.addEventListener("click", () => {
+
+        selectedLeague =
+          tab.dataset.league || "all";
+
+        document.querySelectorAll(".league-tab").forEach(item => {
+
+          const active =
+            item === tab;
+
+          item.classList.toggle(
+            "border-green-400",
+            active
+          );
+
+          item.classList.toggle(
+            "text-green-400",
+            active
+          );
+
+          item.classList.toggle(
+            "bg-green-500/10",
+            active
+          );
+
+          item.classList.toggle(
+            "active",
+            active
+          );
+
+        });
+
+        loadLiveScores(selectedScoreTab);
 
       });
 
