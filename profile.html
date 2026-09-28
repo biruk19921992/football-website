@@ -54,17 +54,20 @@
   <main class="max-w-4xl mx-auto px-5 py-10">
 
     <!-- PROFILE HEADER -->
-    <section class="glass rounded-3xl p-6 sm:p-8">
+    <section class="glass rounded-3xl p-6 sm:p-8 relative overflow-hidden">
 
-      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+      <div class="absolute -top-20 -right-20 w-48 h-48 bg-green-400/10 rounded-full blur-3xl"></div>
+
+      <div class="relative flex flex-col sm:flex-row items-center sm:items-start gap-6">
 
         <!-- AVATAR -->
-        <div class="relative">
+        <div class="relative shrink-0">
 
           <div id="avatar"
                class="w-28 h-28 rounded-full
                       bg-green-400/10
                       border-2 border-green-400/30
+                      ring-4 ring-green-400/5
                       flex items-center justify-center
                       overflow-hidden">
 
@@ -73,34 +76,35 @@
           </div>
 
           <button id="changePhotoBtn" type="button"
-            class="absolute bottom-1 right-1
-                   w-9 h-9 rounded-full
+            class="absolute bottom-0 right-0
+                   w-10 h-10 rounded-full
                    bg-green-400 text-black
                    flex items-center justify-center
-                   shadow-lg">
+                   border-4 border-[#0b0f15]
+                   hover:bg-green-300 transition"
+            aria-label="Change profile photo">
 
-            <i class="fa-solid fa-camera"></i>
+            <i class="fa-solid fa-camera text-sm"></i>
+
           </button>
 
           <input id="photoInput" type="file" accept="image/*" class="hidden">
 
         </div>
 
-
         <!-- USER INFO -->
-        <div class="text-center sm:text-left flex-1">
+        <div class="text-center sm:text-left flex-1 min-w-0">
 
-          <div class="flex flex-col sm:flex-row
-                      items-center sm:items-center gap-3">
+          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3">
 
             <h1 id="userName"
-                class="text-3xl font-black">
+                class="text-3xl sm:text-4xl font-black tracking-tight">
               Loading...
             </h1>
 
             <span id="premiumBadge"
-                  class="hidden px-3 py-1 rounded-full
-                         text-xs font-bold
+                  class="hidden px-3 py-1.5 rounded-full
+                         text-xs font-black
                          bg-yellow-400/10
                          text-yellow-300
                          border border-yellow-400/20">
@@ -113,28 +117,62 @@
           </div>
 
           <p id="userEmail"
-             class="text-gray-400 mt-2">
+             class="text-gray-400 mt-2 text-sm sm:text-base truncate">
             Loading...
           </p>
 
-          <p class="text-xs text-gray-500 mt-3">
-            <i class="fa-solid fa-futbol mr-1"></i>
-            FOOTBALLXTRA Member
-          </p>
+          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-4">
+
+            <span
+              class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full
+                     bg-green-400/10 border border-green-400/20
+                     text-xs font-black text-green-300
+                     shadow-[0_0_18px_rgba(74,222,128,0.08)]
+                     hover:bg-green-400/15 hover:border-green-400/30 transition">
+              <span class="w-5 h-5 rounded-full bg-green-400/10 flex items-center justify-center">
+                <i class="fa-solid fa-futbol text-green-400 text-[10px]"></i>
+              </span>
+              VibeSport Member
+            </span>
+
+            <span id="profileFavoriteTeam"
+      class="hidden inline-flex items-center gap-2 px-3 py-1.5 rounded-full
+             bg-green-400/10 border border-green-400/20
+             text-xs font-bold text-green-300">
+
+  <span class="w-6 h-6 rounded-full bg-white/10
+               flex items-center justify-center
+               overflow-hidden shrink-0">
+
+    <img id="profileFavoriteTeamLogo"
+         src=""
+         alt=""
+         class="hidden w-5 h-5 object-contain"
+         loading="lazy">
+
+    <span id="profileFavoriteTeamFallback" class="text-sm">⚽</span>
+
+  </span>
+
+  <span id="profileFavoriteTeamName"></span>
+
+</span>
+
+          </div>
 
         </div>
-
 
         <!-- EDIT -->
         <button
           id="editBtn"
-          class="px-5 py-2.5 rounded-xl
+          type="button"
+          class="shrink-0 px-5 py-2.5 rounded-xl
                  border border-white/10
                  bg-white/5
                  hover:bg-white/10
-                 font-semibold">
+                 font-semibold transition">
 
-          <i class="fa-solid fa-pen mr-2"></i>
+          <i class="fa-solid fa-user-pen text-xs group-hover:rotate-6 transition-transform"></i>
           Edit
 
         </button>
@@ -143,202 +181,346 @@
 
     </section>
 
-
     <!-- STATS -->
-    <section class="grid grid-cols-3 gap-3 mt-5">
+<section class="grid grid-cols-3 gap-3 mt-5">
 
-      <div class="glass rounded-2xl p-5 text-center">
-        <p id="commentsCount"
-           class="text-2xl font-black">
-          0
-        </p>
-        <p class="text-xs text-gray-500 mt-1">
-          Comments
-        </p>
+  <div class="group relative overflow-hidden glass rounded-2xl p-4 sm:p-5 text-center border border-white/5 hover:border-green-400/25 hover:-translate-y-0.5 transition-all duration-200">
+    <div class="absolute -top-8 -right-8 w-16 h-16 rounded-full bg-green-400/10 blur-2xl"></div>
+    <div class="relative">
+      <div class="w-10 h-10 mx-auto rounded-xl bg-green-400/10 border border-green-400/10 flex items-center justify-center mb-2">
+        <i class="fa-solid fa-comments text-green-400"></i>
       </div>
+      <p id="commentsCount" class="text-2xl font-black tracking-tight">0</p>
+      <p class="text-[11px] sm:text-xs text-gray-500 mt-1 font-semibold">Comments</p>
+    </div>
+  </div>
 
-      <div class="glass rounded-2xl p-5 text-center">
-        <p id="favoritesCount"
-           class="text-2xl font-black">
-          0
-        </p>
-        <p class="text-xs text-gray-500 mt-1">
-          Favorites
-        </p>
+  <div class="group relative overflow-hidden glass rounded-2xl p-4 sm:p-5 text-center border border-white/5 hover:border-pink-400/25 hover:-translate-y-0.5 transition-all duration-200">
+    <div class="absolute -top-8 -right-8 w-16 h-16 rounded-full bg-pink-400/10 blur-2xl"></div>
+    <div class="relative">
+      <div class="w-10 h-10 mx-auto rounded-xl bg-pink-400/10 border border-pink-400/10 flex items-center justify-center mb-2">
+        <i class="fa-solid fa-heart text-pink-400"></i>
       </div>
+      <p id="favoritesCount" class="text-2xl font-black tracking-tight">0</p>
+      <p class="text-[11px] sm:text-xs text-gray-500 mt-1 font-semibold">Favorites</p>
+    </div>
+  </div>
 
-      <div class="glass rounded-2xl p-5 text-center">
-        <p class="text-2xl font-black">
-          0
-        </p>
-        <p class="text-xs text-gray-500 mt-1">
-          Following
-        </p>
+  <div class="group relative overflow-hidden glass rounded-2xl p-4 sm:p-5 text-center border border-white/5 hover:border-blue-400/25 hover:-translate-y-0.5 transition-all duration-200">
+    <div class="absolute -top-8 -right-8 w-16 h-16 rounded-full bg-blue-400/10 blur-2xl"></div>
+    <div class="relative">
+      <div class="w-10 h-10 mx-auto rounded-xl bg-blue-400/10 border border-blue-400/10 flex items-center justify-center mb-2">
+        <i class="fa-solid fa-user-group text-blue-400"></i>
       </div>
+      <p class="text-2xl font-black tracking-tight">0</p>
+      <p class="text-[11px] sm:text-xs text-gray-500 mt-1 font-semibold">Following</p>
+    </div>
+  </div>
 
-    </section>
+</section>
 
 
 
     <!-- EDIT PROFILE MODAL -->
     <div id="editProfileModal"
-         class="hidden fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm px-5 flex items-center justify-center">
+         class="hidden fixed inset-0 z-[9999]
+                bg-black/70 backdrop-blur-md
+                px-4 sm:px-5
+                flex items-center justify-center">
 
-      <div class="glass w-full max-w-md rounded-3xl p-6 border border-white/10">
+      <div class="glass w-full max-w-md
+                  rounded-3xl
+                  p-6 sm:p-7
+                  border border-white/10
+                  shadow-2xl">
 
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-xl font-black">Edit Profile</h2>
+        <!-- HEADER -->
+        <div class="flex items-center gap-4 mb-6">
 
-          <button id="closeEditProfile"
-                  type="button"
-                  class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10">
-            <i class="fa-solid fa-xmark"></i>
+          <div class="w-12 h-12 shrink-0
+                      rounded-2xl
+                      bg-green-400/10
+                      flex items-center justify-center">
+
+            <i class="fa-solid fa-user-pen
+                      text-green-400 text-lg">
+            </i>
+
+          </div>
+
+          <div class="flex-1">
+
+            <h2 class="text-xl font-black">
+              Edit Profile
+            </h2>
+
+            <p class="text-xs text-gray-500 mt-1">
+              Update your profile information
+            </p>
+
+          </div>
+
+          <button
+          id="editBtn"
+          type="button"
+          class="group shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-green-400/20 bg-green-400/10 hover:bg-green-400/20 hover:border-green-400/40 text-green-300 font-black text-sm active:scale-[0.98] transition">
+
+            <i class="fa-solid fa-xmark text-gray-400"></i>
+
           </button>
+
         </div>
 
-        <label class="block text-sm font-semibold mb-2">
-          Display Name
-        </label>
+        <!-- DISPLAY NAME -->
+        <div>
 
-        <input id="editNameInput"
-               type="text"
-               maxlength="40"
-               class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-green-400"
-               placeholder="Enter your name">
+          <label for="editNameInput"
+                 class="block text-sm font-bold mb-2">
 
+            Display Name
+
+          </label>
+
+          <div class="relative">
+
+            <div class="absolute left-4 top-1/2
+                        -translate-y-1/2
+                        text-gray-500">
+
+              <i class="fa-solid fa-user"></i>
+
+            </div>
+
+            <input id="editNameInput"
+                   type="text"
+                   maxlength="40"
+                   class="w-full
+                          bg-black/40
+                          border border-white/10
+                          rounded-2xl
+                          pl-11 pr-4 py-3.5
+                          outline-none
+                          text-sm font-semibold
+                          focus:border-green-400
+                          focus:ring-2
+                          focus:ring-green-400/10
+                          transition"
+                   placeholder="Enter your name">
+
+          </div>
+
+        </div>
+
+        <!-- MESSAGE -->
         <p id="editProfileMessage"
-           class="hidden text-sm mt-3">
+           class="hidden text-sm mt-3
+                  rounded-xl px-3 py-2">
         </p>
 
-        <div class="flex gap-3 mt-6">
+        <!-- ACTIONS -->
+        <div class="grid grid-cols-2 gap-3 mt-6">
 
           <button id="cancelEditProfile"
                   type="button"
-                  class="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 font-bold">
+                  class="py-3.5
+                         rounded-2xl
+                         bg-white/5
+                         border border-white/10
+                         hover:bg-white/10
+                         font-bold
+                         transition">
+
             Cancel
+
           </button>
 
           <button id="saveEditProfile"
                   type="button"
-                  class="flex-1 py-3 rounded-xl bg-green-400 hover:bg-green-300 text-black font-black">
+                  class="py-3.5
+                         rounded-2xl
+                         bg-green-400
+                         hover:bg-green-300
+                         active:scale-[0.99]
+                         text-black
+                         font-black
+                         transition">
+
+            <i class="fa-solid fa-check mr-2"></i>
             Save Changes
+
           </button>
 
         </div>
 
       </div>
+
     </div>
 
     <!-- ACCOUNT -->
-    <section class="mt-8">
+<section class="mt-8">
+  <div class="flex items-center justify-between gap-3 mb-4">
+    <div>
+      <h2 class="text-xl font-black">Account</h2>
+      <p class="text-xs text-gray-500 mt-1">Manage your account and security</p>
+    </div>
+    <div class="w-9 h-9 rounded-xl bg-green-400/10 border border-green-400/10 flex items-center justify-center">
+      <i class="fa-solid fa-shield-halved text-green-400 text-sm"></i>
+    </div>
+  </div>
 
-      <h2 class="text-xl font-black mb-4">
-        Account
-      </h2>
+  <div class="glass rounded-3xl overflow-hidden border border-white/5">
 
-      <div class="glass rounded-2xl overflow-hidden">
-
-        <div class="p-5 flex items-center justify-between
-                    border-b border-white/10">
-
-          <div class="flex items-center gap-4">
-
-            <div class="w-10 h-10 rounded-xl
-                        bg-blue-400/10
-                        flex items-center justify-center">
-
-              <i class="fa-solid fa-envelope text-blue-400"></i>
-
-            </div>
-
-            <div>
-              <p class="font-semibold">Email</p>
-              <p id="accountEmail"
-                 class="text-sm text-gray-500">
-                Loading...
-              </p>
-            </div>
-
-          </div>
-
+    <!-- EMAIL -->
+    <div class="group p-5 sm:p-6 flex items-center justify-between gap-4
+                hover:bg-white/[0.03] transition">
+      <div class="flex items-center gap-4 min-w-0">
+        <div class="w-12 h-12 shrink-0 rounded-2xl
+                    bg-blue-400/10 border border-blue-400/10
+                    flex items-center justify-center">
+          <i class="fa-solid fa-envelope text-blue-400"></i>
         </div>
 
-
-        <a id="changePasswordBtn" href="javascript:void(0)"
-           class="p-5 flex items-center justify-between
-                  hover:bg-white/5 transition">
-
-          <div class="flex items-center gap-4">
-
-            <div class="w-10 h-10 rounded-xl
-                        bg-purple-400/10
-                        flex items-center justify-center">
-
-              <i class="fa-solid fa-lock text-purple-400"></i>
-
-            </div>
-
-            <div>
-              <p class="font-semibold">Password</p>
-              <p class="text-sm text-gray-500">
-                Change your password
-              </p>
-            </div>
-
-          </div>
-
-          <i class="fa-solid fa-chevron-right text-gray-500"></i>
-
-        </a>
-
+        <div class="min-w-0">
+          <p class="font-black text-sm sm:text-base">Email Address</p>
+          <p id="accountEmail"
+             class="text-sm text-gray-500 truncate mt-1">
+            Loading...
+          </p>
+        </div>
       </div>
 
-    </section>
+      <div class="w-9 h-9 shrink-0 rounded-full bg-green-400/10
+                  flex items-center justify-center">
+        <i class="fa-solid fa-circle-check text-green-400 text-sm"></i>
+      </div>
+    </div>
 
+    <!-- PASSWORD -->
+    <a id="changePasswordBtn"
+       href="javascript:void(0)"
+       class="group p-5 sm:p-6 flex items-center justify-between gap-4
+              border-t border-white/10
+              hover:bg-purple-500/[0.04]
+              transition">
 
-    <!-- FOOTBALL -->
+      <div class="flex items-center gap-4 min-w-0">
+        <div class="w-12 h-12 shrink-0 rounded-2xl
+                    bg-purple-400/10 border border-purple-400/10
+                    flex items-center justify-center">
+          <i class="fa-solid fa-shield-halved text-purple-400"></i>
+        </div>
+
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <p class="font-black text-sm sm:text-base">
+              Password & Security
+            </p>
+            <span class="px-2 py-1 rounded-full
+                         bg-purple-400/10 border border-purple-400/10
+                         text-purple-300 text-[10px] font-black">
+              SECURE
+            </span>
+          </div>
+
+          <p class="text-sm text-gray-500 mt-1">
+            Update your password securely
+          </p>
+        </div>
+      </div>
+
+      <div class="w-10 h-10 shrink-0 rounded-full bg-white/5
+                  group-hover:bg-purple-400/10
+                  flex items-center justify-center transition">
+        <i class="fa-solid fa-chevron-right
+                  text-gray-500 group-hover:text-purple-300
+                  text-xs transition"></i>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<!-- FOOTBALL -->
     <section class="mt-8">
 
       <h2 class="text-xl font-black mb-4">
         Football Preferences
       </h2>
 
-      <div class="glass rounded-2xl p-5">
+      <div class="glass rounded-3xl p-5 sm:p-6
+                  border border-white/5">
 
-        <label class="block text-sm font-semibold mb-3">
+        <div class="flex items-center gap-4 mb-5">
+
+          <div class="w-12 h-12 rounded-2xl
+                      bg-green-400/10
+                      flex items-center justify-center">
+            <i class="fa-solid fa-futbol text-green-400 text-xl"></i>
+          </div>
+
+          <div>
+            <p class="font-bold">Your Favorite Team</p>
+            <p class="text-xs text-gray-500 mt-1">
+              Choose the team you want to follow
+            </p>
+          </div>
+
+        </div>
+
+        <label class="block text-sm font-semibold mb-2">
           Favorite Team
         </label>
 
-        <select id="favoriteTeam"
-                class="w-full bg-black/40
-                       border border-white/10
-                       rounded-xl px-4 py-3
-                       outline-none
-                       focus:border-green-400">
+        <div class="relative">
 
-          <option value="">Select your favorite team</option>
-          <option value="Manchester United">Manchester United</option>
-          <option value="Liverpool">Liverpool</option>
-          <option value="Arsenal">Arsenal</option>
-          <option value="Chelsea">Chelsea</option>
-          <option value="Manchester City">Manchester City</option>
-          <option value="Real Madrid">Real Madrid</option>
-          <option value="Barcelona">Barcelona</option>
-          <option value="Bayern Munich">Bayern Munich</option>
-          <option value="PSG">PSG</option>
-          <option value="Ethiopia">Ethiopia</option>
+          <select id="favoriteTeam"
+                  class="w-full appearance-none
+                         bg-black/40
+                         border border-white/10
+                         rounded-2xl
+                         px-4 py-3.5 pr-12
+                         outline-none
+                         text-sm font-semibold
+                         focus:border-green-400
+                         focus:ring-2
+                         focus:ring-green-400/10
+                         transition">
 
-        </select>
+            <option value="">Select your favorite team</option>
+            <option value="Manchester United">Manchester United</option>
+            <option value="Liverpool">Liverpool</option>
+            <option value="Arsenal">Arsenal</option>
+            <option value="Chelsea">Chelsea</option>
+            <option value="Manchester City">Manchester City</option>
+            <option value="Real Madrid">Real Madrid</option>
+            <option value="Barcelona">Barcelona</option>
+            <option value="Bayern Munich">Bayern Munich</option>
+            <option value="PSG">PSG</option>
+            <option value="Ethiopia">Ethiopia</option>
+
+          </select>
+
+          <div class="pointer-events-none
+                      absolute right-4 top-1/2
+                      -translate-y-1/2
+                      text-gray-500">
+            <i class="fa-solid fa-chevron-down text-xs"></i>
+          </div>
+
+        </div>
 
         <button id="saveTeam"
                 class="mt-4 w-full
                        bg-green-400
                        hover:bg-green-300
+                       active:scale-[0.99]
                        text-black
                        font-black
-                       py-3 rounded-xl">
+                       py-3.5
+                       rounded-2xl
+                       transition">
 
-          <i class="fa-solid fa-floppy-disk mr-2"></i>
+          <i class="fa-solid fa-check mr-2"></i>
           Save Preference
 
         </button>
@@ -351,46 +533,104 @@
 
     </section>
 
-
     <!-- PREMIUM -->
     <section class="mt-8">
 
-      <div class="rounded-3xl p-6
-                  bg-gradient-to-r
+      <div class="relative overflow-hidden rounded-3xl p-6 sm:p-7
+                  bg-gradient-to-br
                   from-yellow-400/10
-                  to-orange-500/10
+                  via-orange-500/5
+                  to-transparent
                   border border-yellow-400/20">
 
-        <div class="flex items-center gap-4">
+        <div class="absolute -top-16 -right-16
+                    w-40 h-40
+                    bg-yellow-400/10
+                    rounded-full blur-3xl">
+        </div>
 
-          <div class="w-12 h-12 rounded-2xl
-                      bg-yellow-400/10
-                      flex items-center justify-center">
+        <div class="relative">
 
-            <i class="fa-solid fa-crown text-yellow-300 text-xl"></i>
+          <div class="flex items-start gap-4">
+
+            <div class="w-14 h-14 shrink-0 rounded-2xl
+                        bg-yellow-400/10
+                        border border-yellow-400/20
+                        flex items-center justify-center">
+
+              <i class="fa-solid fa-crown
+                        text-yellow-300 text-2xl">
+              </i>
+
+            </div>
+
+            <div class="flex-1 min-w-0">
+
+              <div class="flex flex-wrap items-center gap-2">
+
+                <h3 class="font-black text-lg">
+                  FOOTBALLXTRA Premium
+                </h3>
+
+                <span class="px-2 py-1 rounded-full
+                             bg-yellow-400/10
+                             border border-yellow-400/20
+                             text-[10px] font-black
+                             text-yellow-300">
+                  PREMIUM
+                </span>
+
+              </div>
+
+              <p class="text-sm text-gray-400 mt-2 leading-relaxed">
+                Unlock exclusive football content,
+                premium features and an enhanced experience.
+              </p>
+
+            </div>
 
           </div>
 
-          <div class="flex-1">
+          <div class="grid grid-cols-2 gap-3 mt-5">
 
-            <h3 class="font-black">
-              FOOTBALLXTRA Premium
-            </h3>
+            <div class="rounded-2xl bg-black/20
+                        border border-white/5 p-3">
 
-            <p class="text-sm text-gray-400 mt-1">
-              Unlock exclusive football content.
-            </p>
+              <i class="fa-solid fa-star text-yellow-300 mb-2"></i>
+
+              <p class="text-xs text-gray-400">
+                Exclusive Content
+              </p>
+
+            </div>
+
+            <div class="rounded-2xl bg-black/20
+                        border border-white/5 p-3">
+
+              <i class="fa-solid fa-bolt text-orange-300 mb-2"></i>
+
+              <p class="text-xs text-gray-400">
+                Premium Features
+              </p>
+
+            </div>
 
           </div>
 
           <button
-            class="hidden sm:block
-                   px-4 py-2 rounded-xl
+            class="mt-5 w-full
+                   sm:w-auto
+                   px-6 py-3
+                   rounded-2xl
                    bg-yellow-400
+                   hover:bg-yellow-300
+                   active:scale-[0.99]
                    text-black
-                   font-bold">
+                   font-black
+                   transition">
 
-            Upgrade
+            <i class="fa-solid fa-crown mr-2"></i>
+            Upgrade to Premium
 
           </button>
 
@@ -400,23 +640,59 @@
 
     </section>
 
-
     <!-- LOGOUT -->
     <section class="mt-8 mb-10">
 
-      <button id="logoutBtn"
-              class="w-full rounded-2xl
-                     border border-red-500/20
-                     bg-red-500/10
-                     hover:bg-red-500/20
-                     text-red-300
-                     font-bold
-                     py-4">
+      <div class="rounded-3xl p-5 sm:p-6
+                  bg-red-500/[0.06]
+                  border border-red-500/15">
 
-        <i class="fa-solid fa-right-from-bracket mr-2"></i>
-        Logout
+        <div class="flex items-center gap-4">
 
-      </button>
+          <div class="w-12 h-12 shrink-0
+                      rounded-2xl
+                      bg-red-500/10
+                      flex items-center justify-center">
+
+            <i class="fa-solid fa-right-from-bracket
+                      text-red-400 text-xl">
+            </i>
+
+          </div>
+
+          <div class="flex-1 min-w-0">
+
+            <p class="font-black text-base">
+              Sign out
+            </p>
+
+            <p class="text-xs text-gray-500 mt-1">
+              Sign out of your VibeSport account on this device.
+            </p>
+
+          </div>
+
+        </div>
+
+        <button id="logoutBtn"
+                type="button"
+                class="mt-5 w-full
+                       rounded-2xl
+                       border border-red-500/20
+                       bg-red-500/10
+                       hover:bg-red-500/20
+                       active:scale-[0.99]
+                       text-red-300
+                       font-black
+                       py-3.5
+                       transition">
+
+          <i class="fa-solid fa-right-from-bracket mr-2"></i>
+          Logout
+
+        </button>
+
+      </div>
 
     </section>
 
@@ -433,7 +709,7 @@
     import {
       doc,
       getDoc,
-      setDoc
+      setDoc,
     } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
     import { db, auth } from "./js/firebase.js";
@@ -458,6 +734,45 @@
     const premiumBadge =
       document.getElementById("premiumBadge");
 
+    const commentsCount =
+      document.getElementById("commentsCount");
+
+    const favoritesCount =
+      document.getElementById("favoritesCount");
+
+
+    // REAL USER COMMENTS + FAVORITES COUNT
+    async function loadUserCommentsCount(user) {
+      try {
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+
+        const data = userSnap.exists()
+          ? userSnap.data()
+          : {};
+
+        const comments = Number(data.commentsCount || 0);
+        const favorites = Number(data.favoritesCount || 0);
+
+        if (commentsCount) {
+          commentsCount.textContent = String(comments);
+        }
+
+        if (favoritesCount) {
+          favoritesCount.textContent = String(favorites);
+        }
+
+      } catch (error) {
+        console.error("User stats loading error:", error);
+
+        if (commentsCount) {
+          commentsCount.textContent = "0";
+        }
+
+        if (favoritesCount) {
+          favoritesCount.textContent = "0";
+        }
+      }
+    }
 
     // AUTH
     watchAuth(async (user) => {
@@ -478,6 +793,8 @@
 
       accountEmail.textContent =
         user.email || "";
+
+      await loadUserCommentsCount(user);
 
 
       // FIRESTORE PROFILE
@@ -502,10 +819,72 @@
 
           }
 
+          const profileFavoriteTeam =
+            document.getElementById("profileFavoriteTeam");
+
+          const profileFavoriteTeamName =
+            document.getElementById("profileFavoriteTeamName");
+
+          const profileFavoriteTeamLogo =
+            document.getElementById("profileFavoriteTeamLogo");
+
+          const profileFavoriteTeamFallback =
+            document.getElementById("profileFavoriteTeamFallback");
+
+          const favoriteTeamLogos = {
+            "Manchester United": "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
+            "Liverpool": "https://a.espncdn.com/i/teamlogos/soccer/500/364.png",
+            "Arsenal": "https://a.espncdn.com/i/teamlogos/soccer/500/359.png",
+            "Chelsea": "https://a.espncdn.com/i/teamlogos/soccer/500/331.png",
+            "Manchester City": "https://a.espncdn.com/i/teamlogos/soccer/500/382.png",
+            "Real Madrid": "https://a.espncdn.com/i/teamlogos/soccer/500/86.png",
+            "Barcelona": "https://a.espncdn.com/i/teamlogos/soccer/500/83.png",
+            "Bayern Munich": "https://a.espncdn.com/i/teamlogos/soccer/500/132.png",
+            "PSG": "https://a.espncdn.com/i/teamlogos/soccer/500/160.png"
+          };
+
           if (data.favoriteTeam) {
 
             favoriteTeam.value =
               data.favoriteTeam;
+
+            if (profileFavoriteTeamName) {
+              profileFavoriteTeamName.textContent =
+                data.favoriteTeam;
+            }
+
+            const logoUrl =
+              favoriteTeamLogos[data.favoriteTeam];
+
+            if (profileFavoriteTeamLogo && logoUrl) {
+              profileFavoriteTeamLogo.src = logoUrl;
+              profileFavoriteTeamLogo.alt =
+                data.favoriteTeam;
+              profileFavoriteTeamLogo.classList.remove("hidden");
+
+              if (profileFavoriteTeamFallback) {
+                profileFavoriteTeamFallback.classList.add("hidden");
+              }
+            } else if (profileFavoriteTeamFallback) {
+              profileFavoriteTeamFallback.textContent =
+                data.favoriteTeam === "Ethiopia" ? "🇪🇹" : "⚽";
+
+              profileFavoriteTeamFallback.classList.remove("hidden");
+
+              if (profileFavoriteTeamLogo) {
+                profileFavoriteTeamLogo.classList.add("hidden");
+              }
+            }
+
+            if (profileFavoriteTeam) {
+              profileFavoriteTeam.classList.remove("hidden");
+            }
+
+          } else {
+
+            if (profileFavoriteTeam) {
+              profileFavoriteTeam.classList.add("hidden");
+            }
 
           }
 
