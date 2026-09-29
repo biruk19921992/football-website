@@ -4,3 +4,5 @@ backend/node_modules/
 backend/*firebase-adminsdk*.json
 node_modules/
 .serve.json
+
+backend/telegram-news-service-account.json

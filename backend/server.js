@@ -171,7 +171,25 @@ const rtdb = getDatabase();
 const messaging = getMessaging();
 const firestore = getFirestore();
 
+// Separate Firebase project for Telegram + Admin News
+const telegramNewsServiceAccount = require(
+  "./telegram-news-service-account.json"
+);
+
+const telegramNewsApp = initializeApp(
+  {
+    credential: cert(telegramNewsServiceAccount)
+  },
+  "telegramNews"
+);
+
+const telegramNewsFirestore = getFirestore(
+  telegramNewsApp,
+  "(default)"
+);
+
 console.log("🔥 Firebase Admin initialized successfully!");
+console.log("📰 Telegram News Firebase initialized:", telegramNewsServiceAccount.project_id);
 
 /* =========================
    MIDDLEWARE
@@ -368,7 +386,7 @@ app.post("/api/telegram/webhook", async (req, res) => {
       return res.json({ ok: true, ignored: true });
     }
 
-    await firestore.collection("news").doc(docId).set(
+    await telegramNewsFirestore.collection("news").doc(docId).set(
       {
         title: text.trim() || "VibeSport",
         description: "",
@@ -710,6 +728,233 @@ app.post("/api/admins", verifyFirebaseUser, requireSuperAdmin, async (req, res) 
     return res.status(500).json({ success: false, message: error.message || "Failed to create admin" });
   }
 });
+
+
+/* =========================
+   ADMIN NEWS API
+   Firebase Auth = old footballxtra
+   News Firestore = footballxtra-telegram-news
+========================= */
+
+async function requireNewsAdmin(req, res, next) {
+  try {
+    const userSnap = await firestore
+      .collection("users")
+      .doc(req.user.uid)
+      .get();
+
+    if (!userSnap.exists) {
+      return res.status(403).json({
+        success: false,
+        message: "Admin profile not found"
+      });
+    }
+
+    const role = userSnap.data().role;
+
+    if (!["super_admin", "content_admin"].includes(role)) {
+      return res.status(403).json({
+        success: false,
+        message: "News Admin permission is required"
+      });
+    }
+
+    req.adminRole = role;
+    next();
+  } catch (error) {
+    console.error("❌ News Admin permission error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify News Admin permission"
+    });
+  }
+}
+
+
+/* GET ADMIN NEWS */
+app.get(
+  "/api/admin/news",
+  verifyFirebaseUser,
+  requireNewsAdmin,
+  async (req, res) => {
+    try {
+      const snapshot = await telegramNewsFirestore
+        .collection("posts")
+        .orderBy("createdAt", "desc")
+        .get();
+
+      const news = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(item => item.type === "news");
+
+      return res.json({
+        success: true,
+        news
+      });
+    } catch (error) {
+      console.error("❌ Admin news load error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to load news"
+      });
+    }
+  }
+);
+
+
+/* CREATE ADMIN NEWS */
+app.post(
+  "/api/admin/news",
+  verifyFirebaseUser,
+  requireNewsAdmin,
+  async (req, res) => {
+    try {
+      const {
+        title,
+        content,
+        image,
+        category
+      } = req.body || {};
+
+      if (!title || !title.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "News title is required"
+        });
+      }
+
+      const user = req.user;
+
+      const newsData = {
+        type: "news",
+        title: title.trim(),
+        content: content || "",
+        image: image || "",
+        category: category || "",
+        authorId: user.uid,
+        authorName: user.name || user.email || "FootballXtra",
+        source: "FootballXtra Admin",
+        likesCount: 0,
+        commentsCount: 0,
+        repostsCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const ref = await telegramNewsFirestore
+        .collection("posts")
+        .add(newsData);
+
+      return res.status(201).json({
+        success: true,
+        id: ref.id,
+        news: {
+          id: ref.id,
+          ...newsData
+        }
+      });
+    } catch (error) {
+      console.error("❌ Admin news create error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to create news"
+      });
+    }
+  }
+);
+
+
+/* UPDATE ADMIN NEWS */
+app.put(
+  "/api/admin/news/:id",
+  verifyFirebaseUser,
+  requireNewsAdmin,
+  async (req, res) => {
+    try {
+      const {
+        title,
+        content,
+        image,
+        category
+      } = req.body || {};
+
+      const id = req.params.id;
+
+      if (!title || !title.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "News title is required"
+        });
+      }
+
+      const ref = telegramNewsFirestore
+        .collection("posts")
+        .doc(id);
+
+      const updateData = {
+        title: title.trim(),
+        content: content || "",
+        image: image || "",
+        category: category || "",
+        updatedAt: new Date()
+      };
+
+      await ref.update(updateData);
+
+      return res.json({
+        success: true,
+        id,
+        news: {
+          id,
+          ...updateData
+        }
+      });
+    } catch (error) {
+      console.error("❌ Admin news update error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to update news"
+      });
+    }
+  }
+);
+
+
+/* DELETE ADMIN NEWS */
+app.delete(
+  "/api/admin/news/:id",
+  verifyFirebaseUser,
+  requireNewsAdmin,
+  async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      await telegramNewsFirestore
+        .collection("posts")
+        .doc(id)
+        .delete();
+
+      return res.json({
+        success: true,
+        message: "News deleted successfully"
+      });
+    } catch (error) {
+      console.error("❌ Admin news delete error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to delete news"
+      });
+    }
+  }
+);
 
 /* =========================
    SERVER
@@ -1324,7 +1569,7 @@ app.get("/api/news", async (req, res) => {
 
     // VibeSport Telegram articles ONLY
     try {
-      const telegramSnap = await firestore
+      const telegramSnap = await telegramNewsFirestore
         .collection("news")
         .where("source", "==", "VibeSport Telegram")
         .limit(20)

@@ -1,19 +1,56 @@
-import { db, auth } from "../../../js/firebase.js";
+import { auth } from "../../../js/firebase.js";
 
-import {
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  getDocs,
-  query,
-  orderBy,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+const API_BASE =
+  "https://footballxtra-website.onrender.com";
 
+const ADMIN_NEWS_API =
+  `${API_BASE}/api/admin/news`;
 
-const postsRef = collection(db, "posts");
+async function adminNewsRequest(
+  url,
+  options = {}
+) {
+  const user = auth.currentUser;
+
+  if (!user) {
+    throw new Error(
+      "Please log in as an admin."
+    );
+  }
+
+  const idToken =
+    await user.getIdToken();
+
+  const response = await fetch(
+    url,
+    {
+      ...options,
+      headers: {
+        "Content-Type":
+          "application/json",
+        "Authorization":
+          `Bearer ${idToken}`,
+        ...(options.headers || {})
+      }
+    }
+  );
+
+  const data =
+    await response.json()
+      .catch(() => ({}));
+
+  if (
+    !response.ok ||
+    data.success === false
+  ) {
+    throw new Error(
+      data.message ||
+      "Admin News request failed."
+    );
+  }
+
+  return data;
+}
 
 const CLOUDINARY_CLOUD_NAME = "dyfzl7jfg";
 const CLOUDINARY_UPLOAD_PRESET = "footballxtranews";
@@ -33,9 +70,28 @@ function escapeHTML(value = "") {
 
 
 function formatDate(timestamp) {
-  if (!timestamp?.toDate) return "Just now";
+  if (!timestamp) return "Just now";
 
-  return timestamp.toDate().toLocaleString();
+  let date = null;
+
+  if (timestamp?.toDate) {
+    date = timestamp.toDate();
+  } else if (
+    typeof timestamp === "string" ||
+    typeof timestamp === "number"
+  ) {
+    date = new Date(timestamp);
+  } else if (timestamp?._seconds) {
+    date = new Date(timestamp._seconds * 1000);
+  } else if (timestamp?.seconds) {
+    date = new Date(timestamp.seconds * 1000);
+  }
+
+  if (!date || Number.isNaN(date.getTime())) {
+    return "Just now";
+  }
+
+  return date.toLocaleString();
 }
 
 
@@ -656,67 +712,51 @@ export async function renderNewsModule(container) {
           auth.currentUser;
 
 
-        const data = {
+          const idToken =
+            await user.getIdToken();
 
-          type: "news",
+          const data = {
+            title,
+            content,
+            image,
+            category
+          };
 
-          title,
-
-          content,
-
-          image,
-
-          category,
-
-          authorId:
-            user?.uid || "",
-
-          authorName:
-            user?.displayName ||
-            "FootballXtra",
-
-          updatedAt:
-            serverTimestamp()
-
-        };
-
-
-        if (newsId) {
-
-          await updateDoc(
-            doc(db, "posts", newsId),
-            data
-          );
-
-          alert(
-            "News updated successfully ✅"
-          );
-
-        } else {
-
-          await addDoc(
-            postsRef,
+          const response = await fetch(
+            newsId
+              ? `${ADMIN_NEWS_API}/${encodeURIComponent(newsId)}`
+              : ADMIN_NEWS_API,
             {
-
-              ...data,
-
-              likesCount: 0,
-
-              commentsCount: 0,
-
-              repostsCount: 0,
-
-              createdAt:
-                serverTimestamp()
-
+              method: newsId ? "PUT" : "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization":
+                  `Bearer ${idToken}`
+              },
+              body: JSON.stringify(data)
             }
           );
 
-          alert(
-            "News published successfully 🎉"
-          );
+          const result =
+            await response.json();
 
-        }
+          if (!response.ok || !result.success) {
+            throw new Error(
+              result.message ||
+              "Failed to save news"
+            );
+          }
+
+          if (newsId) {
+            alert(
+              "News updated successfully ✅"
+            );
+          } else {
+            alert(
+              "News published successfully 🎉"
+            );
+          }
+
 
 
         closeEditor();
@@ -757,58 +797,30 @@ export async function renderNewsModule(container) {
     const list =
       container.querySelector("#newsList");
 
-
     try {
 
-      const q =
-        query(
-          postsRef,
-          orderBy(
-            "createdAt",
-            "desc"
-          )
+      const result =
+        await adminNewsRequest(
+          ADMIN_NEWS_API
         );
 
-
-      const snapshot =
-        await getDocs(q);
-
-
       const news =
-        snapshot.docs
-          .map(item => ({
-            id: item.id,
-            ...item.data()
-          }))
-          .filter(
-            item =>
-              item.type === "news"
-          );
-
+        result.news || [];
 
       if (!news.length) {
 
         list.innerHTML = `
-
           <div class="p-10 text-center text-gray-500">
-
             <i class="fa-regular fa-newspaper text-3xl mb-3"></i>
-
-            <p>
-              No news published yet.
-            </p>
-
+            <p>No news published yet.</p>
           </div>
-
         `;
 
         return;
       }
 
-
       list.innerHTML =
         news.map(item => `
-
           <article
             class="p-5 border-b border-white/5 hover:bg-white/[.02]">
 
@@ -828,34 +840,28 @@ export async function renderNewsModule(container) {
                 `
               }
 
-
               <div class="flex-1 min-w-0">
 
                 <div class="flex flex-wrap gap-2 mb-1">
-
                   <span class="text-[10px] uppercase font-bold text-green-400">
                     ${escapeHTML(
                       item.category ||
                       "football"
                     )}
                   </span>
-
                 </div>
-
 
                 <h5 class="font-black truncate">
                   ${escapeHTML(
-                    item.title
+                    item.title || ""
                   )}
                 </h5>
 
-
                 <p class="text-gray-500 text-xs mt-1 line-clamp-2">
                   ${escapeHTML(
-                    item.content
+                    item.content || ""
                   )}
                 </p>
-
 
                 <div class="text-[10px] text-gray-600 mt-2">
                   ${formatDate(
@@ -865,24 +871,18 @@ export async function renderNewsModule(container) {
 
               </div>
 
-
               <div class="flex gap-2">
 
                 <button
                   class="edit-news w-9 h-9 rounded-lg glass text-blue-400"
-                  data-id="${item.id}">
-
+                  data-id="${escapeHTML(item.id)}">
                   <i class="fa-solid fa-pen"></i>
-
                 </button>
-
 
                 <button
                   class="delete-news w-9 h-9 rounded-lg glass text-red-400"
-                  data-id="${item.id}">
-
+                  data-id="${escapeHTML(item.id)}">
                   <i class="fa-solid fa-trash"></i>
-
                 </button>
 
               </div>
@@ -890,9 +890,7 @@ export async function renderNewsModule(container) {
             </div>
 
           </article>
-
         `).join("");
-
 
       list.querySelectorAll(".edit-news")
         .forEach(button => {
@@ -917,7 +915,6 @@ export async function renderNewsModule(container) {
 
         });
 
-
       list.querySelectorAll(".delete-news")
         .forEach(button => {
 
@@ -929,22 +926,20 @@ export async function renderNewsModule(container) {
                 !confirm(
                   "Delete this news permanently?"
                 )
-              ) return;
-
+              ) {
+                return;
+              }
 
               try {
 
-                await deleteDoc(
-                  doc(
-                    db,
-                    "posts",
-                    button.dataset.id
-                  )
+                await adminNewsRequest(
+                  `${ADMIN_NEWS_API}/${encodeURIComponent(button.dataset.id)}`,
+                  {
+                    method: "DELETE"
+                  }
                 );
 
-
                 await loadNews();
-
 
               } catch (error) {
 
@@ -962,33 +957,28 @@ export async function renderNewsModule(container) {
 
         });
 
-
     } catch (error) {
 
       console.error(
-        "News loading error:",
+        "❌ Admin news load error:",
         error
       );
 
-
       list.innerHTML = `
-
         <div class="p-10 text-center text-red-400">
+          <i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i>
 
-          <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
-
-          <p class="mt-3">
+          <p>
             Failed to load news.
           </p>
 
-          <div class="text-xs text-gray-500 mt-2">
+          <p class="text-sm mt-2">
             ${escapeHTML(
-              error.message
+              error.message ||
+              "Unknown error"
             )}
-          </div>
-
+          </p>
         </div>
-
       `;
 
     }
