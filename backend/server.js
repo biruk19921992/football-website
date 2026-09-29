@@ -172,9 +172,9 @@ const messaging = getMessaging();
 const firestore = getFirestore();
 
 // Separate Firebase project for Telegram + Admin News
-const telegramNewsServiceAccount = require(
-  "./telegram-news-service-account.json"
-);
+const telegramNewsServiceAccount = process.env.TELEGRAM_NEWS_SERVICE_ACCOUNT
+  ? JSON.parse(process.env.TELEGRAM_NEWS_SERVICE_ACCOUNT)
+  : require("./telegram-news-service-account.json");
 
 const telegramNewsApp = initializeApp(
   {
