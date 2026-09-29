@@ -1345,14 +1345,22 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
             data.role &&
             data.role !== "user";
 
-          const row = document.createElement("a");
-
-          row.href =
-            `profile.html?uid=${encodeURIComponent(uid)}`;
+          const row = document.createElement("div");
 
           row.className =
             "flex items-center gap-3 p-3 rounded-xl " +
             "bg-white/5 hover:bg-white/10 transition";
+
+          const currentUid = auth.currentUser?.uid;
+          let listIsFollowing = false;
+
+          if (currentUid && currentUid !== uid) {
+            const followingSnap = await getDoc(
+              doc(db, "users", currentUid, "following", uid)
+            );
+
+            listIsFollowing = followingSnap.exists();
+          }
 
           row.innerHTML = `
             <div class="w-11 h-11 rounded-full overflow-hidden
@@ -1390,9 +1398,156 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
               </p>
             </div>
 
-            <i class="fa-solid fa-chevron-right
-                      text-gray-600 text-xs"></i>
+            <button
+              type="button"
+              class="list-follow-btn shrink-0 px-3 py-1.5 rounded-lg
+                     text-xs font-bold transition
+                     ${listIsFollowing
+                       ? "bg-white/10 text-white"
+                       : "bg-green-500 text-black"}"
+              data-uid="${uid}">
+              ${listIsFollowing ? "Following" : "Follow"}
+            </button>
           `;
+
+          row.addEventListener("click", (event) => {
+            if (event.target.closest(".list-follow-btn")) return;
+            window.location.href =
+              `profile.html?uid=${encodeURIComponent(uid)}`;
+          });
+
+          const listFollowBtn =
+            row.querySelector(".list-follow-btn");
+
+          listFollowBtn?.addEventListener("click", async (event) => {
+            event.stopPropagation();
+
+            const user = auth.currentUser;
+
+            if (!user || user.uid === uid) return;
+
+            listFollowBtn.disabled = true;
+
+            try {
+              const currentUserRef = doc(db, "users", user.uid);
+              const targetUserRef = doc(db, "users", uid);
+
+              const currentFollowingRef = doc(
+                db,
+                "users",
+                user.uid,
+                "following",
+                uid
+              );
+
+              const targetFollowersRef = doc(
+                db,
+                "users",
+                uid,
+                "followers",
+                user.uid
+              );
+
+              const batch = writeBatch(db);
+
+              if (listIsFollowing) {
+                batch.delete(currentFollowingRef);
+                batch.delete(targetFollowersRef);
+
+                batch.set(
+                  currentUserRef,
+                  { followingCount: increment(-1) },
+                  { merge: true }
+                );
+
+                batch.set(
+                  targetUserRef,
+                  { followersCount: increment(-1) },
+                  { merge: true }
+                );
+              } else {
+                batch.set(currentFollowingRef, {
+                  uid,
+                  createdAt: new Date()
+                });
+
+                batch.set(targetFollowersRef, {
+                  uid: user.uid,
+                  createdAt: new Date()
+                });
+
+                batch.set(
+                  currentUserRef,
+                  { followingCount: increment(1) },
+                  { merge: true }
+                );
+
+                batch.set(
+                  targetUserRef,
+                  { followersCount: increment(1) },
+                  { merge: true }
+                );
+              }
+
+              await batch.commit();
+
+              listIsFollowing = !listIsFollowing;
+
+              listFollowBtn.textContent =
+                listIsFollowing ? "Following" : "Follow";
+
+              // Update own Following count immediately
+              if (currentProfileUid === user.uid) {
+                const followingCountEl =
+                  document.getElementById("followingCount");
+
+                if (followingCountEl) {
+                  const currentCount =
+                    Number(followingCountEl.textContent || 0);
+
+                  followingCountEl.textContent = String(
+                    Math.max(
+                      0,
+                      currentCount +
+                        (listIsFollowing ? 1 : -1)
+                    )
+                  );
+                }
+              }
+
+              listFollowBtn.classList.toggle(
+                "bg-white/10",
+                listIsFollowing
+              );
+
+              listFollowBtn.classList.toggle(
+                "text-white",
+                listIsFollowing
+              );
+
+              listFollowBtn.classList.toggle(
+                "bg-green-500",
+                !listIsFollowing
+              );
+
+              listFollowBtn.classList.toggle(
+                "text-black",
+                !listIsFollowing
+              );
+
+            } catch (error) {
+              console.error(
+                "List follow action error:",
+                error
+              );
+
+              alert(
+                "Follow action failed. Please try again."
+              );
+            } finally {
+              listFollowBtn.disabled = false;
+            }
+          });
 
           followList.appendChild(row);
         }
