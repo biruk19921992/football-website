@@ -162,6 +162,17 @@
 
         </div>
 
+        <!-- FOLLOW -->
+        <button
+          id="followBtn"
+          type="button"
+          class="shrink-0 px-5 py-2.5 rounded-xl
+                 bg-green-500 hover:bg-green-400
+                 text-black font-bold transition">
+          <i class="fa-solid fa-user-plus text-xs mr-1"></i>
+          Follow
+        </button>
+
         <!-- EDIT -->
         <button
           id="editBtn"
@@ -221,6 +232,269 @@
 
 
 
+
+<script type="module">
+import {
+  collection,
+  query,
+  orderBy,
+  startAt,
+  endAt,
+  limit,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+import { db } from "./js/firebase.js";
+
+/* USER SEARCH */
+const userSearchInput = document.getElementById("userSearchInput");
+const userSearchResults = document.getElementById("userSearchResults");
+
+let userSearchTimer = null;
+
+function escapeSearchHTML(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+async function searchUsers(text) {
+  if (!userSearchResults) return;
+
+  const searchText = text.trim();
+
+  if (!searchText) {
+    userSearchResults.innerHTML = "";
+    userSearchResults.classList.add("hidden");
+    return;
+  }
+
+  userSearchResults.classList.remove("hidden");
+  userSearchResults.innerHTML = `
+    <div class="text-center py-5 text-gray-500 text-sm">
+      <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+      Searching users...
+    </div>
+  `;
+
+  try {
+    const usersQuery = query(
+      collection(db, "users"),
+      orderBy("name"),
+      startAt(searchText),
+      endAt(searchText + "\uf8ff"),
+      limit(15)
+    );
+
+    const snapshot = await getDocs(usersQuery);
+
+    if (snapshot.empty) {
+      userSearchResults.innerHTML = `
+        <div class="text-center py-6 text-gray-500 text-sm">
+          <i class="fa-solid fa-user-slash text-lg mb-2"></i>
+          <p class="font-bold text-gray-300">No users found</p>
+          <p class="text-xs mt-1">Try another name.</p>
+        </div>
+      `;
+      return;
+    }
+
+    userSearchResults.innerHTML = "";
+
+    snapshot.forEach((userDoc) => {
+      const data = userDoc.data();
+      const uid = userDoc.id;
+
+      const name =
+        data.name ||
+        data.displayName ||
+        "FootballXtra User";
+
+      const photo =
+        data.photoURL ||
+        "";
+
+      const followers =
+        Number(data.followersCount || 0);
+
+      const verified =
+        data.role &&
+        data.role !== "user";
+
+      const result = document.createElement("a");
+
+      result.href =
+        `profile.html?uid=${encodeURIComponent(uid)}`;
+
+      result.className =
+        "w-full flex items-center gap-3 p-3 rounded-xl " +
+        "bg-white/5 hover:bg-white/10 transition text-left";
+
+      result.innerHTML = `
+        <div class="w-11 h-11 rounded-full overflow-hidden
+                    bg-white/10 shrink-0 flex items-center justify-center">
+          ${
+            photo
+              ? `<img src="${escapeSearchHTML(photo)}"
+                       class="w-full h-full object-cover"
+                       alt="">`
+              : `<i class="fa-solid fa-user text-gray-500"></i>`
+          }
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1">
+            <p class="font-bold text-white truncate">
+              ${escapeSearchHTML(name)}
+            </p>
+
+            ${
+              verified
+                ? `<i class="fa-solid fa-circle-check
+                            text-blue-400 text-xs"></i>`
+                : ""
+            }
+          </div>
+
+          <p class="text-xs text-gray-500">
+            ${followers.toLocaleString()} followers
+          </p>
+        </div>
+
+        <i class="fa-solid fa-chevron-right
+                  text-gray-600 text-xs"></i>
+      `;
+
+      userSearchResults.appendChild(result);
+    });
+
+  } catch (error) {
+    console.error("User search error:", error);
+
+    userSearchResults.innerHTML = `
+      <div class="text-center py-6 text-red-300 text-sm">
+        <i class="fa-solid fa-triangle-exclamation mb-2"></i>
+        <p>Search failed.</p>
+      </div>
+    `;
+  }
+}
+
+userSearchInput?.addEventListener("input", () => {
+  clearTimeout(userSearchTimer);
+
+  userSearchTimer = setTimeout(() => {
+    searchUsers(userSearchInput.value);
+  }, 350);
+});
+</script>
+
+<!-- SOCIAL PROFILE -->
+    <section id="socialProfile" class="mt-6">
+
+      <!-- SOCIAL STATS -->
+      <div class="glass rounded-2xl border border-white/10 p-4">
+        <!-- USER SEARCH -->
+        <div class="mb-4">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+            <input
+              id="userSearchInput"
+              type="search"
+              placeholder="Search users..."
+              autocomplete="off"
+              class="w-full bg-white/5 border border-white/10 rounded-xl
+                     pl-11 pr-4 py-3 text-sm text-white
+                     placeholder-gray-500 outline-none
+                     focus:border-green-400/50"
+            >
+          </div>
+
+          <div id="userSearchResults" class="mt-3 space-y-2 hidden"></div>
+        </div>
+
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
+
+          <div>
+            <p id="postsCount" class="text-lg sm:text-xl font-black">0</p>
+            <p class="text-[10px] sm:text-xs text-gray-500 font-semibold">Posts</p>
+          </div>
+
+          <div>
+            <p id="followersCount" class="text-lg sm:text-xl font-black">0</p>
+            <p class="text-[10px] sm:text-xs text-gray-500 font-semibold">Followers</p>
+          </div>
+
+          <div>
+            <p id="followingCount" class="text-lg sm:text-xl font-black">0</p>
+            <p class="text-[10px] sm:text-xs text-gray-500 font-semibold">Following</p>
+          </div>
+
+          <div>
+            <p id="likesCount" class="text-lg sm:text-xl font-black">0</p>
+            <p class="text-[10px] sm:text-xs text-gray-500 font-semibold">Likes</p>
+          </div>
+
+          <div>
+            <p id="socialCommentsCount" class="text-lg sm:text-xl font-black">0</p>
+            <p class="text-[10px] sm:text-xs text-gray-500 font-semibold">Comments</p>
+          </div>
+
+          <div>
+            <p id="savesCount" class="text-lg sm:text-xl font-black">0</p>
+            <p class="text-[10px] sm:text-xs text-gray-500 font-semibold">Saves</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- PROFILE TABS -->
+      <div class="mt-5 glass rounded-2xl border border-white/10 overflow-hidden">
+        <div class="grid grid-cols-3 border-b border-white/10">
+
+          <button type="button"
+                  class="profile-tab active py-3 text-sm font-bold text-white border-b-2 border-green-400"
+                  data-tab="posts">
+            <i class="fa-solid fa-table-cells mr-1"></i>
+            Posts
+          </button>
+
+          <button type="button"
+                  class="profile-tab py-3 text-sm font-bold text-gray-500"
+                  data-tab="videos">
+            <i class="fa-solid fa-play mr-1"></i>
+            Videos
+          </button>
+
+          <button type="button"
+                  class="profile-tab py-3 text-sm font-bold text-gray-500"
+                  data-tab="news">
+            <i class="fa-solid fa-newspaper mr-1"></i>
+            News
+          </button>
+
+        </div>
+
+        <!-- FEED -->
+        <div id="socialFeed" class="p-3 sm:p-4 space-y-4">
+
+          <div id="socialFeedEmpty"
+               class="text-center py-12 text-gray-500">
+            <div class="w-14 h-14 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-3">
+              <i class="fa-solid fa-newspaper text-xl"></i>
+            </div>
+            <p class="font-bold text-gray-300">No posts yet</p>
+            <p class="text-xs mt-1">Your published content will appear here.</p>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
     <!-- EDIT PROFILE MODAL -->
     <div id="editProfileModal"
          class="hidden fixed inset-0 z-[9999]
@@ -261,7 +535,7 @@
           </div>
 
           <button
-          id="editBtn"
+          id="closeEditProfile"
           type="button"
           class="group shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-green-400/20 bg-green-400/10 hover:bg-green-400/20 hover:border-green-400/40 text-green-300 font-black text-sm active:scale-[0.98] transition">
 
@@ -709,10 +983,22 @@
     import {
       doc,
       getDoc,
-      setDoc,
+      collection,
+      query,
+      where,
+      getDocs,
+      orderBy,
+      limit,
+      startAt,
+      endAt,
+  setDoc,
+  increment,
+  deleteDoc,
+  writeBatch,
     } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
     import { db, auth } from "./js/firebase.js";
+import { telegramNewsDb } from "./js/telegram-news-firebase.js";
 
 
     const userName = document.getElementById("userName");
@@ -744,7 +1030,7 @@
     // REAL USER COMMENTS + FAVORITES COUNT
     async function loadUserCommentsCount(user) {
       try {
-        const userSnap = await getDoc(doc(db, "users", user.uid));
+        const userSnap = await getDoc(doc(db, "users", targetUid));
 
         const data = userSnap.exists()
           ? userSnap.data()
@@ -774,16 +1060,187 @@
       }
     }
 
+    // SOCIAL PROFILE CONTENT
+    async function loadSocialProfileContent(targetUid) {
+      try {
+        const videosQuery = query(
+          collection(db, "posts"),
+          where("authorId", "==", targetUid),
+          where("type", "==", "video"),
+          limit(20)
+        );
+
+        const newsQuery = query(
+          collection(telegramNewsDb, "posts"),
+          where("authorId", "==", targetUid),
+          where("type", "==", "news"),
+          limit(20)
+        );
+
+        const [videosSnap, newsSnap] = await Promise.all([
+          getDocs(videosQuery),
+          getDocs(newsQuery)
+        ]);
+
+        const videos = videosSnap.docs.map((item) => ({
+          id: item.id,
+          ...item.data(),
+          contentType: "video"
+        }));
+
+        const news = newsSnap.docs.map((item) => ({
+          id: item.id,
+          ...item.data(),
+          contentType: "news"
+        }));
+
+        const allContent = [...videos, ...news].sort((a, b) => {
+          const getTime = (value) => {
+            if (!value) return 0;
+            if (typeof value.toMillis === "function") return value.toMillis();
+            if (value.seconds) return value.seconds * 1000;
+            const parsed = new Date(value).getTime();
+            return Number.isNaN(parsed) ? 0 : parsed;
+          };
+
+          return getTime(b.createdAt) - getTime(a.createdAt);
+        });
+
+        const socialFeed = document.getElementById("socialFeed");
+        const socialFeedEmpty = document.getElementById("socialFeedEmpty");
+
+        if (socialFeed) {
+          socialFeed.querySelectorAll(".social-content-card").forEach((card) => card.remove());
+
+          allContent.forEach((item) => {
+            const card = document.createElement("article");
+            card.className = "social-content-card glass rounded-2xl border border-white/10 overflow-hidden";
+            card.dataset.contentType = item.contentType;
+
+            const isVideo = item.contentType === "video";
+            const image = item.image || item.thumbnailUrl || "";
+            const title = item.title || (isVideo ? "Video" : "News");
+            const text = item.content || item.description || "";
+
+            card.innerHTML = `
+              ${image ? `
+                <div class="relative">
+                  <img src="${image}" alt="" class="w-full aspect-video object-cover">
+                  ${isVideo ? `
+                    <div class="absolute inset-0 flex items-center justify-center">
+                      <div class="w-14 h-14 rounded-full bg-black/60 flex items-center justify-center">
+                        <i class="fa-solid fa-play text-white ml-1"></i>
+                      </div>
+                    </div>
+                  ` : ""}
+                </div>
+              ` : ""}
+
+              <div class="p-4">
+                <span class="inline-block text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-green-500/10 text-green-400">
+                  ${isVideo ? "VIDEO" : "NEWS"}
+                </span>
+
+                <h3 class="font-black text-base sm:text-lg text-white mt-2">
+                  ${title}
+                </h3>
+
+                ${text ? `
+                  <p class="text-sm text-gray-400 mt-2 line-clamp-3">
+                    ${text}
+                  </p>
+                ` : ""}
+
+                <div class="flex items-center gap-4 mt-4 text-xs text-gray-500">
+                  <span>
+                    <i class="fa-solid fa-heart mr-1"></i>
+                    ${Number(item.likesCount || 0)}
+                  </span>
+
+                  <span>
+                    <i class="fa-solid fa-comment mr-1"></i>
+                    ${Number(item.commentsCount || 0)}
+                  </span>
+
+                  ${isVideo ? `
+                    <span>
+                      <i class="fa-solid fa-eye mr-1"></i>
+                      ${Number(item.viewsCount || 0)}
+                    </span>
+                  ` : ""}
+                </div>
+              </div>
+            `;
+
+            socialFeed.appendChild(card);
+          });
+
+          if (socialFeedEmpty) {
+            socialFeedEmpty.style.display = allContent.length ? "none" : "";
+          }
+        }
+
+        const postsCount = document.getElementById("postsCount");
+        const followersCount = document.getElementById("followersCount");
+        const followingCount = document.getElementById("followingCount");
+        const likesCount = document.getElementById("likesCount");
+        const socialCommentsCount = document.getElementById("socialCommentsCount");
+        const savesCount = document.getElementById("savesCount");
+
+        if (postsCount) postsCount.textContent = String(allContent.length);
+        if (followersCount) followersCount.textContent = "0";
+        if (followingCount) followingCount.textContent = "0";
+        if (likesCount) {
+          likesCount.textContent = String(
+            allContent.reduce((sum, item) => sum + Number(item.likesCount || 0), 0)
+          );
+        }
+        if (socialCommentsCount) {
+          socialCommentsCount.textContent = String(
+            allContent.reduce((sum, item) => sum + Number(item.commentsCount || 0), 0)
+          );
+        }
+        if (savesCount) {
+          const profileStats = await getDoc(doc(db, "users", targetUid));
+          const profileData = profileStats.exists() ? profileStats.data() : {};
+          savesCount.textContent = String(profileData.favoritesCount || 0);
+        }
+
+        console.log("Social profile content loaded:", {
+          videos: videos.length,
+          news: news.length
+        });
+      } catch (error) {
+        console.error("Social profile content loading error:", error);
+      }
+    }
     // AUTH
+    const profileUid = new URLSearchParams(window.location.search).get("uid");
     watchAuth(async (user) => {
-
       if (!user) {
-
         window.location.replace("login.html");
-
         return;
       }
 
+      const targetUid = profileUid || user.uid;
+      const viewingOwnProfile = targetUid === user.uid;
+
+      currentProfileUid = targetUid;
+
+      if (!viewingOwnProfile) {
+        await loadFollowState(user.uid, targetUid);
+      }
+
+      const followBtn = document.getElementById("followBtn");
+      const editBtn = document.getElementById("editBtn");
+
+      if (followBtn) {
+        followBtn.classList.toggle("hidden", viewingOwnProfile);
+      }
+
+      if (editBtn) {
+        editBtn.classList.toggle("hidden", !viewingOwnProfile);
+      }
 
       userName.textContent =
         user.displayName || "FOOTBALLXTRA User";
@@ -795,13 +1252,13 @@
         user.email || "";
 
       await loadUserCommentsCount(user);
+      await loadSocialProfileContent(targetUid);
 
 
       // FIRESTORE PROFILE
       try {
 
-        const userRef =
-          doc(db, "users", user.uid);
+        const userRef = doc(db, "users", targetUid);
 
         const snapshot =
           await getDoc(userRef);
@@ -811,6 +1268,22 @@
 
           const data =
             snapshot.data();
+
+          const followersCount =
+            document.getElementById("followersCount");
+
+          const followingCount =
+            document.getElementById("followingCount");
+
+          if (followersCount) {
+            followersCount.textContent =
+              String(data.followersCount || 0);
+          }
+
+          if (followingCount) {
+            followingCount.textContent =
+              String(data.followingCount || 0);
+          }
 
           if (data.name) {
 
@@ -909,6 +1382,143 @@
 
 
 
+    // FOLLOW SYSTEM
+    const followBtn = document.getElementById("followBtn");
+    const followersCountEl = document.getElementById("followersCount");
+    const followingCountEl = document.getElementById("followingCount");
+
+    let currentProfileUid = null;
+    let isFollowingProfile = false;
+
+    async function loadFollowState(currentUid, targetUid) {
+      if (!followBtn || !currentUid || !targetUid || currentUid === targetUid) return;
+
+      try {
+        const followingRef = doc(
+          db,
+          "users",
+          currentUid,
+          "following",
+          targetUid
+        );
+
+        const followingSnap = await getDoc(followingRef);
+
+        isFollowingProfile = followingSnap.exists();
+
+        followBtn.innerHTML = isFollowingProfile
+          ? '<i class="fa-solid fa-user-check text-xs mr-1"></i> Following'
+          : '<i class="fa-solid fa-user-plus text-xs mr-1"></i> Follow';
+      } catch (error) {
+        console.error("Follow state loading error:", error);
+      }
+    }
+
+    async function toggleFollow() {
+      const user = auth.currentUser;
+
+      if (!user || !currentProfileUid || user.uid === currentProfileUid) {
+        return;
+      }
+
+      followBtn.disabled = true;
+
+      try {
+        const currentUid = user.uid;
+        const targetUid = currentProfileUid;
+
+        const currentUserRef = doc(db, "users", currentUid);
+        const targetUserRef = doc(db, "users", targetUid);
+
+        const currentFollowingRef = doc(
+          db,
+          "users",
+          currentUid,
+          "following",
+          targetUid
+        );
+
+        const targetFollowersRef = doc(
+          db,
+          "users",
+          targetUid,
+          "followers",
+          currentUid
+        );
+
+        const batch = writeBatch(db);
+
+        if (isFollowingProfile) {
+          batch.delete(currentFollowingRef);
+          batch.delete(targetFollowersRef);
+
+          batch.set(
+            currentUserRef,
+            { followingCount: increment(-1) },
+            { merge: true }
+          );
+
+          batch.set(
+            targetUserRef,
+            { followersCount: increment(-1) },
+            { merge: true }
+          );
+        } else {
+          batch.set(currentFollowingRef, {
+            uid: targetUid,
+            createdAt: new Date()
+          });
+
+          batch.set(targetFollowersRef, {
+            uid: currentUid,
+            createdAt: new Date()
+          });
+
+          batch.set(
+            currentUserRef,
+            { followingCount: increment(1) },
+            { merge: true }
+          );
+
+          batch.set(
+            targetUserRef,
+            { followersCount: increment(1) },
+            { merge: true }
+          );
+        }
+
+        await batch.commit();
+
+        isFollowingProfile = !isFollowingProfile;
+
+        followBtn.innerHTML = isFollowingProfile
+          ? '<i class="fa-solid fa-user-check text-xs mr-1"></i> Following'
+          : '<i class="fa-solid fa-user-plus text-xs mr-1"></i> Follow';
+
+        const currentFollowers =
+          Number(followersCountEl?.textContent || 0);
+
+        if (followersCountEl) {
+          followersCountEl.textContent = String(
+            Math.max(0, currentFollowers + (isFollowingProfile ? 1 : -1))
+          );
+        }
+
+        console.log(
+          isFollowingProfile
+            ? "Profile followed successfully"
+            : "Profile unfollowed successfully"
+        );
+      } catch (error) {
+        console.error("Follow action error:", error);
+        alert("Follow action failed. Please try again.");
+      } finally {
+        followBtn.disabled = false;
+      }
+    }
+
+    followBtn?.addEventListener("click", toggleFollow);
+
     // EDIT PROFILE
     const editBtn =
       document.getElementById("editBtn");
@@ -998,7 +1608,7 @@
         });
 
         await setDoc(
-          doc(db, "users", user.uid),
+          doc(db, "users", targetUid),
           {
             name: name
           },
@@ -1087,7 +1697,7 @@
       try {
 
         await setDoc(
-          doc(db, "users", user.uid),
+          doc(db, "users", targetUid),
           {
             favoriteTeam:
               favoriteTeam.value
@@ -1133,6 +1743,52 @@
     });
 
   </script>
+
+
+<script>
+/* SOCIAL PROFILE TABS */
+document.querySelectorAll(".profile-tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".profile-tab").forEach((item) => {
+      item.classList.remove("active", "text-white", "border-b-2", "border-green-400");
+      item.classList.add("text-gray-500");
+    });
+
+    tab.classList.add("active", "text-white", "border-b-2", "border-green-400");
+    tab.classList.remove("text-gray-500");
+
+    const selectedTab = tab.dataset.tab;
+
+    document.querySelectorAll(".social-content-card").forEach((card) => {
+      const type = card.dataset.contentType || "";
+
+      if (selectedTab === "posts") {
+        card.style.display = "";
+      } else if (selectedTab === "videos") {
+        card.style.display = type === "video" ? "" : "none";
+      } else if (selectedTab === "news") {
+        card.style.display = type === "news" ? "" : "none";
+      }
+    });
+
+    const emptyTitle = document.querySelector("#socialFeedEmpty p.font-bold");
+    const emptyText = document.querySelector("#socialFeedEmpty p.text-xs");
+
+    if (emptyTitle && emptyText) {
+      if (selectedTab === "videos") {
+        emptyTitle.textContent = "No videos yet";
+        emptyText.textContent = "Your published videos will appear here.";
+      } else if (selectedTab === "news") {
+        emptyTitle.textContent = "No news yet";
+        emptyText.textContent = "Your published news will appear here.";
+      } else {
+        emptyTitle.textContent = "No posts yet";
+        emptyText.textContent = "Your published content will appear here.";
+      }
+    }
+  });
+});
+</script>
 
 <script type="module" src="./photo-upload.js"></script>
 
