@@ -495,7 +495,48 @@ userSearchInput?.addEventListener("input", () => {
 
     </section>
 
-    <!-- EDIT PROFILE MODAL -->
+    
+<!-- FOLLOWERS / FOLLOWING MODAL -->
+<div id="followListModal"
+     class="fixed inset-0 z-[100] hidden bg-black/80 backdrop-blur-sm">
+
+  <div class="min-h-full flex items-end sm:items-center justify-center p-0 sm:p-4">
+
+    <div class="w-full sm:max-w-md max-h-[80vh]
+                bg-[#111] border border-white/10
+                rounded-t-3xl sm:rounded-3xl overflow-hidden">
+
+      <div class="flex items-center justify-between
+                  px-5 py-4 border-b border-white/10">
+
+        <h3 id="followListTitle"
+            class="font-black text-white">
+          Followers
+        </h3>
+
+        <button id="closeFollowList"
+                type="button"
+                class="w-9 h-9 rounded-full bg-white/5
+                       text-gray-400 hover:text-white">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+      </div>
+
+      <div id="followList"
+           class="p-3 space-y-2 overflow-y-auto max-h-[65vh]">
+
+        <div class="text-center py-10 text-gray-500 text-sm">
+          Loading...
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
     <div id="editProfileModal"
          class="hidden fixed inset-0 z-[9999]
                 bg-black/70 backdrop-blur-md
@@ -1231,7 +1272,173 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
         await loadFollowState(user.uid, targetUid);
       }
 
-      const followBtn = document.getElementById("followBtn");
+      
+    /* FOLLOWERS / FOLLOWING LIST */
+    const followListModal = document.getElementById("followListModal");
+    const followListTitle = document.getElementById("followListTitle");
+    const followList = document.getElementById("followList");
+    const closeFollowList = document.getElementById("closeFollowList");
+
+    async function openFollowList(type) {
+      const targetUid =
+        new URLSearchParams(window.location.search).get("uid") ||
+        auth.currentUser?.uid;
+
+      if (!targetUid || !followListModal || !followList) return;
+
+      followListModal.classList.remove("hidden");
+
+      if (followListTitle) {
+        followListTitle.textContent =
+          type === "following" ? "Following" : "Followers";
+      }
+
+      followList.innerHTML = `
+        <div class="text-center py-10 text-gray-500 text-sm">
+          <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+          Loading...
+        </div>
+      `;
+
+      try {
+        const listQuery = query(
+          collection(db, "users", targetUid, type),
+          limit(50)
+        );
+
+        const snapshot = await getDocs(listQuery);
+
+        if (snapshot.empty) {
+          followList.innerHTML = `
+            <div class="text-center py-10 text-gray-500 text-sm">
+              <i class="fa-solid fa-user-group text-xl mb-2"></i>
+              <p class="font-bold text-gray-300">
+                No ${type === "following" ? "following" : "followers"} yet
+              </p>
+            </div>
+          `;
+          return;
+        }
+
+        followList.innerHTML = "";
+
+        for (const item of snapshot.docs) {
+          const uid = item.id;
+
+          const userSnap = await getDoc(
+            doc(db, "users", uid)
+          );
+
+          if (!userSnap.exists()) continue;
+
+          const data = userSnap.data();
+
+          const name =
+            data.name ||
+            data.displayName ||
+            "FootballXtra User";
+
+          const photo =
+            data.photoURL || "";
+
+          const verified =
+            data.role &&
+            data.role !== "user";
+
+          const row = document.createElement("a");
+
+          row.href =
+            `profile.html?uid=${encodeURIComponent(uid)}`;
+
+          row.className =
+            "flex items-center gap-3 p-3 rounded-xl " +
+            "bg-white/5 hover:bg-white/10 transition";
+
+          row.innerHTML = `
+            <div class="w-11 h-11 rounded-full overflow-hidden
+                        bg-white/10 shrink-0 flex items-center justify-center">
+              ${
+                photo
+                  ? `<img src="${String(photo).replace(/"/g, "&quot;")}"
+                           class="w-full h-full object-cover"
+                           alt="">`
+                  : `<i class="fa-solid fa-user text-gray-500"></i>`
+              }
+            </div>
+
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1">
+                <p class="font-bold text-white truncate">
+                  ${String(name)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")}
+                </p>
+
+                ${
+                  verified
+                    ? `<i class="fa-solid fa-circle-check
+                                text-blue-400 text-xs"></i>`
+                    : ""
+                }
+              </div>
+
+              <p class="text-xs text-gray-500">
+                ${Number(data.followersCount || 0).toLocaleString()}
+                followers
+              </p>
+            </div>
+
+            <i class="fa-solid fa-chevron-right
+                      text-gray-600 text-xs"></i>
+          `;
+
+          followList.appendChild(row);
+        }
+
+      } catch (error) {
+        console.error("Follow list loading error:", error);
+
+        followList.innerHTML = `
+          <div class="text-center py-10 text-red-300 text-sm">
+            <i class="fa-solid fa-triangle-exclamation mb-2"></i>
+            <p>Could not load the list.</p>
+          </div>
+        `;
+      }
+    }
+
+    closeFollowList?.addEventListener("click", () => {
+      followListModal?.classList.add("hidden");
+    });
+
+    followListModal?.addEventListener("click", (event) => {
+      if (event.target === followListModal) {
+        followListModal.classList.add("hidden");
+      }
+    });
+
+    document.getElementById("followersCount")?.parentElement?.addEventListener(
+      "click",
+      () => openFollowList("followers")
+    );
+
+    document.getElementById("followingCount")?.parentElement?.addEventListener(
+      "click",
+      () => openFollowList("following")
+    );
+
+    document.getElementById("followersCount")?.parentElement?.classList.add(
+      "cursor-pointer"
+    );
+
+    document.getElementById("followingCount")?.parentElement?.classList.add(
+      "cursor-pointer"
+    );
+
+
+    const followBtn = document.getElementById("followBtn");
       const editBtn = document.getElementById("editBtn");
 
       if (followBtn) {
