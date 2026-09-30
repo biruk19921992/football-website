@@ -27,6 +27,49 @@
       backdrop-filter: blur(18px);
     }
   </style>
+
+<style>
+  .create-post-tool {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #d1d5db;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+  }
+
+  .create-post-tool:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(74,222,128,0.35);
+    transform: translateY(-1px);
+  }
+
+  .create-post-tool:active {
+    transform: scale(0.96);
+  }
+
+  #createPostForm {
+    animation: createPostExpand 0.22s ease-out;
+  }
+
+  @keyframes createPostExpand {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+</style>
+
 </head>
 
 <body class="min-h-screen text-white">
@@ -240,52 +283,253 @@
 
       <!-- CREATE POST -->
 <div id="createPostBox" class="mb-4 hidden">
-  <div class="glass rounded-2xl border border-white/10 p-4">
 
-    <div class="flex items-center gap-3 mb-3">
-      <div class="w-10 h-10 rounded-full bg-white/10 overflow-hidden flex items-center justify-center">
-        <img id="createPostAvatar" class="w-full h-full object-cover hidden" alt="">
-        <i id="createPostAvatarIcon" class="fa-solid fa-user text-gray-500"></i>
-      </div>
+  <!-- CREATE POST TRIGGER -->
+  <button
+    id="createPostTrigger"
+    type="button"
+    class="w-full glass rounded-2xl border border-white/10 p-3 flex items-center gap-3 text-left transition-all duration-300 hover:border-green-400/40"
+  >
 
-      <div>
-        <p id="createPostName" class="font-bold text-white">Create Post</p>
-        <p class="text-xs text-gray-500">Share something with Football Xtra</p>
-      </div>
+    <div class="w-11 h-11 rounded-full bg-white/10 overflow-hidden flex items-center justify-center flex-shrink-0">
+      <img
+        id="createPostAvatar"
+        class="w-full h-full object-cover hidden"
+        alt=""
+      >
+      <i
+        id="createPostAvatarIcon"
+        class="fa-solid fa-user text-gray-500"
+      ></i>
     </div>
 
-    <textarea
-      id="createPostText"
-      rows="4"
-      maxlength="1000"
-      placeholder="What's on your mind?"
-      class="w-full bg-white/5 border border-white/10 rounded-xl
-             p-3 text-sm text-white placeholder-gray-500
-             outline-none resize-none focus:border-green-400/50"></textarea>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2">
+        <p
+          id="createPostName"
+          class="font-bold text-white text-sm truncate"
+        >
+          Create Post
+        </p>
 
-    <div class="flex items-center justify-between mt-3">
+        <span class="text-green-400 text-xs">
+          <i class="fa-solid fa-pen"></i>
+        </span>
+      </div>
 
-      <span id="createPostCounter"
-            class="text-[11px] text-gray-500">
-        0/1000
+      <p class="text-xs text-gray-500 truncate mt-0.5">
+        Share something with Football Xtra
+      </p>
+    </div>
+
+    <div
+      class="w-10 h-10 rounded-full bg-green-500 text-black flex items-center justify-center flex-shrink-0 shadow-lg shadow-green-500/20"
+    >
+      <i
+        id="createPostPlusIcon"
+        class="fa-solid fa-plus"
+      ></i>
+    </div>
+
+  </button>
+
+
+  <!-- EXPANDED COMPOSER -->
+  <div
+    id="createPostForm"
+    class="hidden mt-2 glass rounded-2xl border border-green-400/20 overflow-hidden"
+  >
+
+    <!-- COMPOSER HEADER -->
+    <div class="flex items-center justify-between p-4 border-b border-white/10">
+
+      <div class="flex items-center gap-3">
+
+        <div class="w-9 h-9 rounded-full bg-white/10 overflow-hidden flex items-center justify-center">
+          <img
+            id="createPostAvatarExpanded"
+            class="w-full h-full object-cover hidden"
+            alt=""
+          >
+          <i
+            id="createPostAvatarExpandedIcon"
+            class="fa-solid fa-user text-gray-500 text-sm"
+          ></i>
+        </div>
+
+        <div>
+          <p
+            id="createPostNameExpanded"
+            class="text-sm font-bold text-white"
+          >
+            Create Post
+          </p>
+
+          <span class="text-[10px] text-gray-500">
+            Public
+          </span>
+        </div>
+
+      </div>
+
+      <span class="text-green-400 text-xs font-bold">
+        <i class="fa-solid fa-pen-to-square mr-1"></i>
+        POST
       </span>
+
+    </div>
+
+
+    <!-- TEXT -->
+    <div class="p-4">
+
+      <input id="createPostImageInput" type="file" accept="image/*" class="hidden">
+      <input id="createPostVideoInput" type="file" accept="video/*" class="hidden">
+
+    <div
+      id="createPostImagePreview"
+      class="hidden mb-3 relative rounded-xl overflow-hidden border border-white/10"
+    >
+      <img
+        id="createPostImagePreviewImg"
+        class="w-full max-h-72 object-cover"
+        alt="Selected image"
+      >
+
+      <button
+        id="removeCreatePostImageBtn"
+        type="button"
+        class="absolute top-2 right-2 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+        <div
+      id="createPostVideoPreview"
+      class="hidden mb-3 relative rounded-xl overflow-hidden border border-white/10 bg-black"
+    >
+      <video
+        id="createPostVideoPreviewVideo"
+        class="w-full max-h-72 object-contain"
+        controls
+        playsinline
+      ></video>
+
+      <button
+        id="removeCreatePostVideoBtn"
+        type="button"
+        class="absolute top-2 right-2 w-9 h-9 rounded-full bg-black/70 text-white flex items-center justify-center"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+<textarea
+        id="createPostText"
+        rows="5"
+        maxlength="1000"
+        placeholder="What's on your mind?"
+        autocomplete="off"
+        class="w-full bg-transparent text-white placeholder-gray-600
+               text-base leading-relaxed outline-none resize-none"
+      ></textarea>
+
+      <div class="flex justify-between items-center mt-2">
+
+        <span
+          id="createPostCounter"
+          class="text-[11px] text-gray-500"
+        >
+          0/1000
+        </span>
+
+        <span class="text-[11px] text-gray-600">
+          <i class="fa-solid fa-globe mr-1"></i>
+          Everyone
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- POST TOOLS -->
+    <div class="px-4 pb-3">
+
+      <div class="flex items-center gap-2 overflow-x-auto pb-1">
+
+        <button
+          type="button"
+          class="create-post-tool"
+        >
+          <i class="fa-regular fa-image text-green-400"></i>
+          <span>Photo</span>
+        </button>
+
+        <button
+          type="button"
+          id="createPostVideoBtn" class="create-post-tool"
+        >
+          <i id="createPostVideoToolIcon" class="fa-solid fa-video text-red-400"></i>
+          <span>Video</span>
+        </button>
+
+        <button
+          type="button"
+          class="create-post-tool"
+        >
+          <i class="fa-regular fa-face-smile text-yellow-400"></i>
+          <span>Feeling</span>
+        </button>
+
+        <button
+          type="button"
+          class="create-post-tool"
+        >
+          <i class="fa-solid fa-location-dot text-blue-400"></i>
+          <span>Location</span>
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- ACTIONS -->
+    <div class="flex items-center justify-between gap-3 p-4 border-t border-white/10">
+
+      <button
+        id="cancelCreatePostBtn"
+        type="button"
+        class="px-4 py-2.5 rounded-xl bg-white/5
+               border border-white/10 text-gray-300
+               font-bold text-sm transition hover:bg-white/10"
+      >
+        Cancel
+      </button>
 
       <button
         id="publishUserPostBtn"
         type="button"
-        class="px-5 py-2.5 rounded-xl bg-green-500
-               hover:bg-green-400 text-black font-bold
-               text-sm transition disabled:opacity-50">
+        class="flex-1 max-w-[180px] px-5 py-2.5 rounded-xl
+               bg-green-500 hover:bg-green-400
+               text-black font-bold text-sm
+               transition disabled:opacity-50"
+      >
         <i class="fa-solid fa-paper-plane mr-1"></i>
         Post
       </button>
 
     </div>
 
-    <p id="createPostMessage"
-       class="text-xs mt-3 hidden"></p>
+    <p
+      id="createPostMessage"
+      class="text-xs px-4 pb-4 hidden"
+    ></p>
 
   </div>
+
 </div>
 
 <!-- SOCIAL STATS -->
@@ -909,6 +1153,7 @@
       endAt,
   setDoc,
   increment,
+  serverTimestamp,
   deleteDoc,
   writeBatch,
     } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
@@ -993,9 +1238,30 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
           limit(20)
         );
 
-        const [videosSnap, newsSnap] = await Promise.all([
+        const repostsQuery = query(
+          collection(db, "posts"),
+          where("authorId", "==", targetUid),
+          where("type", "==", "repost"),
+          limit(20)
+        );
+
+        const telegramRepostsQuery = query(
+          collection(telegramNewsDb, "posts"),
+          where("authorId", "==", targetUid),
+          where("type", "==", "repost"),
+          limit(20)
+        );
+
+        const [
+          videosSnap,
+          newsSnap,
+          repostsSnap,
+          telegramRepostsSnap
+        ] = await Promise.all([
           getDocs(videosQuery),
-          getDocs(newsQuery)
+          getDocs(newsQuery),
+          getDocs(repostsQuery),
+          getDocs(telegramRepostsQuery)
         ]);
 
         const videos = videosSnap.docs.map((item) => ({
@@ -1012,12 +1278,21 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
             ...data,
             contentType:
               data.source === "FootballXtra User"
-                ? "post"
+                ? (data.videoUrl ? "video" : "post")
                 : "news"
           };
         });
 
-        const allContent = [...videos, ...news].sort((a, b) => {
+        const reposts = [
+          ...repostsSnap.docs,
+          ...telegramRepostsSnap.docs
+        ].map((item) => ({
+          id: item.id,
+          ...item.data(),
+          contentType: "post"
+        }));
+
+        const allContent = [...videos, ...news, ...reposts].sort((a, b) => {
           const getTime = (value) => {
             if (!value) return 0;
             if (typeof value.toMillis === "function") return value.toMillis();
@@ -1075,28 +1350,586 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
                   </p>
                 ` : ""}
 
-                <div class="flex items-center gap-4 mt-4 text-xs text-gray-500">
-                  <span>
-                    <i class="fa-solid fa-heart mr-1"></i>
-                    ${Number(item.likesCount || 0)}
-                  </span>
-
-                  <span>
-                    <i class="fa-solid fa-comment mr-1"></i>
-                    ${Number(item.commentsCount || 0)}
-                  </span>
-
-                  ${isVideo ? `
+                <div class="flex items-center justify-between mt-4 pt-3 border-t border-white/10">
+                  <div class="flex items-center gap-5 text-xs text-gray-500">
                     <span>
-                      <i class="fa-solid fa-eye mr-1"></i>
-                      ${Number(item.viewsCount || 0)}
+                      <i class="fa-solid fa-heart mr-1"></i>
+                      ${Number(item.likesCount || 0)}
                     </span>
-                  ` : ""}
+
+                    <span>
+                      <i class="fa-solid fa-comment mr-1"></i>
+                      ${Number(item.commentsCount || 0)}
+                    </span>
+
+                    <span class="social-reposts-count">
+                      <i class="fa-solid fa-retweet mr-1"></i>
+                      ${Number(item.repostsCount || 0)}
+                    </span>
+
+                    ${isVideo ? `
+                      <span>
+                        <i class="fa-solid fa-eye mr-1"></i>
+                        ${Number(item.viewsCount || 0)}
+                      </span>
+                    ` : ""}
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <button type="button"
+                            class="social-like-btn w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-400"
+                            data-post-id="${item.id}">
+                      <i class="fa-regular fa-heart"></i>
+                    </button>
+
+                    <button type="button"
+                            class="social-comment-btn w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-400"
+                            data-post-id="${item.id}">
+                      <i class="fa-regular fa-comment"></i>
+                    </button>
+
+                    <button type="button"
+                            class="social-save-btn w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-400"
+                            data-post-id="${item.id}">
+                      <i class="fa-regular fa-bookmark"></i>
+                    </button>
+
+                    <button type="button"
+                            class="social-repost-btn w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-400"
+                            data-post-id="${item.id}">
+                      <i class="fa-solid fa-retweet"></i>
+                    </button>
+
+                    <button type="button"
+                            class="social-share-btn w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-gray-400"
+                            data-post-id="${item.id}">
+                      <i class="fa-solid fa-share-nodes"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
             `;
 
             socialFeed.appendChild(card);
+
+            if (isVideo && item.videoUrl) {
+              card.style.cursor = "pointer";
+
+              card.addEventListener("click", (event) => {
+                if (event.target.closest("button")) return;
+
+                window.FootballXtraMiniPlayer?.playUrl(
+                  item.videoUrl,
+                  title
+                );
+              });
+            }
+
+            const likeBtn = card.querySelector(".social-like-btn");
+            const commentBtn = card.querySelector(".social-comment-btn");
+            const saveBtn = card.querySelector(".social-save-btn");
+            const repostBtn = card.querySelector(".social-repost-btn");
+            const shareBtn = card.querySelector(".social-share-btn");
+
+            repostBtn?.addEventListener("click", async () => {
+              const user = auth.currentUser;
+
+              if (!user) {
+                alert("Please login first.");
+                return;
+              }
+
+              const postId = item.id;
+
+              const postDb =
+                item.contentType === "video"
+                  ? db
+                  : telegramNewsDb;
+
+              const repostRef = doc(
+                postDb,
+                "posts",
+                postId,
+                "reposts",
+                user.uid
+              );
+
+              try {
+                repostBtn.disabled = true;
+
+                const existing =
+                  await getDoc(repostRef);
+
+                if (existing.exists()) {
+                  alert("You already reposted this.");
+                  return;
+                }
+
+                await setDoc(repostRef, {
+                  uid: user.uid,
+                  createdAt: serverTimestamp()
+                });
+
+                const currentReposts =
+                  Number(item.repostsCount || 0);
+
+                await setDoc(
+                  doc(postDb, "posts", postId),
+                  {
+                    repostsCount: currentReposts + 1
+                  },
+                  { merge: true }
+                );
+
+                item.repostsCount =
+                  currentReposts + 1;
+
+                const repostDocumentId =
+                  "REPOST-" +
+                  user.uid +
+                  "-" +
+                  postId;
+
+                await setDoc(
+                  doc(postDb, "posts", repostDocumentId),
+                  {
+                    type: "repost",
+                    authorId: user.uid,
+                    authorName:
+                      user.displayName ||
+                      user.email ||
+                      "FootballXtra User",
+                    repostOf: postId,
+                    originalContentType: item.contentType,
+                    title: item.title || "",
+                    content:
+                      item.content ||
+                      item.description ||
+                      "",
+                    image:
+                      item.image ||
+                      item.thumbnailUrl ||
+                      "",
+                    thumbnailUrl:
+                      item.thumbnailUrl || "",
+                    category:
+                      item.category || "",
+                    source:
+                      item.source ||
+                      "FootballXtra",
+                    likesCount: 0,
+                    commentsCount: 0,
+                    repostsCount: 0,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                  },
+                  { merge: true }
+                );
+
+                const repostCount =
+                  repostBtn
+                    .closest(".social-content-card")
+                    ?.querySelector(".social-reposts-count");
+
+                if (repostCount) {
+                  repostCount.innerHTML = `
+                    <i class="fa-solid fa-retweet mr-1"></i>
+                    ${item.repostsCount}
+                  `;
+                }
+
+                repostBtn.classList.add("text-green-400");
+
+                alert("Reposted successfully 🔁");
+
+              } catch (error) {
+                console.error(
+                  "Repost action error:",
+                  error
+                );
+
+                alert(
+                  "Repost failed: " + (error?.code || "unknown") + "\n" + (error?.message || error)
+                );
+              } finally {
+                repostBtn.disabled = false;
+              }
+            });
+
+            shareBtn?.addEventListener("click", async () => {
+              const shareTitle =
+                item.title ||
+                "FootballXtra";
+
+              const shareText =
+                item.content ||
+                item.description ||
+                shareTitle;
+
+              const shareUrl =
+                window.location.href;
+
+              try {
+                if (navigator.share) {
+                  await navigator.share({
+                    title: shareTitle,
+                    text: shareText,
+                    url: shareUrl
+                  });
+                } else if (navigator.clipboard) {
+                  await navigator.clipboard.writeText(shareUrl);
+                  alert("Link copied successfully.");
+                } else {
+                  window.prompt(
+                    "Copy this link:",
+                    shareUrl
+                  );
+                }
+              } catch (error) {
+                if (error?.name !== "AbortError") {
+                  console.error("Share action error:", error);
+                  alert("Share failed. Please try again.");
+                }
+              }
+            });
+
+            commentBtn?.addEventListener("click", async () => {
+              const user = auth.currentUser;
+
+              if (!user) {
+                alert("Please login first.");
+                return;
+              }
+
+              const postId = item.id;
+
+              const postDb =
+                item.contentType === "video"
+                  ? db
+                  : telegramNewsDb;
+
+              const comment = window.prompt("Write your comment:");
+
+              if (!comment || !comment.trim()) {
+                return;
+              }
+
+              try {
+                commentBtn.disabled = true;
+
+                const commentsRef = collection(
+                  postDb,
+                  "posts",
+                  postId,
+                  "comments"
+                );
+
+                const commentRef = doc(commentsRef);
+
+                await setDoc(commentRef, {
+                  uid: user.uid,
+                  authorId: user.uid,
+                  authorName:
+                    user.displayName ||
+                    user.email ||
+                    "FootballXtra User",
+                  text: comment.trim(),
+                  createdAt: serverTimestamp()
+                });
+
+                const currentComments =
+                  Number(item.commentsCount || 0);
+
+                await setDoc(
+                  doc(postDb, "posts", postId),
+                  {
+                    commentsCount: currentComments + 1
+                  },
+                  { merge: true }
+                );
+
+                item.commentsCount =
+                  currentComments + 1;
+
+                const commentNumber =
+                  commentBtn
+                    .closest(".social-content-card")
+                    ?.querySelector(".fa-comment")
+                    ?.parentElement;
+
+                if (commentNumber) {
+                  commentNumber.innerHTML = `
+                    <i class="fa-solid fa-comment mr-1"></i>
+                    ${item.commentsCount}
+                  `;
+                }
+
+                const socialCommentsCount =
+                  document.getElementById("socialCommentsCount");
+
+                if (socialCommentsCount) {
+                  socialCommentsCount.textContent = String(
+                    allContent.reduce(
+                      (sum, contentItem) =>
+                        sum +
+                        Number(contentItem.commentsCount || 0),
+                      0
+                    )
+                  );
+                }
+
+                alert("Comment added successfully.");
+
+              } catch (error) {
+                console.error("Comment action error:", error);
+                alert("Comment failed. Please try again.");
+              } finally {
+                commentBtn.disabled = false;
+              }
+            });
+
+            saveBtn?.addEventListener("click", async () => {
+              const user = auth.currentUser;
+
+              if (!user) {
+                alert("Please login first.");
+                return;
+              }
+
+              const postId = item.id;
+
+              const favoriteId =
+                "social_" +
+                item.contentType +
+                "_" +
+                encodeURIComponent(postId);
+
+              const favoriteRef = doc(
+                db,
+                "users",
+                user.uid,
+                "favorites",
+                favoriteId
+              );
+
+              try {
+                saveBtn.disabled = true;
+
+                const existing =
+                  await getDoc(favoriteRef);
+
+                if (existing.exists()) {
+
+                  await deleteDoc(favoriteRef);
+
+                  await setDoc(
+                    doc(db, "users", user.uid),
+                    {
+                      favoritesCount: increment(-1)
+                    },
+                    { merge: true }
+                  );
+
+                  saveBtn.classList.remove("text-yellow-400");
+
+                  const icon =
+                    saveBtn.querySelector("i");
+
+                  if (icon) {
+                    icon.classList.remove("fa-solid");
+                    icon.classList.add("fa-regular");
+                  }
+
+                } else {
+
+                  await setDoc(favoriteRef, {
+                    uid: user.uid,
+                    type: item.contentType,
+                    contentId: postId,
+                    title: item.title || "",
+                    image:
+                      item.image ||
+                      item.thumbnailUrl ||
+                      "",
+                    source:
+                      item.source ||
+                      "FootballXtra",
+                    createdAt: new Date()
+                  });
+
+                  await setDoc(
+                    doc(db, "users", user.uid),
+                    {
+                      favoritesCount: increment(1)
+                    },
+                    { merge: true }
+                  );
+
+                  saveBtn.classList.add("text-yellow-400");
+
+                  const icon =
+                    saveBtn.querySelector("i");
+
+                  if (icon) {
+                    icon.classList.remove("fa-regular");
+                    icon.classList.add("fa-solid");
+                  }
+                }
+
+                const currentUser =
+                  await getDoc(
+                    doc(db, "users", user.uid)
+                  );
+
+                const currentData =
+                  currentUser.exists()
+                    ? currentUser.data()
+                    : {};
+
+                const savesCount =
+                  document.getElementById("savesCount");
+
+                if (savesCount) {
+                  savesCount.textContent = String(
+                    currentData.favoritesCount || 0
+                  );
+                }
+
+              } catch (error) {
+                console.error(
+                  "Save action error:",
+                  error
+                );
+
+                alert(
+                  "Save failed. Please try again."
+                );
+              } finally {
+                saveBtn.disabled = false;
+              }
+            });
+
+
+            likeBtn?.addEventListener("click", async () => {
+              const user = auth.currentUser;
+
+              if (!user) {
+                alert("Please login first.");
+                return;
+              }
+
+              const postId = item.id;
+              const postDb =
+                item.contentType === "video"
+                  ? db
+                  : telegramNewsDb;
+
+              try {
+                likeBtn.disabled = true;
+
+                const likeRef = doc(
+                  postDb,
+                  "posts",
+                  postId,
+                  "likes",
+                  user.uid
+                );
+
+                const postRef = doc(
+                  postDb,
+                  "posts",
+                  postId
+                );
+
+                const existing = await getDoc(likeRef);
+
+                const currentLikes =
+                  Number(item.likesCount || 0);
+
+                if (existing.exists()) {
+                  await deleteDoc(likeRef);
+
+                  await setDoc(
+                    postRef,
+                    {
+                      likesCount: Math.max(0, currentLikes - 1)
+                    },
+                    { merge: true }
+                  );
+
+                  item.likesCount =
+                    Math.max(0, currentLikes - 1);
+
+                  likeBtn.classList.remove("text-red-400");
+
+                  const icon = likeBtn.querySelector("i");
+
+                  if (icon) {
+                    icon.classList.remove("fa-solid");
+                    icon.classList.add("fa-regular");
+                  }
+
+                } else {
+                  await setDoc(likeRef, {
+                    uid: user.uid,
+                    createdAt: serverTimestamp()
+                  });
+
+                  await setDoc(
+                    postRef,
+                    {
+                      likesCount: currentLikes + 1
+                    },
+                    { merge: true }
+                  );
+
+                  item.likesCount =
+                    currentLikes + 1;
+
+                  likeBtn.classList.add("text-red-400");
+
+                  const icon = likeBtn.querySelector("i");
+
+                  if (icon) {
+                    icon.classList.remove("fa-regular");
+                    icon.classList.add("fa-solid");
+                  }
+                }
+
+                const statsLikes =
+                  document.getElementById("likesCount");
+
+                if (statsLikes) {
+                  statsLikes.textContent = String(
+                    allContent.reduce(
+                      (sum, contentItem) =>
+                        sum +
+                        Number(contentItem.likesCount || 0),
+                      0
+                    )
+                  );
+                }
+
+                const likeNumber =
+                  likeBtn
+                    .closest(".social-content-card")
+                    ?.querySelector(".fa-heart")
+                    ?.parentElement;
+
+                if (likeNumber) {
+                  likeNumber.innerHTML = `
+                    <i class="fa-solid fa-heart mr-1"></i>
+                    ${item.likesCount || 0}
+                  `;
+                }
+
+              } catch (error) {
+                console.error("Like action error:", error);
+                alert("Like failed. Please try again.");
+              } finally {
+                likeBtn.disabled = false;
+              }
+            });
           });
 
           if (socialFeedEmpty) {
@@ -1496,7 +2329,81 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
         editBtn.classList.toggle("hidden", !viewingOwnProfile);
       }
 
-      const createPostBox = document.getElementById("createPostBox");
+      const CLOUDINARY_CLOUD_NAME = "dyfzl7jfg";
+const CLOUDINARY_UPLOAD_PRESET = "footballxtranews";
+const CLOUDINARY_UPLOAD_URL =
+  `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+window.uploadCreatePostVideo = async function(file) {
+  if (!file) {
+    throw new Error("Please select a video.");
+  }
+
+  if (!file.type.startsWith("video/")) {
+    throw new Error("Only video files are allowed.");
+  }
+
+  if (file.size > 50 * 1024 * 1024) {
+    throw new Error("Video must be smaller than 50MB.");
+  }
+
+  const videoUploadUrl =
+    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+  const response = await fetch(videoUploadUrl, {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.secure_url) {
+    throw new Error(
+      data.error?.message || "Cloudinary video upload failed."
+    );
+  }
+
+  return data.secure_url;
+};
+
+window.uploadCreatePostImage = async function(file) {
+  if (!file) {
+    throw new Error("Please select a photo.");
+  }
+
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Only image files are allowed.");
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error("Image must be smaller than 10MB.");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+  const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.secure_url) {
+    throw new Error(
+      data.error?.message || "Cloudinary upload failed."
+    );
+  }
+
+  return data.secure_url;
+}
+
+const createPostBox = document.getElementById("createPostBox");
 
       if (createPostBox) {
         createPostBox.classList.toggle("hidden", !viewingOwnProfile);
@@ -2010,6 +2917,174 @@ import { auth } from "./js/firebase.js";
 
 /* USER CREATE POST */
 const createPostBox = document.getElementById("createPostBox");
+
+const createPostImageInput =
+  document.getElementById("createPostImageInput");
+
+const createPostImagePreview =
+  document.getElementById("createPostImagePreview");
+
+const createPostImagePreviewImg =
+  document.getElementById("createPostImagePreviewImg");
+
+const removeCreatePostImageBtn =
+  document.getElementById("removeCreatePostImageBtn");
+
+const createPostVideoBtn = document.getElementById("createPostVideoBtn");
+const createPostVideoInput = document.getElementById("createPostVideoInput");
+
+createPostVideoBtn?.addEventListener("click", () => {
+  createPostVideoInput?.click();
+});
+
+createPostVideoInput?.addEventListener("change", () => {
+  const file = createPostVideoInput.files?.[0];
+
+  if (!file) return;
+
+  if (!file.type.startsWith("video/")) {
+    alert("Please select a video file.");
+    createPostVideoInput.value = "";
+    return;
+  }
+
+  if (file.size > 50 * 1024 * 1024) {
+    alert("Video must be smaller than 50MB.");
+    createPostVideoInput.value = "";
+    return;
+  }
+
+  const videoPreview =
+    document.getElementById("createPostVideoPreview");
+
+  const videoPreviewVideo =
+    document.getElementById("createPostVideoPreviewVideo");
+
+  if (videoPreviewVideo) {
+    videoPreviewVideo.src = URL.createObjectURL(file);
+    videoPreviewVideo.load();
+  }
+
+  videoPreview?.classList.remove("hidden");
+
+  showCreatePostMessage(
+    "Video selected: " + file.name,
+    true
+  );
+});
+
+const removeCreatePostVideoBtn =
+  document.getElementById("removeCreatePostVideoBtn");
+
+removeCreatePostVideoBtn?.addEventListener("click", () => {
+  const videoPreview =
+    document.getElementById("createPostVideoPreview");
+
+  const videoPreviewVideo =
+    document.getElementById("createPostVideoPreviewVideo");
+
+  if (createPostVideoInput) {
+    createPostVideoInput.value = "";
+  }
+
+  if (videoPreviewVideo) {
+    videoPreviewVideo.pause();
+    videoPreviewVideo.removeAttribute("src");
+    videoPreviewVideo.load();
+  }
+
+  videoPreview?.classList.add("hidden");
+  createPostMessage?.classList.add("hidden");
+});
+
+const photoTool =
+  document.querySelector(".create-post-tool");
+
+photoTool?.addEventListener("click", () => {
+  createPostImageInput?.click();
+});
+
+createPostImageInput?.addEventListener("change", () => {
+  const file = createPostImageInput.files?.[0];
+
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Please select an image.");
+    createPostImageInput.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = (event) => {
+    if (createPostImagePreviewImg) {
+      createPostImagePreviewImg.src = event.target.result;
+    }
+
+    createPostImagePreview?.classList.remove("hidden");
+  };
+
+  reader.readAsDataURL(file);
+});
+
+removeCreatePostImageBtn?.addEventListener("click", () => {
+  if (createPostImageInput) {
+    createPostImageInput.value = "";
+  }
+
+  if (createPostImagePreviewImg) {
+    createPostImagePreviewImg.src = "";
+  }
+
+  createPostImagePreview?.classList.add("hidden");
+});
+
+const createPostTrigger = document.getElementById("createPostTrigger");
+const createPostForm = document.getElementById("createPostForm");
+const cancelCreatePostBtn = document.getElementById("cancelCreatePostBtn");
+const createPostPlusIcon = document.getElementById("createPostPlusIcon");
+
+function toggleCreatePostForm(forceOpen = null) {
+  if (!createPostForm || !createPostTrigger) return;
+
+  const shouldOpen =
+    forceOpen === null
+      ? createPostForm.classList.contains("hidden")
+      : forceOpen;
+
+  createPostForm.classList.toggle("hidden", !shouldOpen);
+
+  if (createPostPlusIcon) {
+    createPostPlusIcon.classList.toggle("fa-plus", !shouldOpen);
+    createPostPlusIcon.classList.toggle("fa-xmark", shouldOpen);
+  }
+
+  if (shouldOpen) {
+    setTimeout(() => {
+      createPostText?.focus();
+    }, 100);
+  }
+}
+
+createPostTrigger?.addEventListener("click", () => {
+  toggleCreatePostForm();
+});
+
+cancelCreatePostBtn?.addEventListener("click", () => {
+  toggleCreatePostForm(false);
+
+  if (createPostText) {
+    createPostText.value = "";
+  }
+
+  if (createPostCounter) {
+    createPostCounter.textContent = "0/1000";
+  }
+
+  createPostMessage?.classList.add("hidden");
+});
+
 const createPostText = document.getElementById("createPostText");
 const publishUserPostBtn = document.getElementById("publishUserPostBtn");
 const createPostCounter = document.getElementById("createPostCounter");
@@ -2046,15 +3121,34 @@ publishUserPostBtn?.addEventListener("click", async () => {
   }
 
   const content = createPostText?.value.trim() || "";
+  const imageFile = createPostImageInput?.files?.[0] || null;
+  const videoFile = createPostVideoInput?.files?.[0] || null;
 
-  if (!content) {
-    showCreatePostMessage("Write something before posting.");
+  if (!content && !imageFile && !videoFile) {
+    showCreatePostMessage(
+      "Write something or select a photo/video before posting."
+    );
     return;
   }
 
   publishUserPostBtn.disabled = true;
 
   try {
+    let image = "";
+    let videoUrl = "";
+
+    if (imageFile) {
+      showCreatePostMessage("Uploading photo...");
+
+      image = await window.uploadCreatePostImage(imageFile);
+    }
+
+    if (videoFile) {
+      showCreatePostMessage("Uploading video...");
+
+      videoUrl = await window.uploadCreatePostVideo(videoFile);
+    }
+
     const idToken = await user.getIdToken();
 
     const response = await fetch(
@@ -2066,7 +3160,9 @@ publishUserPostBtn?.addEventListener("click", async () => {
           "Authorization": `Bearer ${idToken}`
         },
         body: JSON.stringify({
-          content
+          content,
+          image,
+          videoUrl
         })
       }
     );
@@ -2081,6 +3177,34 @@ publishUserPostBtn?.addEventListener("click", async () => {
 
     createPostText.value = "";
 
+    if (createPostImageInput) {
+      createPostImageInput.value = "";
+    }
+
+    if (createPostImagePreviewImg) {
+      createPostImagePreviewImg.src = "";
+    }
+
+    createPostImagePreview?.classList.add("hidden");
+
+    if (createPostVideoInput) {
+      createPostVideoInput.value = "";
+    }
+
+    const publishedVideoPreview =
+      document.getElementById("createPostVideoPreview");
+
+    const publishedVideoPreviewVideo =
+      document.getElementById("createPostVideoPreviewVideo");
+
+    if (publishedVideoPreviewVideo) {
+      publishedVideoPreviewVideo.pause();
+      publishedVideoPreviewVideo.removeAttribute("src");
+      publishedVideoPreviewVideo.load();
+    }
+
+    publishedVideoPreview?.classList.add("hidden");
+
     if (createPostCounter) {
       createPostCounter.textContent = "0/1000";
     }
@@ -2093,10 +3217,13 @@ publishUserPostBtn?.addEventListener("click", async () => {
     window.location.reload();
 
   } catch (error) {
-    console.error("User post publishing error:", error);
+    console.error(
+      "User post publishing error:",
+      error
+    );
 
     showCreatePostMessage(
-      "Post failed. Please try again."
+      error.message || "Post failed. Please try again."
     );
   } finally {
     publishUserPostBtn.disabled = false;
@@ -2114,7 +3241,7 @@ document.querySelectorAll(".profile-tab").forEach((tab) => {
     tab.classList.add("active", "text-white", "border-b-2", "border-green-400");
     tab.classList.remove("text-gray-500");
 
-    const selectedTab = tab.dataset.tab;
+    const selectedTab = tab.dataset.tab; alert("TAB: " + selectedTab);
 
     document.querySelectorAll(".social-content-card").forEach((card) => {
       const type = card.dataset.contentType || "";
