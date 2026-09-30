@@ -1666,6 +1666,44 @@ app.get("/api/news", async (req, res) => {
       console.error("❌ Telegram Firestore API error:", error.message || error);
     }
 
+    // Admin News + User Posts
+    try {
+      const postsSnap = await telegramNewsFirestore
+        .collection("posts")
+        .where("type", "==", "news")
+        .limit(50)
+        .get();
+
+      postsSnap.forEach((doc) => {
+        const item = doc.data() || {};
+
+        const published = item.createdAt?.toDate
+          ? item.createdAt.toDate().toISOString()
+          : (item.createdAt || item.updatedAt || null);
+
+        const headline =
+          item.title ||
+          item.content ||
+          "FootballXtra Post";
+
+        news.push({
+          id: "POST-" + doc.id,
+          headline,
+          description: item.content || "",
+          published,
+          image: item.image || "",
+          link: "",
+          source: item.source || "FootballXtra",
+          titleAm: item.titleAm || "",
+          descriptionAm: item.descriptionAm || ""
+        });
+      });
+
+      console.log(`📝 Telegram posts API: ${postsSnap.size} posts added`);
+    } catch (error) {
+      console.error("❌ Telegram posts API error:", error.message || error);
+    }
+
     const unique = Array.from(
       new Map(news.map((item) => [item.id, item])).values()
     );
@@ -1718,9 +1756,13 @@ app.get("/api/news", async (req, res) => {
       }
     }
 
-    if (latestNews.length > 0) {
+    const telegramNewsItem = latestNews.find(
+      (item) => item.source === "VibeSport Telegram"
+    );
+
+    if (telegramNewsItem) {
       try {
-        const telegramResult = await publishNewsToTelegram(latestNews[0]);
+        const telegramResult = await publishNewsToTelegram(telegramNewsItem);
         console.log("📲 Telegram auto-publish:", telegramResult);
       } catch (telegramError) {
         console.error("❌ Telegram auto-publish error:", telegramError.message);
