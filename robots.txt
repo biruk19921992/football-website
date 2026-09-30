@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vibesport.vercel.app/sitemap.xml
