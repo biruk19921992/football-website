@@ -233,188 +233,63 @@
 
 
 
-<script type="module">
-import {
-  collection,
-  query,
-  orderBy,
-  startAt,
-  endAt,
-  limit,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-import { db } from "./js/firebase.js";
-
-/* USER SEARCH */
-const userSearchInput = document.getElementById("userSearchInput");
-const userSearchResults = document.getElementById("userSearchResults");
-
-let userSearchTimer = null;
-
-function escapeSearchHTML(value) {
-  return String(value || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-async function searchUsers(text) {
-  if (!userSearchResults) return;
-
-  const searchText = text.trim();
-
-  if (!searchText) {
-    userSearchResults.innerHTML = "";
-    userSearchResults.classList.add("hidden");
-    return;
-  }
-
-  userSearchResults.classList.remove("hidden");
-  userSearchResults.innerHTML = `
-    <div class="text-center py-5 text-gray-500 text-sm">
-      <i class="fa-solid fa-spinner fa-spin mr-2"></i>
-      Searching users...
-    </div>
-  `;
-
-  try {
-    const usersQuery = query(
-      collection(db, "users"),
-      orderBy("name"),
-      startAt(searchText),
-      endAt(searchText + "\uf8ff"),
-      limit(15)
-    );
-
-    const snapshot = await getDocs(usersQuery);
-
-    if (snapshot.empty) {
-      userSearchResults.innerHTML = `
-        <div class="text-center py-6 text-gray-500 text-sm">
-          <i class="fa-solid fa-user-slash text-lg mb-2"></i>
-          <p class="font-bold text-gray-300">No users found</p>
-          <p class="text-xs mt-1">Try another name.</p>
-        </div>
-      `;
-      return;
-    }
-
-    userSearchResults.innerHTML = "";
-
-    snapshot.forEach((userDoc) => {
-      const data = userDoc.data();
-      const uid = userDoc.id;
-
-      const name =
-        data.name ||
-        data.displayName ||
-        "FootballXtra User";
-
-      const photo =
-        data.photoURL ||
-        "";
-
-      const followers =
-        Number(data.followersCount || 0);
-
-      const verified =
-        data.role &&
-        data.role !== "user";
-
-      const result = document.createElement("a");
-
-      result.href =
-        `profile.html?uid=${encodeURIComponent(uid)}`;
-
-      result.className =
-        "w-full flex items-center gap-3 p-3 rounded-xl " +
-        "bg-white/5 hover:bg-white/10 transition text-left";
-
-      result.innerHTML = `
-        <div class="w-11 h-11 rounded-full overflow-hidden
-                    bg-white/10 shrink-0 flex items-center justify-center">
-          ${
-            photo
-              ? `<img src="${escapeSearchHTML(photo)}"
-                       class="w-full h-full object-cover"
-                       alt="">`
-              : `<i class="fa-solid fa-user text-gray-500"></i>`
-          }
-        </div>
-
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1">
-            <p class="font-bold text-white truncate">
-              ${escapeSearchHTML(name)}
-            </p>
-
-            ${
-              verified
-                ? `<i class="fa-solid fa-circle-check
-                            text-blue-400 text-xs"></i>`
-                : ""
-            }
-          </div>
-
-          <p class="text-xs text-gray-500">
-            ${followers.toLocaleString()} followers
-          </p>
-        </div>
-
-        <i class="fa-solid fa-chevron-right
-                  text-gray-600 text-xs"></i>
-      `;
-
-      userSearchResults.appendChild(result);
-    });
-
-  } catch (error) {
-    console.error("User search error:", error);
-
-    userSearchResults.innerHTML = `
-      <div class="text-center py-6 text-red-300 text-sm">
-        <i class="fa-solid fa-triangle-exclamation mb-2"></i>
-        <p>Search failed.</p>
-      </div>
-    `;
-  }
-}
-
-userSearchInput?.addEventListener("input", () => {
-  clearTimeout(userSearchTimer);
-
-  userSearchTimer = setTimeout(() => {
-    searchUsers(userSearchInput.value);
-  }, 350);
-});
-</script>
 
 <!-- SOCIAL PROFILE -->
     <section id="socialProfile" class="mt-6">
 
-      <!-- SOCIAL STATS -->
-      <div class="glass rounded-2xl border border-white/10 p-4">
-        <!-- USER SEARCH -->
-        <div class="mb-4">
-          <div class="relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
-            <input
-              id="userSearchInput"
-              type="search"
-              placeholder="Search users..."
-              autocomplete="off"
-              class="w-full bg-white/5 border border-white/10 rounded-xl
-                     pl-11 pr-4 py-3 text-sm text-white
-                     placeholder-gray-500 outline-none
-                     focus:border-green-400/50"
-            >
-          </div>
+      <!-- CREATE POST -->
+<div id="createPostBox" class="mb-4 hidden">
+  <div class="glass rounded-2xl border border-white/10 p-4">
 
-          <div id="userSearchResults" class="mt-3 space-y-2 hidden"></div>
-        </div>
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-10 h-10 rounded-full bg-white/10 overflow-hidden flex items-center justify-center">
+        <img id="createPostAvatar" class="w-full h-full object-cover hidden" alt="">
+        <i id="createPostAvatarIcon" class="fa-solid fa-user text-gray-500"></i>
+      </div>
+
+      <div>
+        <p id="createPostName" class="font-bold text-white">Create Post</p>
+        <p class="text-xs text-gray-500">Share something with Football Xtra</p>
+      </div>
+    </div>
+
+    <textarea
+      id="createPostText"
+      rows="4"
+      maxlength="1000"
+      placeholder="What's on your mind?"
+      class="w-full bg-white/5 border border-white/10 rounded-xl
+             p-3 text-sm text-white placeholder-gray-500
+             outline-none resize-none focus:border-green-400/50"></textarea>
+
+    <div class="flex items-center justify-between mt-3">
+
+      <span id="createPostCounter"
+            class="text-[11px] text-gray-500">
+        0/1000
+      </span>
+
+      <button
+        id="publishUserPostBtn"
+        type="button"
+        class="px-5 py-2.5 rounded-xl bg-green-500
+               hover:bg-green-400 text-black font-bold
+               text-sm transition disabled:opacity-50">
+        <i class="fa-solid fa-paper-plane mr-1"></i>
+        Post
+      </button>
+
+    </div>
+
+    <p id="createPostMessage"
+       class="text-xs mt-3 hidden"></p>
+
+  </div>
+</div>
+
+<!-- SOCIAL STATS -->
+      <div class="glass rounded-2xl border border-white/10 p-4">
 
         <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
 
@@ -1129,11 +1004,18 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
           contentType: "video"
         }));
 
-        const news = newsSnap.docs.map((item) => ({
-          id: item.id,
-          ...item.data(),
-          contentType: "news"
-        }));
+        const news = newsSnap.docs.map((item) => {
+          const data = item.data();
+
+          return {
+            id: item.id,
+            ...data,
+            contentType:
+              data.source === "FootballXtra User"
+                ? "post"
+                : "news"
+          };
+        });
 
         const allContent = [...videos, ...news].sort((a, b) => {
           const getTime = (value) => {
@@ -1159,8 +1041,9 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
             card.dataset.contentType = item.contentType;
 
             const isVideo = item.contentType === "video";
+            const isNews = item.contentType === "news";
             const image = item.image || item.thumbnailUrl || "";
-            const title = item.title || (isVideo ? "Video" : "News");
+            const title = item.title || (isVideo ? "Video" : isNews ? "News" : "Post");
             const text = item.content || item.description || "";
 
             card.innerHTML = `
@@ -1179,7 +1062,7 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
 
               <div class="p-4">
                 <span class="inline-block text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-green-500/10 text-green-400">
-                  ${isVideo ? "VIDEO" : "NEWS"}
+                  ${isVideo ? "VIDEO" : isNews ? "NEWS" : "POST"}
                 </span>
 
                 <h3 class="font-black text-base sm:text-lg text-white mt-2">
@@ -1228,9 +1111,20 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
         const socialCommentsCount = document.getElementById("socialCommentsCount");
         const savesCount = document.getElementById("savesCount");
 
-        if (postsCount) postsCount.textContent = String(allContent.length);
-        if (followersCount) followersCount.textContent = "0";
-        if (followingCount) followingCount.textContent = "0";
+        const profileStats = await getDoc(doc(db, "users", targetUid));
+        const profileData = profileStats.exists() ? profileStats.data() : {};
+
+        const userPostsCount = allContent.filter(
+          (item) => item.contentType === "post"
+        ).length;
+
+        if (postsCount) postsCount.textContent = String(userPostsCount);
+        if (followersCount) {
+          followersCount.textContent = String(profileData.followersCount || 0);
+        }
+        if (followingCount) {
+          followingCount.textContent = String(profileData.followingCount || 0);
+        }
         if (likesCount) {
           likesCount.textContent = String(
             allContent.reduce((sum, item) => sum + Number(item.likesCount || 0), 0)
@@ -1242,8 +1136,6 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
           );
         }
         if (savesCount) {
-          const profileStats = await getDoc(doc(db, "users", targetUid));
-          const profileData = profileStats.exists() ? profileStats.data() : {};
           savesCount.textContent = String(profileData.favoritesCount || 0);
         }
 
@@ -1602,6 +1494,12 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
 
       if (editBtn) {
         editBtn.classList.toggle("hidden", !viewingOwnProfile);
+      }
+
+      const createPostBox = document.getElementById("createPostBox");
+
+      if (createPostBox) {
+        createPostBox.classList.toggle("hidden", !viewingOwnProfile);
       }
 
       userName.textContent =
@@ -2108,6 +2006,101 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
 
 
 <script>
+/* USER CREATE POST */
+const createPostBox = document.getElementById("createPostBox");
+const createPostText = document.getElementById("createPostText");
+const publishUserPostBtn = document.getElementById("publishUserPostBtn");
+const createPostCounter = document.getElementById("createPostCounter");
+const createPostMessage = document.getElementById("createPostMessage");
+
+function showCreatePostMessage(message, success = false) {
+  if (!createPostMessage) return;
+
+  createPostMessage.textContent = message;
+  createPostMessage.classList.remove(
+    "hidden",
+    "text-green-400",
+    "text-red-400"
+  );
+
+  createPostMessage.classList.add(
+    success ? "text-green-400" : "text-red-400"
+  );
+}
+
+createPostText?.addEventListener("input", () => {
+  if (createPostCounter) {
+    createPostCounter.textContent =
+      `${createPostText.value.length}/1000`;
+  }
+});
+
+publishUserPostBtn?.addEventListener("click", async () => {
+  const user = auth.currentUser;
+
+  if (!user) {
+    showCreatePostMessage("Please login first.");
+    return;
+  }
+
+  const content = createPostText?.value.trim() || "";
+
+  if (!content) {
+    showCreatePostMessage("Write something before posting.");
+    return;
+  }
+
+  publishUserPostBtn.disabled = true;
+
+  try {
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(
+      "https://footballxtra-website.onrender.com/api/user/posts",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          content
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message || "Failed to publish post"
+      );
+    }
+
+    createPostText.value = "";
+
+    if (createPostCounter) {
+      createPostCounter.textContent = "0/1000";
+    }
+
+    showCreatePostMessage(
+      "Post published successfully 🎉",
+      true
+    );
+
+    await loadSocialProfileContent(user.uid);
+
+  } catch (error) {
+    console.error("User post publishing error:", error);
+
+    showCreatePostMessage(
+      "Post failed. Please try again."
+    );
+  } finally {
+    publishUserPostBtn.disabled = false;
+  }
+});
+
 /* SOCIAL PROFILE TABS */
 document.querySelectorAll(".profile-tab").forEach((tab) => {
   tab.addEventListener("click", () => {
@@ -2125,7 +2118,7 @@ document.querySelectorAll(".profile-tab").forEach((tab) => {
       const type = card.dataset.contentType || "";
 
       if (selectedTab === "posts") {
-        card.style.display = "";
+        card.style.display = type === "post" ? "" : "none";
       } else if (selectedTab === "videos") {
         card.style.display = type === "video" ? "" : "none";
       } else if (selectedTab === "news") {

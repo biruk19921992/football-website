@@ -870,6 +870,70 @@ app.post(
 );
 
 
+/* CREATE USER POST */
+app.post(
+  "/api/user/posts",
+  verifyFirebaseUser,
+  async (req, res) => {
+    try {
+      const {
+        title,
+        content,
+        image,
+        category
+      } = req.body || {};
+
+      if (!content || !content.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Post content is required"
+        });
+      }
+
+      const user = req.user;
+
+      const postData = {
+        type: "news",
+        title: title ? title.trim() : "",
+        content: content.trim(),
+        image: image || "",
+        category: category || "",
+        authorId: user.uid,
+        authorName:
+          user.name ||
+          user.email ||
+          "FootballXtra User",
+        source: "FootballXtra User",
+        likesCount: 0,
+        commentsCount: 0,
+        repostsCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const ref = await telegramNewsFirestore
+        .collection("posts")
+        .add(postData);
+
+      return res.status(201).json({
+        success: true,
+        id: ref.id,
+        post: {
+          id: ref.id,
+          ...postData
+        }
+      });
+    } catch (error) {
+      console.error("❌ User post create error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to create post"
+      });
+    }
+  }
+);
+
 /* UPDATE ADMIN NEWS */
 app.put(
   "/api/admin/news/:id",
