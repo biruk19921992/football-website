@@ -2005,7 +2005,9 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
   </script>
 
 
-<script>
+<script type="module">
+import { auth } from "./js/firebase.js";
+
 /* USER CREATE POST */
 const createPostBox = document.getElementById("createPostBox");
 const createPostText = document.getElementById("createPostText");
@@ -2088,7 +2090,7 @@ publishUserPostBtn?.addEventListener("click", async () => {
       true
     );
 
-    await loadSocialProfileContent(user.uid);
+    window.location.reload();
 
   } catch (error) {
     console.error("User post publishing error:", error);
