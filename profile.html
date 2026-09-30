@@ -1324,7 +1324,9 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
             card.innerHTML = `
               ${image ? `
                 <div class="relative">
-                  <img src="${image}" alt="" class="w-full aspect-video object-cover">
+                  ${item.videoUrl ? `
+                  <video src="${item.videoUrl}" class="w-full aspect-video object-contain bg-black" controls playsinline preload="metadata"></video>
+                ` : `<img src="${image}" alt="" class="w-full aspect-video object-cover">`}
                   ${isVideo ? `
                     <div class="absolute inset-0 flex items-center justify-center">
                       <div class="w-14 h-14 rounded-full bg-black/60 flex items-center justify-center">
