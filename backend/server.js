@@ -818,6 +818,7 @@ app.post(
         title,
         content,
         image,
+        videoUrl,
         category
       } = req.body || {};
 
@@ -835,6 +836,7 @@ app.post(
         title: title.trim(),
         content: content || "",
         image: image || "",
+        videoUrl: videoUrl || "",
         category: category || "",
         authorId: user.uid,
         authorName: user.name || user.email || "FootballXtra",
@@ -880,13 +882,18 @@ app.post(
         title,
         content,
         image,
+        videoUrl,
         category
       } = req.body || {};
 
-      if (!content || !content.trim()) {
+      if (
+        !content?.trim() &&
+        !image &&
+        !videoUrl
+      ) {
         return res.status(400).json({
           success: false,
-          message: "Post content is required"
+          message: "Post content, image, or video is required"
         });
       }
 
@@ -895,8 +902,9 @@ app.post(
       const postData = {
         type: "news",
         title: title ? title.trim() : "",
-        content: content.trim(),
+        content: content ? content.trim() : "",
         image: image || "",
+        videoUrl: videoUrl || "",
         category: category || "",
         authorId: user.uid,
         authorName:
