@@ -1322,11 +1322,19 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
             const text = item.content || item.description || "";
 
             card.innerHTML = `
-              ${image ? `
+              ${item.videoUrl ? `
+                <div class="relative bg-black">
+                  <video
+                    src="${item.videoUrl}"
+                    class="w-full aspect-video object-contain bg-black"
+                    controls
+                    playsinline
+                    preload="metadata"
+                  ></video>
+                </div>
+              ` : image ? `
                 <div class="relative">
-                  ${item.videoUrl ? `
-                  <video src="${item.videoUrl}" class="w-full aspect-video object-contain bg-black" controls playsinline preload="metadata"></video>
-                ` : `<img src="${image}" alt="" class="w-full aspect-video object-cover">`}
+                  <img src="${image}" alt="" class="w-full aspect-video object-cover">
                   ${isVideo ? `
                     <div class="absolute inset-0 flex items-center justify-center">
                       <div class="w-14 h-14 rounded-full bg-black/60 flex items-center justify-center">
