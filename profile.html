@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>My Profile - FOOTBALLXTRA</title>
+  <title>My Profile - VibeSport</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -70,6 +70,297 @@
   }
 </style>
 
+
+<style>
+/* VIBESPORT PREMIUM PROFILE UI */
+#socialProfile {
+  position: relative;
+}
+
+main > section:first-of-type {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(34,197,94,.22), transparent 28%),
+    radial-gradient(circle at 15% 0%, rgba(59,130,246,.14), transparent 25%),
+    linear-gradient(145deg, rgba(20,27,38,.96), rgba(7,11,18,.96));
+  border-color: rgba(74,222,128,.18);
+  box-shadow:
+    0 20px 60px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  overflow: hidden;
+}
+
+main > section:first-of-type::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  height: 86px;
+  z-index: -1;
+  background:
+    linear-gradient(135deg, rgba(34,197,94,.28), transparent 55%),
+    linear-gradient(90deg, rgba(0,0,0,.15), rgba(34,197,94,.12), rgba(0,0,0,.25));
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+main > section:first-of-type::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -60px;
+  bottom: -80px;
+  background: rgba(34,197,94,.12);
+  filter: blur(55px);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+#avatar {
+  width: 112px !important;
+  height: 112px !important;
+  margin-top: 18px;
+  background:
+    linear-gradient(145deg, #17251e, #07100c);
+  border: 3px solid rgba(74,222,128,.65) !important;
+  box-shadow:
+    0 0 0 5px rgba(74,222,128,.08),
+    0 0 35px rgba(34,197,94,.22);
+}
+
+#avatar i {
+  font-size: 2.7rem !important;
+}
+
+#changePhotoBtn {
+  box-shadow: 0 8px 22px rgba(34,197,94,.25);
+}
+
+#userName {
+  text-shadow: 0 2px 20px rgba(0,0,0,.35);
+}
+
+#premiumBadge {
+  box-shadow: 0 0 20px rgba(250,204,21,.12);
+}
+
+#followBtn,
+#editBtn {
+  min-height: 42px;
+}
+
+#followBtn {
+  box-shadow: 0 8px 24px rgba(34,197,94,.18);
+}
+
+main > section:nth-of-type(2) {
+  background: rgba(10,15,23,.72);
+  backdrop-filter: blur(18px);
+}
+
+main > section:nth-of-type(2) > div {
+  transition: transform .2s ease, border-color .2s ease, background .2s ease;
+}
+
+main > section:nth-of-type(2) > div:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.055);
+}
+
+/* CREATE POST */
+#createPostBox > button {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.065), rgba(255,255,255,.025));
+  box-shadow: 0 12px 35px rgba(0,0,0,.22);
+}
+
+#createPostBox > button:hover {
+  box-shadow: 0 12px 35px rgba(34,197,94,.10);
+}
+
+/* SOCIAL TABS */
+.profile-tab {
+  position: relative;
+  transition: all .2s ease;
+  min-height: 48px;
+}
+
+.profile-tab:hover {
+  color: white !important;
+  background: rgba(255,255,255,.035);
+}
+
+.profile-tab.active {
+  background: rgba(34,197,94,.055);
+  text-shadow: 0 0 14px rgba(74,222,128,.2);
+}
+
+/* FEED */
+#socialFeed {
+  background: rgba(3,7,12,.18);
+}
+
+.social-content-card {
+  box-shadow:
+    0 12px 35px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.025);
+  transition: transform .2s ease, border-color .2s ease;
+}
+
+.social-content-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(74,222,128,.18) !important;
+}
+
+/* MOBILE */
+@media (max-width: 640px) {
+  main > section:first-of-type {
+    padding: 18px !important;
+  }
+
+  main > section:first-of-type::before {
+    height: 72px;
+  }
+
+  #avatar {
+    margin-top: 22px;
+  }
+
+  #followBtn,
+  #editBtn {
+    flex: 1;
+    min-width: 0;
+  }
+}
+</style>
+
+
+<style>
+/* VIBESPORT PROFILE POLISH */
+main > section:first-of-type {
+  background:
+    radial-gradient(circle at 85% 10%, rgba(34,197,94,.22), transparent 30%),
+    linear-gradient(145deg, rgba(18,25,36,.98), rgba(6,10,16,.98)) !important;
+  border-color: rgba(74,222,128,.20) !important;
+  box-shadow: 0 20px 55px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+main > section:nth-of-type(2) {
+  margin-top: 12px !important;
+}
+
+main > section:nth-of-type(2) > div {
+  background: rgba(8,13,21,.82) !important;
+  border-color: rgba(255,255,255,.07) !important;
+}
+
+#socialProfile {
+  margin-top: 14px !important;
+}
+
+#socialProfile > div {
+  border-color: rgba(255,255,255,.08);
+}
+
+.profile-tab {
+  min-height: 50px;
+  transition: all .2s ease;
+}
+
+.profile-tab.active {
+  color: #fff !important;
+  background: rgba(34,197,94,.07);
+  border-bottom-color: rgb(74,222,128) !important;
+}
+
+.social-content-card {
+  background: linear-gradient(145deg, rgba(18,25,36,.94), rgba(7,11,18,.96)) !important;
+  border-color: rgba(255,255,255,.08) !important;
+  box-shadow: 0 12px 35px rgba(0,0,0,.22);
+}
+
+#socialFeedEmpty {
+  background: rgba(255,255,255,.015);
+  border: 1px dashed rgba(255,255,255,.08);
+  border-radius: 18px;
+}
+
+@media (max-width:640px) {
+  main > section:first-of-type {
+    padding: 18px !important;
+  }
+
+  #userName {
+    font-size: 1.65rem !important;
+  }
+
+  main > section:nth-of-type(2) {
+    gap: 8px !important;
+  }
+}
+</style>
+
+
+<style>
+/* VIBESPORT HEADER GLOW */
+main > section:first-of-type::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 90px;
+  background:
+    linear-gradient(90deg,
+      rgba(34,197,94,.18),
+      rgba(16,185,129,.08),
+      transparent);
+  pointer-events: none;
+}
+
+main > section:first-of-type::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -60px;
+  top: -70px;
+  border-radius: 999px;
+  background: rgba(34,197,94,.12);
+  filter: blur(55px);
+  pointer-events: none;
+}
+
+#avatar {
+  box-shadow:
+    0 0 0 5px rgba(34,197,94,.08),
+    0 0 35px rgba(34,197,94,.22) !important;
+}
+
+#followBtn {
+  box-shadow:
+    0 8px 25px rgba(34,197,94,.20),
+    0 0 25px rgba(34,197,94,.08);
+}
+
+#premiumBadge {
+  animation: premiumGlow 2.8s ease-in-out infinite;
+}
+
+@keyframes premiumGlow {
+  0%,100% { box-shadow: 0 0 0 rgba(250,204,21,0); }
+  50% { box-shadow: 0 0 20px rgba(250,204,21,.16); }
+}
+
+@media (max-width:640px) {
+  main > section:first-of-type {
+    border-radius: 22px !important;
+  }
+
+  main > section:first-of-type .flex.flex-col.sm\\:flex-row {
+    gap: 14px !important;
+  }
+}
+</style>
+
 </head>
 
 <body class="min-h-screen text-white">
@@ -80,7 +371,7 @@
 
       <a href="index.html"
          class="text-2xl font-black">
-        FOOTBALL<span class="text-green-400">XTRA</span>
+        Vibe<span class="text-green-400">Sport</span>
       </a>
 
       <a href="index.html"
@@ -318,7 +609,7 @@
       </div>
 
       <p class="text-xs text-gray-500 truncate mt-0.5">
-        Share something with Football Xtra
+        Share something with VibeSport
       </p>
     </div>
 
@@ -461,6 +752,7 @@
 
         <button
           type="button"
+          id="createPostImageBtn"
           class="create-post-tool"
         >
           <i class="fa-regular fa-image text-green-400"></i>
@@ -469,7 +761,7 @@
 
         <button
           type="button"
-          id="createPostVideoBtn" class="create-post-tool"
+          id="createPostVideoBtn" class="create-post-tool hidden"
         >
           <i id="createPostVideoToolIcon" class="fa-solid fa-video text-red-400"></i>
           <span>Video</span>
@@ -1003,7 +1295,7 @@
               <div class="flex flex-wrap items-center gap-2">
 
                 <h3 class="font-black text-lg">
-                  FOOTBALLXTRA Premium
+                  VibeSport Premium
                 </h3>
 
                 <span class="px-2 py-1 rounded-full
@@ -1958,7 +2250,9 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
         const profileData = profileStats.exists() ? profileStats.data() : {};
 
         const userPostsCount = allContent.filter(
-          (item) => item.contentType === "post"
+          (item) =>
+            item.contentType === "post" &&
+            item.source === "FootballXtra User"
         ).length;
 
         if (postsCount) postsCount.textContent = String(userPostsCount);
@@ -2420,7 +2714,7 @@ const createPostBox = document.getElementById("createPostBox");
       }
 
       userName.textContent =
-        user.displayName || "FOOTBALLXTRA User";
+        user.displayName || "VibeSport User";
 
       userEmail.textContent =
         user.email || "";
@@ -2928,7 +3222,6 @@ import { auth } from "./js/firebase.js";
 /* USER CREATE POST */
 const createPostBox = document.getElementById("createPostBox");
 
-const createPostImageInput =
   document.getElementById("createPostImageInput");
 
 const createPostImagePreview =
@@ -3077,8 +3370,40 @@ function toggleCreatePostForm(forceOpen = null) {
   }
 }
 
+const createPostImageBtn = document.getElementById("createPostImageBtn");
+const createPostImageInput = document.getElementById("createPostImageInput");
+
+createPostImageBtn?.addEventListener("click", () => {
+  createPostImageInput?.click();
+});
+
+const createPostTypeMenu = document.getElementById("createPostTypeMenu");
+const createTextPostChoice = document.getElementById("createTextPostChoice");
+const createPhotoPostChoice = document.getElementById("createPhotoPostChoice");
+
 createPostTrigger?.addEventListener("click", () => {
-  toggleCreatePostForm();
+  createPostTypeMenu?.classList.toggle("hidden");
+  createPostForm?.classList.add("hidden");
+
+  if (createPostPlusIcon) {
+    const open = !createPostTypeMenu?.classList.contains("hidden");
+    createPostPlusIcon.classList.toggle("fa-plus", !open);
+    createPostPlusIcon.classList.toggle("fa-xmark", open);
+  }
+});
+
+createTextPostChoice?.addEventListener("click", () => {
+  createPostTypeMenu?.classList.add("hidden");
+  document.getElementById("createPostImageBtn")?.classList.add("hidden");
+  createPostImageInput?.value && (createPostImageInput.value = "");
+  createPostImagePreview?.classList.add("hidden");
+  toggleCreatePostForm(true);
+});
+
+createPhotoPostChoice?.addEventListener("click", () => {
+  createPostTypeMenu?.classList.add("hidden");
+  document.getElementById("createPostImageBtn")?.classList.remove("hidden");
+  toggleCreatePostForm(true);
 });
 
 cancelCreatePostBtn?.addEventListener("click", () => {
@@ -3132,11 +3457,10 @@ publishUserPostBtn?.addEventListener("click", async () => {
 
   const content = createPostText?.value.trim() || "";
   const imageFile = createPostImageInput?.files?.[0] || null;
-  const videoFile = createPostVideoInput?.files?.[0] || null;
 
-  if (!content && !imageFile && !videoFile) {
+  if (!content && !imageFile) {
     showCreatePostMessage(
-      "Write something or select a photo/video before posting."
+      "Write something or select a photo before posting."
     );
     return;
   }
@@ -3145,18 +3469,11 @@ publishUserPostBtn?.addEventListener("click", async () => {
 
   try {
     let image = "";
-    let videoUrl = "";
 
     if (imageFile) {
       showCreatePostMessage("Uploading photo...");
 
       image = await window.uploadCreatePostImage(imageFile);
-    }
-
-    if (videoFile) {
-      showCreatePostMessage("Uploading video...");
-
-      videoUrl = await window.uploadCreatePostVideo(videoFile);
     }
 
     const idToken = await user.getIdToken();
@@ -3171,8 +3488,7 @@ publishUserPostBtn?.addEventListener("click", async () => {
         },
         body: JSON.stringify({
           content,
-          image,
-          videoUrl
+          image
         })
       }
     );
