@@ -2686,7 +2686,27 @@ const createPostBox = document.getElementById("createPostBox");
           }
 
 
-          const premiumIsActive = data.premium === true;
+          const rawExpiry = data.premiumExpiresAt;
+          const expiryDate = rawExpiry && typeof rawExpiry.toDate === "function"
+            ? rawExpiry.toDate()
+            : rawExpiry instanceof Date
+              ? rawExpiry
+              : rawExpiry
+                ? new Date(rawExpiry)
+                : null;
+
+          const hasValidExpiry =
+            expiryDate instanceof Date &&
+            !Number.isNaN(expiryDate.getTime());
+
+          const premiumIsActive =
+            data.premium === true &&
+            hasValidExpiry &&
+            expiryDate.getTime() > Date.now();
+
+          const hasPremiumHistory =
+            data.premium === true && hasValidExpiry;
+
           if (premiumBadge) {
             premiumBadge.classList.toggle("hidden", !premiumIsActive);
           }
@@ -2698,32 +2718,29 @@ const createPostBox = document.getElementById("createPostBox");
           const upgradeButton = document.getElementById("upgradePremiumBtn");
 
           if (premiumDetails) {
-            premiumDetails.classList.toggle("hidden", !premiumIsActive);
+            premiumDetails.classList.toggle("hidden", !hasPremiumHistory);
           }
           if (upgradeButton) {
             upgradeButton.classList.toggle("hidden", premiumIsActive);
           }
-          if (premiumIsActive) {
+
+          if (hasPremiumHistory) {
             const planNames = { monthly: "Monthly", yearly: "Yearly" };
+
             if (premiumPlanText) {
               premiumPlanText.textContent = planNames[data.premiumPlan] || "Premium";
             }
+
             if (premiumStatusText) {
-              premiumStatusText.textContent = "Premium active";
+              premiumStatusText.textContent = premiumIsActive
+                ? "Premium active"
+                : "Premium expired";
             }
+
             if (premiumExpiryText) {
-              const rawExpiry = data.premiumExpiresAt;
-              const expiryDate = rawExpiry && typeof rawExpiry.toDate === "function"
-                ? rawExpiry.toDate()
-                : rawExpiry instanceof Date
-                  ? rawExpiry
-                  : rawExpiry
-                    ? new Date(rawExpiry)
-                    : null;
-              premiumExpiryText.textContent =
-                expiryDate && !Number.isNaN(expiryDate.getTime())
-                  ? "Expires: " + expiryDate.toLocaleDateString()
-                  : "Active subscription";
+              premiumExpiryText.textContent = premiumIsActive
+                ? "Expires: " + expiryDate.toLocaleDateString()
+                : "Expired: " + expiryDate.toLocaleDateString();
             }
           }
 

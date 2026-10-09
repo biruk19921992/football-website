@@ -901,11 +901,27 @@ app.post(
 
       const userDoc = await firestore.collection("users").doc(user.uid).get();
 
-      if (!userDoc.exists || userDoc.data()?.premium !== true) {
+      const userData = userDoc.exists ? userDoc.data() : null;
+      const expiryValue = userData?.premiumExpiresAt;
+      const expiryDate = expiryValue && typeof expiryValue.toDate === "function"
+        ? expiryValue.toDate()
+        : expiryValue instanceof Date
+          ? expiryValue
+          : expiryValue
+            ? new Date(expiryValue)
+            : null;
+
+      const premiumIsActive =
+        userData?.premium === true &&
+        expiryDate instanceof Date &&
+        !Number.isNaN(expiryDate.getTime()) &&
+        expiryDate.getTime() > Date.now();
+
+      if (!premiumIsActive) {
         return res.status(403).json({
           success: false,
           code: "PREMIUM_REQUIRED",
-          message: "Premium subscription is required to create posts."
+          message: "An active Premium subscription is required to create posts."
         });
       }
 
@@ -1075,7 +1091,23 @@ app.post("/api/premium/requests", verifyFirebaseUser, async (req, res) => {
     if (!userSnap.exists) {
       return res.status(404).json({ success: false, message: "User profile not found" });
     }
-    if (userSnap.data().premium === true) {
+    const userData = userSnap.data();
+    const expiryValue = userData?.premiumExpiresAt;
+    const expiryDate = expiryValue && typeof expiryValue.toDate === "function"
+      ? expiryValue.toDate()
+      : expiryValue instanceof Date
+        ? expiryValue
+        : expiryValue
+          ? new Date(expiryValue)
+          : null;
+
+    const premiumIsActive =
+      userData?.premium === true &&
+      expiryDate instanceof Date &&
+      !Number.isNaN(expiryDate.getTime()) &&
+      expiryDate.getTime() > Date.now();
+
+    if (premiumIsActive) {
       return res.status(409).json({ success: false, message: "Your account is already Premium" });
     }
 
@@ -1214,15 +1246,74 @@ app.post("/api/admin/premium/requests/:requestId/reject", verifyFirebaseUser, re
 });
 
 /* =========================
+   PREMIUM EXPIRY CLEANUP
+========================= */
+
+async function deactivateExpiredPremiumSubscriptions() {
+  try {
+    const snapshot = await firestore
+      .collection("users")
+      .where("premium", "==", true)
+      .get();
+
+    const now = Date.now();
+    let deactivated = 0;
+
+    for (const doc of snapshot.docs) {
+      await firestore.runTransaction(async (transaction) => {
+        const latest = await transaction.get(doc.ref);
+        if (!latest.exists || latest.data().premium !== true) return;
+
+        const rawExpiry = latest.data().premiumExpiresAt;
+        const expiryDate =
+          rawExpiry && typeof rawExpiry.toDate === "function"
+            ? rawExpiry.toDate()
+            : rawExpiry instanceof Date
+              ? rawExpiry
+              : rawExpiry
+                ? new Date(rawExpiry)
+                : null;
+
+        if (
+          expiryDate instanceof Date &&
+          !Number.isNaN(expiryDate.getTime()) &&
+          expiryDate.getTime() <= now
+        ) {
+          transaction.update(doc.ref, {
+            premium: false,
+            premiumExpiredAt: new Date()
+          });
+          deactivated++;
+        }
+      });
+    }
+
+    if (deactivated > 0) {
+      console.log("Premium expiry cleanup: deactivated " + deactivated + " account(s).");
+    }
+  } catch (error) {
+    console.error("Premium expiry cleanup failed:", error);
+  }
+}
+
+/* =========================
    SERVER
 ========================= */
 
 app.listen(PORT, () => {
+  console.log(`⚽ Backend running on http://localhost:${PORT}`);
 
-  console.log(
-    `⚽ Backend running on http://localhost:${PORT}`
+  // Run once at startup, then every 6 hours.
+  deactivateExpiredPremiumSubscriptions();
+
+  const premiumCleanupInterval = setInterval(
+    deactivateExpiredPremiumSubscriptions,
+    6 * 60 * 60 * 1000
   );
 
+  if (typeof premiumCleanupInterval.unref === "function") {
+    premiumCleanupInterval.unref();
+  }
 });
 
 /* =========================
