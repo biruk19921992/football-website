@@ -1190,7 +1190,15 @@ app.post("/api/admin/premium/requests/:requestId/approve", verifyFirebaseUser, r
 
       const now = new Date();
       const expires = new Date(now);
+      const originalDay = expires.getDate();
+      expires.setDate(1);
       expires.setMonth(expires.getMonth() + planMonths[request.plan]);
+      const lastDay = new Date(
+        expires.getFullYear(),
+        expires.getMonth() + 1,
+        0
+      ).getDate();
+      expires.setDate(Math.min(originalDay, lastDay));
 
       transaction.update(userRef, {
         premium: true,
