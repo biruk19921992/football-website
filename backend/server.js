@@ -196,7 +196,7 @@ console.log("📰 Telegram News Firebase initialized:", telegramNewsServiceAccou
 ========================= */
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "8mb" }));
 app.use(express.static("."));
 
 
@@ -899,6 +899,16 @@ app.post(
 
       const user = req.user;
 
+      const userDoc = await firestore.collection("users").doc(user.uid).get();
+
+      if (!userDoc.exists || userDoc.data()?.premium !== true) {
+        return res.status(403).json({
+          success: false,
+          code: "PREMIUM_REQUIRED",
+          message: "Premium subscription is required to create posts."
+        });
+      }
+
       const postData = {
         type: "news",
         title: title ? title.trim() : "",
@@ -1027,6 +1037,181 @@ app.delete(
     }
   }
 );
+
+
+/* =========================
+   PREMIUM MANUAL PAYMENTS
+========================= */
+
+app.post("/api/premium/requests", verifyFirebaseUser, async (req, res) => {
+  try {
+    const { plan, paymentMethod, transactionReference, screenshot } = req.body || {};
+    const plans = { monthly: 49, yearly: 399 };
+    const methods = ["telebirr", "cbe", "abyssinia", "apollo", "abyssinia_fcy"];
+
+    if (!plans[plan] || !methods.includes(paymentMethod)) {
+      return res.status(400).json({ success: false, message: "Invalid plan or payment method" });
+    }
+
+    if (typeof transactionReference !== "string" ||
+        transactionReference.trim().length < 3 ||
+        transactionReference.trim().length > 100) {
+      return res.status(400).json({ success: false, message: "Valid transaction reference is required" });
+    }
+
+    if (typeof screenshot !== "string" ||
+        !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(screenshot)) {
+      return res.status(400).json({ success: false, message: "Upload a JPG, PNG or WEBP payment screenshot" });
+    }
+
+    const imageData = screenshot.split(",")[1];
+    const imageBuffer = Buffer.from(imageData, "base64");
+    if (!imageBuffer.length || imageBuffer.length > 5 * 1024 * 1024) {
+      return res.status(400).json({ success: false, message: "Screenshot must be smaller than 5 MB" });
+    }
+
+    const userRef = firestore.collection("users").doc(req.user.uid);
+    const userSnap = await userRef.get();
+    if (!userSnap.exists) {
+      return res.status(404).json({ success: false, message: "User profile not found" });
+    }
+    if (userSnap.data().premium === true) {
+      return res.status(409).json({ success: false, message: "Your account is already Premium" });
+    }
+
+    const requests = await firestore.collection("premiumRequests")
+      .where("uid", "==", req.user.uid).limit(30).get();
+
+    if (requests.docs.some(doc => doc.data().status === "pending")) {
+      return res.status(409).json({ success: false, message: "You already have a pending Premium request" });
+    }
+
+    const duplicate = await firestore.collection("premiumRequests")
+      .where("transactionReference", "==", transactionReference.trim()).limit(1).get();
+
+    if (!duplicate.empty) {
+      return res.status(409).json({ success: false, message: "This transaction reference has already been submitted" });
+    }
+
+    const uploaded = await cloudinary.uploader.upload(screenshot, {
+      folder: "vibesport/premium-payments",
+      resource_type: "image"
+    });
+
+    const requestRef = await firestore.collection("premiumRequests").add({
+      uid: req.user.uid,
+      email: req.user.email || userSnap.data().email || "",
+      plan,
+      amount: plans[plan],
+      currency: "ETB",
+      paymentMethod,
+      transactionReference: transactionReference.trim(),
+      screenshotUrl: uploaded.secure_url,
+      status: "pending",
+      createdAt: new Date()
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Premium request submitted for admin review",
+      requestId: requestRef.id,
+      status: "pending"
+    });
+  } catch (error) {
+    console.error("Premium request error:", error);
+    return res.status(500).json({ success: false, message: "Could not submit Premium request" });
+  }
+});
+
+app.get("/api/admin/premium/requests", verifyFirebaseUser, requireSuperAdmin, async (req, res) => {
+  try {
+    const snap = await firestore.collection("premiumRequests")
+      .orderBy("createdAt", "desc").limit(100).get();
+
+    return res.json({
+      success: true,
+      requests: snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    });
+  } catch (error) {
+    console.error("Premium requests list error:", error);
+    return res.status(500).json({ success: false, message: "Could not load Premium requests" });
+  }
+});
+
+app.post("/api/admin/premium/requests/:requestId/approve", verifyFirebaseUser, requireSuperAdmin, async (req, res) => {
+  try {
+    const requestRef = firestore.collection("premiumRequests").doc(req.params.requestId);
+
+    await firestore.runTransaction(async transaction => {
+      const requestSnap = await transaction.get(requestRef);
+      if (!requestSnap.exists) throw new Error("REQUEST_NOT_FOUND");
+
+      const request = requestSnap.data();
+      if (request.status !== "pending") throw new Error("REQUEST_NOT_PENDING");
+
+      const planMonths = { monthly: 1, yearly: 12 };
+      if (!planMonths[request.plan]) throw new Error("INVALID_PLAN");
+
+      const userRef = firestore.collection("users").doc(request.uid);
+      const userSnap = await transaction.get(userRef);
+      if (!userSnap.exists) throw new Error("USER_NOT_FOUND");
+
+      const now = new Date();
+      const expires = new Date(now);
+      expires.setMonth(expires.getMonth() + planMonths[request.plan]);
+
+      transaction.update(userRef, {
+        premium: true,
+        premiumPlan: request.plan,
+        premiumSince: now,
+        premiumExpiresAt: expires
+      });
+
+      transaction.update(requestRef, {
+        status: "approved",
+        reviewedAt: now,
+        reviewedBy: req.user.uid
+      });
+    });
+
+    return res.json({ success: true, message: "Premium approved and activated" });
+  } catch (error) {
+    const messages = {
+      REQUEST_NOT_FOUND: [404, "Premium request not found"],
+      REQUEST_NOT_PENDING: [409, "Request has already been reviewed"],
+      INVALID_PLAN: [400, "Invalid Premium plan"],
+      USER_NOT_FOUND: [404, "User profile not found"]
+    };
+    const known = messages[error.message];
+    if (known) return res.status(known[0]).json({ success: false, message: known[1] });
+    console.error("Premium approval error:", error);
+    return res.status(500).json({ success: false, message: "Could not approve Premium request" });
+  }
+});
+
+app.post("/api/admin/premium/requests/:requestId/reject", verifyFirebaseUser, requireSuperAdmin, async (req, res) => {
+  try {
+    const requestRef = firestore.collection("premiumRequests").doc(req.params.requestId);
+    const snap = await requestRef.get();
+
+    if (!snap.exists) return res.status(404).json({ success: false, message: "Request not found" });
+    if (snap.data().status !== "pending") {
+      return res.status(409).json({ success: false, message: "Request has already been reviewed" });
+    }
+
+    await requestRef.update({
+      status: "rejected",
+      rejectionReason: String((req.body || {}).reason || "Payment could not be verified").slice(0, 300),
+      reviewedAt: new Date(),
+      reviewedBy: req.user.uid
+    });
+
+    return res.json({ success: true, message: "Premium request rejected" });
+  } catch (error) {
+    console.error("Premium rejection error:", error);
+    return res.status(500).json({ success: false, message: "Could not reject Premium request" });
+  }
+});
 
 /* =========================
    SERVER

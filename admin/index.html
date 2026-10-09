@@ -819,6 +819,23 @@ function showPage(page) {
     return;
   }
 
+  if (page === "premium") {
+    dashboard.classList.add("hidden");
+    module.classList.remove("hidden");
+    document.getElementById("moduleTitle").textContent = data.title;
+    document.getElementById("moduleDescription").textContent = data.description;
+    document.getElementById("moduleIcon").innerHTML = `<i class="fa-solid ${data.icon}"></i>`;
+    const content = document.getElementById("moduleContent");
+    content.innerHTML = `<div class="glass rounded-2xl p-6 text-center text-gray-400">Loading Premium Requests...</div>`;
+    import("/admin/js/modules/premium.js")
+      .then(mod => mod.renderPremiumModule(content))
+      .catch(error => {
+        console.error("Premium module error:", error);
+        content.innerHTML = `<div class="glass rounded-2xl p-6 text-red-400">Failed to load Premium module: ${error.message}</div>`;
+      });
+    return;
+  }
+
   if (page === "videos") {
 
     dashboard.classList.add("hidden");
