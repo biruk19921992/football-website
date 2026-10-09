@@ -250,8 +250,8 @@ async function loadHomeSections() {
       button.addEventListener("click", () => {
         const youtubeId = button.dataset.youtubeId;
         const title = button.dataset.title || "Football Video";
-        if (youtubeId && window.FootballXtraMiniPlayer) {
-          window.FootballXtraMiniPlayer.play(youtubeId, title);
+        if (youtubeId && window.VibeSportMiniPlayer) {
+          window.VibeSportMiniPlayer.play(youtubeId, title);
         }
       });
     });
@@ -454,7 +454,7 @@ document.addEventListener("click", async (event) => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: "FootballXtra",
+          title: "VibeSport",
           text: "Check this football post ⚽",
           url: url
         });
@@ -591,7 +591,7 @@ loadHomeSections();
 ========================= */
 
 setInterval(() => {
-  console.log("🔄 Football Xtra: refreshing homepage news...");
+  console.log("🔄 VibeSport: refreshing homepage news...");
   loadHomeSections();
 }, 5 * 60 * 1000);
 
@@ -636,7 +636,7 @@ async function checkEspnNotifications() {
     /* First run: remember the current time, but do NOT notify old news. */
     if (!lastCheck) {
       localStorage.setItem(CHECK_KEY, String(now));
-      console.log("🔔 Football Xtra notification checker initialized.");
+      console.log("🔔 VibeSport notification checker initialized.");
       return;
     }
 
@@ -657,7 +657,7 @@ async function checkEspnNotifications() {
 
     for (const item of newNews.reverse()) {
       const notification = new Notification(
-        "⚽ Football Xtra — NEW NEWS",
+        "⚽ VibeSport — NEW NEWS",
         {
           body: item.titleAm || item.title || "New football news available",
           icon: item.image || "/favicon.ico",
@@ -675,7 +675,7 @@ async function checkEspnNotifications() {
     localStorage.setItem(CHECK_KEY, String(now));
 
     if (newNews.length) {
-      console.log(`🔔 ${newNews.length} new Football Xtra notification(s).`);
+      console.log(`🔔 ${newNews.length} new VibeSport notification(s).`);
     }
   } catch (error) {
     console.error("❌ ESPN notification check failed:", error);
@@ -692,7 +692,7 @@ document.addEventListener("click", async () => {
       const permission = await Notification.requestPermission();
 
       if (permission === "granted") {
-        console.log("🔔 Football Xtra notifications enabled.");
+        console.log("🔔 VibeSport notifications enabled.");
         checkEspnNotifications();
       }
     } catch (error) {

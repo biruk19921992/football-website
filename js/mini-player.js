@@ -344,7 +344,7 @@
     }
   }
 
-  window.FootballXtraMiniPlayer = {
+  window.VibeSportMiniPlayer = {
     play(youtubeId, title) {
       if (!youtubeId) return;
 

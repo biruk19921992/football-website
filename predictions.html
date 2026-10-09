@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07110d">
+  <title>Match Predictions | VibeSport</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    body { background:#07110d; color:#fff; min-height:100vh; }
+    .glass { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); backdrop-filter:blur(12px); }
+    .green { color:#4ade80; }
+    .score-input { width:58px; background:#101d16; border:1px solid #2b4636; border-radius:12px; padding:10px; text-align:center; color:white; font-size:20px; font-weight:800; }
+    .score-input:focus { outline:2px solid #4ade80; }
+    .primary-btn { background:#22c55e; color:#041109; font-weight:800; }
+    button:disabled { opacity:.45; cursor:not-allowed; }
+  </style>
+</head>
+<body>
+  <header class="sticky top-0 z-50 glass">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="index.html" class="font-black text-xl"><span class="green">Vibe</span>Sport</a>
+      <a href="index.html" class="text-sm text-gray-300 hover:text-green-400">
+        <i class="fa-solid fa-arrow-left mr-2"></i>Home
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-7 pb-24">
+    <section class="mb-6">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="glass rounded-2xl p-3 green"><i class="fa-solid fa-bullseye text-2xl"></i></div>
+        <div>
+          <h1 class="text-3xl font-black">Match Predictions</h1>
+          <p class="text-sm text-gray-400">Predict the match outcome. Earn points. Climb the leaderboard.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-3 gap-3 mb-6">
+      <div class="glass rounded-2xl p-3 text-center">
+        <i class="fa-solid fa-trophy green"></i>
+        <p class="text-xs text-gray-400 mt-2">Your points</p>
+        <p id="myPoints" class="text-xl font-black">—</p>
+      </div>
+      <div class="glass rounded-2xl p-3 text-center">
+        <i class="fa-solid fa-ticket green"></i>
+        <p class="text-xs text-gray-400 mt-2">Predictions</p>
+        <p id="myPredictionCount" class="text-xl font-black">—</p>
+      </div>
+      <div class="glass rounded-2xl p-3 text-center">
+        <i class="fa-solid fa-ranking-star green"></i>
+        <p class="text-xs text-gray-400 mt-2">Your rank</p>
+        <p id="myRank" class="text-xl font-black">—</p>
+      </div>
+    </section>
+
+    <section class="glass rounded-2xl p-4 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="font-bold text-lg">Choose match date</h2>
+          <p class="text-xs text-gray-400 mt-1">Predictions lock when the match starts.</p>
+        </div>
+        <input id="predictionDate" type="date" class="bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm">
+        <button id="refreshFixtures" type="button" class="rounded-xl px-4 py-2 text-sm font-bold bg-green-500 text-black"><i class="fa-solid fa-rotate-right mr-1"></i> Refresh</button>
+      </div>
+      <div id="predictionNotice" role="status" class="text-sm text-gray-300 mt-3">Loading predictions…</div>
+    </section>
+
+    <section id="matchesList" class="space-y-4">
+      <div class="glass rounded-2xl p-6 text-center text-gray-400">
+        <i class="fa-solid fa-spinner fa-spin text-2xl green"></i>
+        <p class="mt-3">Loading matches…</p>
+      </div>
+    </section>
+
+    <section class="glass rounded-2xl p-4 mt-8 mb-6">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 class="font-black text-lg"><i class="fa-solid fa-ranking-star green mr-2"></i>Global Leaderboard</h2>
+          <p class="text-xs text-gray-400 mt-1">All leagues · Correct outcome = 1 point</p>
+        </div>
+        <button id="refreshLeaderboard" type="button" class="rounded-xl px-3 py-2 text-sm font-bold bg-white/10">Refresh</button>
+      </div>
+      <div id="leaderboardNotice" class="text-sm text-gray-400 mb-3">Loading leaderboard…</div>
+      <div class="overflow-x-auto rounded-xl">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-white/10 text-gray-300">
+            <tr>
+              <th class="p-3">Rank</th>
+              <th class="p-3">Player</th>
+              <th class="p-3 text-center">Predictions</th>
+              <th class="p-3 text-right">Points</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardList">
+            <tr><td colspan="4" class="p-3 text-gray-400">Loading players…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="glass rounded-2xl p-4 mb-6">
+      <h2 class="font-black text-lg mb-3"><i class="fa-solid fa-medal green mr-2"></i>Points Guide</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        <div class="rounded-xl bg-white/5 p-3"><span class="green font-black">1 point</span><p class="text-gray-400 mt-1">Correct match outcome: Home Win, Draw, or Away Win.</p></div>
+        <div class="rounded-xl bg-white/5 p-3"><span class="green font-black">0 points</span><p class="text-gray-400 mt-1">Incorrect match outcome.</p></div>
+      </div>
+    </section>
+  </main>
+<script type="module" src="js/predictions.js"></script>
+<nav class="bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0b0f15]/95 backdrop-blur-xl border-t border-white/10">
+  <div class="grid grid-cols-6 h-16">
+    <a href="index.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-house"></i>
+      <span class="text-[9px] mt-1">Home</span>
+    </a>
+    <a href="news.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-regular fa-newspaper"></i>
+      <span class="text-[9px] mt-1">News</span>
+    </a>
+    <a href="scores.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-futbol"></i>
+      <span class="text-[9px] mt-1">Soccer</span>
+    </a>
+    <a href="predictions.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-ranking-star"></i>
+      <span class="text-[9px] mt-1">Predictions</span>
+    </a>
+    <a href="videos.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-brands fa-youtube"></i>
+      <span class="text-[9px] mt-1">Videos</span>
+    </a>
+    <a id="mobileAccountLink" href="login.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-regular fa-user"></i>
+      <span class="text-[9px] mt-1">Profile</span>
+    </a>
+  </div>
+</nav>
+
+<style id="vibesport-nav-active-style">
+.bottom-nav a.nav-active {
+  color: #4ade80 !important;
+}
+</style>
+<!-- VIBESPORT NAV ACTIVE STATE -->
+<script>
+(function () {
+  function normalizePage(value) {
+    const parts = (value || '').split(/[?#]/)[0].split('/').filter(Boolean);
+    let page = (parts.length ? parts[parts.length - 1] : 'index.html').toLowerCase();
+    page = page.replace(/\.html$/, '');
+    return page || 'index';
+  }
+
+  function updateActiveNav() {
+    const nav = document.querySelector('.bottom-nav');
+    if (!nav) return;
+
+    const page = normalizePage(location.pathname);
+
+    nav.querySelectorAll('a').forEach(function (link) {
+      const href = normalizePage(link.getAttribute('href'));
+      const accountPage = link.id === 'mobileAccountLink' &&
+        ['profile', 'login', 'signup'].includes(page);
+      const active = href === page || accountPage;
+
+      link.classList.toggle('nav-active', active);
+      link.classList.toggle('text-gray-500', !active);
+      link.classList.toggle('text-green-400', active);
+
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateActiveNav);
+  } else {
+    updateActiveNav();
+  }
+})();
+</script>
+
+</body>
+</html>

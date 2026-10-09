@@ -1206,7 +1206,7 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
             id: item.id,
             ...data,
             contentType:
-              data.source === "FootballXtra User"
+              data.source === "VibeSport User"
                 ? (data.videoUrl ? "video" : "post")
                 : "news"
           };
@@ -1357,7 +1357,7 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
               card.addEventListener("click", (event) => {
                 if (event.target.closest("button")) return;
 
-                window.FootballXtraMiniPlayer?.playUrl(
+                window.VibeSportMiniPlayer?.playUrl(
                   item.videoUrl,
                   title
                 );
@@ -1437,7 +1437,7 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
                     authorName:
                       user.displayName ||
                       user.email ||
-                      "FootballXtra User",
+                      "VibeSport User",
                     repostOf: postId,
                     originalContentType: item.contentType,
                     title: item.title || "",
@@ -1455,7 +1455,7 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
                       item.category || "",
                     source:
                       item.source ||
-                      "FootballXtra",
+                      "VibeSport",
                     likesCount: 0,
                     commentsCount: 0,
                     repostsCount: 0,
@@ -1498,7 +1498,7 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
             shareBtn?.addEventListener("click", async () => {
               const shareTitle =
                 item.title ||
-                "FootballXtra";
+                "VibeSport";
 
               const shareText =
                 item.content ||
@@ -1571,7 +1571,7 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
                   authorName:
                     user.displayName ||
                     user.email ||
-                    "FootballXtra User",
+                    "VibeSport User",
                   text: comment.trim(),
                   createdAt: serverTimestamp()
                 });
@@ -1692,7 +1692,7 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
                       "",
                     source:
                       item.source ||
-                      "FootballXtra",
+                      "VibeSport",
                     createdAt: new Date()
                   });
 
@@ -1889,7 +1889,7 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
         const userPostsCount = allContent.filter(
           (item) =>
             item.contentType === "post" &&
-            item.source === "FootballXtra User"
+            item.source === "VibeSport User"
         ).length;
 
         if (postsCount) postsCount.textContent = String(userPostsCount);
@@ -2167,7 +2167,7 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
           const name =
             data.name ||
             data.displayName ||
-            "FootballXtra User";
+            "VibeSport User";
 
           const photo =
             data.photoURL || "";
@@ -3042,12 +3042,77 @@ document.querySelectorAll(".profile-tab").forEach((tab) => {
 
 <script src="./js/mini-player.js"></script>
 <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0b0f15]/95 backdrop-blur-xl border-t border-white/10">
-  <div class="grid grid-cols-5 h-16">
-    <a href="index.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-solid fa-house"></i><span class="text-[9px] mt-1">Home</span></a>
-    <a href="news.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-regular fa-newspaper"></i><span class="text-[9px] mt-1">News</span></a>
-    <a href="scores.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-solid fa-futbol"></i><span class="text-[9px] mt-1">Scores</span></a>
-    <a href="videos.html" class="flex flex-col items-center justify-center text-gray-500"><i class="fa-brands fa-youtube"></i><span class="text-[9px] mt-1">Videos</span></a><a href="profile.html" class="flex flex-col items-center justify-center text-green-400"><i class="fa-regular fa-user"></i><span class="text-[9px] mt-1">Profile</span></a>
+  <div class="grid grid-cols-6 h-16">
+    <a href="index.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-house"></i>
+      <span class="text-[9px] mt-1">Home</span>
+    </a>
+    <a href="news.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-regular fa-newspaper"></i>
+      <span class="text-[9px] mt-1">News</span>
+    </a>
+    <a href="scores.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-futbol"></i>
+      <span class="text-[9px] mt-1">Soccer</span>
+    </a>
+    <a href="predictions.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-ranking-star"></i>
+      <span class="text-[9px] mt-1">Predictions</span>
+    </a>
+    <a href="videos.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-brands fa-youtube"></i>
+      <span class="text-[9px] mt-1">Videos</span>
+    </a>
+    <a id="mobileAccountLink" href="login.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-regular fa-user"></i>
+      <span class="text-[9px] mt-1">Profile</span>
+    </a>
   </div>
 </nav>
+
+<style id="vibesport-nav-active-style">
+.bottom-nav a.nav-active {
+  color: #4ade80 !important;
+}
+</style>
+<!-- VIBESPORT NAV ACTIVE STATE -->
+<script>
+(function () {
+  function normalizePage(value) {
+    const parts = (value || '').split(/[?#]/)[0].split('/').filter(Boolean);
+    let page = (parts.length ? parts[parts.length - 1] : 'index.html').toLowerCase();
+    page = page.replace(/\.html$/, '');
+    return page || 'index';
+  }
+
+  function updateActiveNav() {
+    const nav = document.querySelector('.bottom-nav');
+    if (!nav) return;
+
+    const page = normalizePage(location.pathname);
+
+    nav.querySelectorAll('a').forEach(function (link) {
+      const href = normalizePage(link.getAttribute('href'));
+      const accountPage = link.id === 'mobileAccountLink' &&
+        ['profile', 'login', 'signup'].includes(page);
+      const active = href === page || accountPage;
+
+      link.classList.toggle('nav-active', active);
+      link.classList.toggle('text-gray-500', !active);
+      link.classList.toggle('text-green-400', active);
+
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateActiveNav);
+  } else {
+    updateActiveNav();
+  }
+})();
+</script>
+
 </body>
 </html>

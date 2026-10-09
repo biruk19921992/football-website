@@ -25,7 +25,7 @@ export async function renderAdminsModule(container) {
           </div>
           <div>
             <h3 class="font-black text-lg">Add Admin</h3>
-            <p class="text-xs text-gray-500">Create a new FootballXtra administrator</p>
+            <p class="text-xs text-gray-500">Create a new VibeSport administrator</p>
           </div>
         </div>
 

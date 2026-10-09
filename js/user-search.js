@@ -155,7 +155,7 @@ if (searchButton && !document.getElementById("globalUserSearchModal")) {
         const name =
           data.name ||
           data.displayName ||
-          "FootballXtra User";
+          "VibeSport User";
 
         const photo =
           data.photoURL || "";

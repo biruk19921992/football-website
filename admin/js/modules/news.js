@@ -176,7 +176,7 @@ export async function renderNewsModule(container) {
           </h3>
 
           <p class="text-gray-500 text-sm mt-1">
-            Create, edit and publish FootballXtra news.
+            Create, edit and publish VibeSport news.
           </p>
 
         </div>

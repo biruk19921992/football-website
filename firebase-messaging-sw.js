@@ -16,7 +16,7 @@ messaging.onBackgroundMessage((payload) => {
   console.log("[firebase-messaging-sw.js] Background message:", payload);
 
   const notificationTitle =
-    payload.notification?.title || "FOOTBALLXTRA";
+    payload.notification?.title || "VibeSport";
 
   const notificationOptions = {
     body:

@@ -1,6 +1,6 @@
 console.log("HOME-FEED START");
 import { auth, db } from "./firebase.js";
-console.log("FootballXtra: home-feed module loaded");
+console.log("VibeSport: home-feed module loaded");
 
 import {
   collection,
@@ -29,8 +29,8 @@ if (!feed) {
     {
       id: "demo-news-1",
       type: "news",
-      authorName: "FootballXtra",
-      authorUsername: "@footballxtra",
+      authorName: "VibeSport",
+      authorUsername: "@vibesport",
       authorPhoto: "",
       verified: true,
       title: "Manchester United prepare for another exciting Premier League season",
@@ -46,8 +46,8 @@ if (!feed) {
     {
       id: "demo-video-1",
       type: "video",
-      authorName: "FootballXtra",
-      authorUsername: "@footballxtra",
+      authorName: "VibeSport",
+      authorUsername: "@vibesport",
       authorPhoto: "",
       verified: true,
       title: "Football weekly show",
@@ -160,7 +160,7 @@ if (!feed) {
               <a
                 href="#"
                 class="font-bold hover:text-green-400">
-                ${escapeHTML(post.authorName || "FootballXtra")}
+                ${escapeHTML(post.authorName || "VibeSport")}
               </a>
 
               ${
@@ -178,7 +178,7 @@ if (!feed) {
             </div>
 
             <div class="text-xs text-gray-500 mt-0.5">
-              ${escapeHTML(post.authorUsername || "@footballxtra")}
+              ${escapeHTML(post.authorUsername || "@vibesport")}
               ·
               ${timeAgo(post.createdAt)}
             </div>
@@ -659,7 +659,7 @@ if (!feed) {
     try {
 
       await navigator.share({
-        title: "FootballXtra",
+        title: "VibeSport",
         text: "Check this football post",
         url
       });
@@ -728,7 +728,7 @@ feed.addEventListener("click", async (event) => {
           alert("YouTube video not found.");
           return;
         }
-        window.FootballXtraMiniPlayer?.play(youtubeId, button.dataset.title || "Football Video");
+        window.VibeSportMiniPlayer?.play(youtubeId, button.dataset.title || "Football Video");
 
       }
     } catch (error) {
@@ -789,8 +789,8 @@ feed.addEventListener("click", async (event) => {
 
 
   async function loadFirestorePosts() {
-    console.log("FootballXtra: loadFirestorePosts STARTED");
-    console.log("FootballXtra: loading latest news from API");
+    console.log("VibeSport: loadFirestorePosts STARTED");
+    console.log("VibeSport: loading latest news from API");
 
     feed.innerHTML =
       '<div class="p-6 text-center text-gray-400">Loading latest news...</div>';
@@ -817,10 +817,10 @@ feed.addEventListener("click", async (event) => {
       const posts = news.slice(0, 20).map((item) => ({
         id: "api-news-" + (item.id || crypto.randomUUID()),
         type: "news",
-        authorName: item.source || "FootballXtra",
+        authorName: item.source || "VibeSport",
         authorUsername: item.source
           ? "@" + String(item.source).toLowerCase().replace(/[^a-z0-9]/g, "")
-          : "@footballxtra",
+          : "@vibesport",
         authorPhoto: "",
         verified: true,
         title: item.titleAm || item.headline || item.title || "",
@@ -839,7 +839,7 @@ feed.addEventListener("click", async (event) => {
       feed.innerHTML = posts.map(renderPost).join("");
 
       console.log(
-        "FootballXtra: API news loaded:",
+        "VibeSport: API news loaded:",
         posts.length
       );
     } catch (error) {

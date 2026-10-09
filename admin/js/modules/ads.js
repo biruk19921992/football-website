@@ -128,7 +128,7 @@ export async function renderAdsModule(container) {
               </label>
               <input id="adTitle" required
                 class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 outline-none focus:border-green-400"
-                placeholder="Example: FootballXtra Sponsor Banner">
+                placeholder="Example: VibeSport Sponsor Banner">
             </div>
 
             <div>
@@ -412,7 +412,7 @@ export async function renderAdsModule(container) {
         startAt: startAt.value ? new Date(startAt.value) : null,
         endAt: endAt.value ? new Date(endAt.value) : null,
         authorId: user?.uid || "",
-        authorName: user?.displayName || "FootballXtra",
+        authorName: user?.displayName || "VibeSport",
         updatedAt: serverTimestamp()
       };
 

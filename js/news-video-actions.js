@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (navigator.share) {
         try {
           await navigator.share({
-            title: "FootballXtra",
+            title: "VibeSport",
             text: "Check this football post ⚽",
             url
           });

@@ -88,7 +88,7 @@ function renderNotifications(data) {
         const title =
           item.title ||
           item.message ||
-          "Football Xtra";
+          "VibeSport";
 
         const message =
           item.message ||

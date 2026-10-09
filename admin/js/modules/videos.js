@@ -141,7 +141,7 @@ export async function renderVideosModule(container) {
             </h4>
 
             <p class="text-xs text-gray-500 mt-1">
-              Add a YouTube video to FootballXtra.
+              Add a YouTube video to VibeSport.
             </p>
 
           </div>
@@ -736,7 +736,7 @@ export async function renderVideosModule(container) {
 
           authorName:
             user?.displayName ||
-            "FootballXtra",
+            "VibeSport",
 
           updatedAt:
             serverTimestamp()

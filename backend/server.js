@@ -8,6 +8,7 @@ cloudinary.config({
 });
 const { XMLParser } = require("fast-xml-parser");
 const express = require("express");
+const registerPredictionRoutes = require("./predictions.routes");
 const cors = require("cors");
 const amharicNewsCache = new Map();
 
@@ -520,6 +521,8 @@ async function verifyFirebaseUser(req, res, next) {
    REGISTER FCM TOKEN
 ========================= */
 
+registerPredictionRoutes({ app, firestore, verifyFirebaseUser });
+
 app.post(
   "/api/register-fcm-token",
   verifyFirebaseUser,
@@ -608,7 +611,7 @@ app.post(
 
         notification: {
           title:
-            title || "FOOTBALLXTRA ⚽",
+            title || "VibeSport ⚽",
 
           body:
             body ||
@@ -839,8 +842,8 @@ app.post(
         videoUrl: videoUrl || "",
         category: category || "",
         authorId: user.uid,
-        authorName: user.name || user.email || "FootballXtra",
-        source: "FootballXtra Admin",
+        authorName: user.name || user.email || "VibeSport",
+        source: "VibeSport Admin",
         likesCount: 0,
         commentsCount: 0,
         repostsCount: 0,
@@ -1880,7 +1883,7 @@ app.get("/api/news", async (req, res) => {
         const headline =
           item.title ||
           item.content ||
-          "FootballXtra Post";
+          "VibeSport Post";
 
         news.push({
           id: "POST-" + doc.id,
@@ -1889,7 +1892,7 @@ app.get("/api/news", async (req, res) => {
           published,
           image: item.image || "",
           link: "",
-          source: item.source || "FootballXtra",
+          source: item.source || "VibeSport",
           titleAm: item.titleAm || "",
           descriptionAm: item.descriptionAm || ""
         });
