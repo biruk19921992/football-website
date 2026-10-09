@@ -942,6 +942,14 @@ main > section:first-of-type::after {
                 premium features and an enhanced experience.
               </p>
 
+              <div id="premiumAccountDetails"
+                   class="hidden mt-4 rounded-2xl border border-yellow-400/20 bg-yellow-400/[0.06] p-4">
+                <p id="premiumAccountStatus" class="font-bold text-yellow-300">Premium active</p>
+                <p class="mt-2 text-sm text-gray-300">Plan: <span id="premiumAccountPlan">Premium</span></p>
+                <p id="premiumAccountExpiry" class="mt-1 text-sm text-gray-400"></p>
+              </div>
+
+
             </div>
 
           </div>
@@ -2677,10 +2685,46 @@ const createPostBox = document.getElementById("createPostBox");
 
           }
 
-          if (data.premium === true) {
 
-            premiumBadge.classList.remove("hidden");
+          const premiumIsActive = data.premium === true;
+          if (premiumBadge) {
+            premiumBadge.classList.toggle("hidden", !premiumIsActive);
+          }
 
+          const premiumDetails = document.getElementById("premiumAccountDetails");
+          const premiumStatusText = document.getElementById("premiumAccountStatus");
+          const premiumPlanText = document.getElementById("premiumAccountPlan");
+          const premiumExpiryText = document.getElementById("premiumAccountExpiry");
+          const upgradeButton = document.getElementById("upgradePremiumBtn");
+
+          if (premiumDetails) {
+            premiumDetails.classList.toggle("hidden", !premiumIsActive);
+          }
+          if (upgradeButton) {
+            upgradeButton.classList.toggle("hidden", premiumIsActive);
+          }
+          if (premiumIsActive) {
+            const planNames = { monthly: "Monthly", yearly: "Yearly" };
+            if (premiumPlanText) {
+              premiumPlanText.textContent = planNames[data.premiumPlan] || "Premium";
+            }
+            if (premiumStatusText) {
+              premiumStatusText.textContent = "Premium active";
+            }
+            if (premiumExpiryText) {
+              const rawExpiry = data.premiumExpiresAt;
+              const expiryDate = rawExpiry && typeof rawExpiry.toDate === "function"
+                ? rawExpiry.toDate()
+                : rawExpiry instanceof Date
+                  ? rawExpiry
+                  : rawExpiry
+                    ? new Date(rawExpiry)
+                    : null;
+              premiumExpiryText.textContent =
+                expiryDate && !Number.isNaN(expiryDate.getTime())
+                  ? "Expires: " + expiryDate.toLocaleDateString()
+                  : "Active subscription";
+            }
           }
 
         }
