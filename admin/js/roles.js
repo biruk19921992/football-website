@@ -159,7 +159,7 @@ export async function getCurrentAdmin() {
 
     console.error(
       "Admin role error:",
-      error: error?.message || String(error)
+      error?.message || String(error)
     );
 
     return {
