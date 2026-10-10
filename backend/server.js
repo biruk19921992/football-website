@@ -1987,6 +1987,62 @@ app.get("/api/news", async (req, res) => {
 /* =========================
    SINGLE NEWS ARTICLE
 ========================= */
+app.get("/api/transfers", async (req, res) => {
+  try {
+    const snapshot = await firestore.collection("news").limit(100).get();
+
+    const hasAmharic = (value) =>
+      typeof value === "string" && /[\u1200-\u137F]/.test(value.trim());
+
+    const transferTerms =
+      /transfer|signed|signing|loan|bid|contract|joins|joined|departure|ዝውውር|ፈረመ|ተፈራረመ|አዲስ ውል/i;
+
+    const news = snapshot.docs
+      .map((doc) => {
+        const d = doc.data();
+        const published = d.publishedAt || d.createdAt;
+        return {
+          id: doc.id,
+          headline: d.title || "",
+          titleAm: d.titleAm || "",
+          description: d.description || "",
+          descriptionAm: d.descriptionAm || "",
+          source: d.source || d.author || "Football",
+          image: d.image || d.imageUrl || d.thumbnailUrl || "",
+          link: d.sourceUrl || d.originalUrl || "",
+          published: published && typeof published.toDate === "function"
+            ? published.toDate().toISOString()
+            : (published || null),
+          category: d.category || ""
+        };
+      })
+      .filter((item) =>
+        hasAmharic(item.titleAm) &&
+        hasAmharic(item.descriptionAm) &&
+        transferTerms.test([
+          item.headline,
+          item.titleAm,
+          item.description,
+          item.descriptionAm,
+          item.category
+        ].join(" "))
+      )
+      .sort((a, b) => {
+        const dateA = Date.parse(a.published || "") || 0;
+        const dateB = Date.parse(b.published || "") || 0;
+        return dateB - dateA;
+      });
+
+    res.json({ success: true, count: news.length, news });
+  } catch (error) {
+    console.error("Transfers API error:", error);
+    res.status(500).json({
+      success: false,
+      message: "የዝውውር ዜናዎችን ማምጣት አልተቻለም።"
+    });
+  }
+});
+
 app.get("/api/news/:id", async (req, res) => {
   try {
     const articleId = String(req.params.id || "").trim();

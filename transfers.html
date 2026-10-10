@@ -451,7 +451,7 @@ async function loadNews() {
       </div>
     `;
 
-    const response = await fetch("https://footballxtra-website.onrender.com/api/news?refresh=" + Date.now(), { cache: "no-store" });
+    const response = await fetch("https://footballxtra-website.onrender.com/api/transfers?refresh=" + Date.now(), { cache: "no-store" });
 
     if (!response.ok) {
       throw new Error(`News API HTTP ${response.status}`);
@@ -466,12 +466,21 @@ async function loadNews() {
     const transferTerms = /transfer|transfers|signed|signing|loan deal|transfer fee|bid for|contract extension|departure|joins|joined|አዲስ ውል|ዝውውር|ፈረመ|ተፈራረመ/;
 
     const transferNews = news.filter(item => {
-      const text = [
-        item.headline, item.titleAm, item.description,
-        item.descriptionAm, item.category
-      ].filter(Boolean).join(" ");
-      return transferTerms.test(text);
-    });
+          const titleAm = String(item.titleAm || "").trim();
+          const descriptionAm = String(item.descriptionAm || "").trim();
+          const hasAmharic = text => /[\u1200-\u137F]/.test(text);
+
+          if (!hasAmharic(titleAm) || !hasAmharic(descriptionAm)) {
+            return false;
+          }
+
+          const text = [
+            item.headline, titleAm, item.description,
+            descriptionAm, item.category
+          ].filter(Boolean).join(" ");
+
+          return transferTerms.test(text);
+        });
 
     if (!transferNews.length) {
       newsList.innerHTML = `
@@ -484,7 +493,7 @@ async function loadNews() {
     }
 
     newsList.innerHTML = transferNews.map(item => {
-      const title = item.titleAm || item.headline || "Untitled news";
+      const title = String(item.titleAm || "").trim();
       const source = item.source || "Football";
       const sourceUrl = item.link || "";
 
@@ -528,10 +537,10 @@ async function loadNews() {
             </h3>
 
             ${
-              (item.descriptionAm || item.description)
+              item.descriptionAm
               ? `
                 <p class="text-sm text-gray-400 mt-2 line-clamp-2">
-                  ${escapeHTML(item.descriptionAm || item.description)}
+                  ${escapeHTML(item.descriptionAm)}
                 </p>
               `
               : ""
@@ -566,7 +575,7 @@ async function loadNews() {
     }).join("");
 
   } catch (error) {
-    console.error("News loading error:", error); document.getElementById("debugError").textContent = error.message;
+    console.error("News loading error:", error);
 
     newsList.innerHTML = `
       <div class="col-span-full glass rounded-2xl p-10 text-center text-red-400">
@@ -577,6 +586,8 @@ async function loadNews() {
         </p>
       </div>
     `;
+    const debugError = document.getElementById("debugError");
+    if (debugError) debugError.textContent = error.message;
   }
 }
 
