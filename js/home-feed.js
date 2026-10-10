@@ -838,6 +838,27 @@ feed.addEventListener("click", async (event) => {
 
       feed.innerHTML = posts.map(renderPost).join("");
 
+    // VIBESPORT_HOME_TRANSFERS
+    const transferFeed = document.getElementById("homeTransferFeed");
+
+    if (transferFeed) {
+      const transferPattern =
+        /transfer|transferred|transfer window|signing|signed|signs for|deal agreed|loan move|loan deal|bid accepted|contract extension|release clause|ዝውውር|ፈረመ|ፈርሟል|ውል|ተስማማ|ኪራይ/iu;
+
+      const transferPosts = posts.filter(post =>
+        transferPattern.test([
+          post.title,
+          post.content,
+          post.authorName
+        ].join(" "))
+      ).slice(0, 8);
+
+      transferFeed.innerHTML = transferPosts.length
+        ? transferPosts.map(renderPost).join("")
+        : '<div class="glass rounded-2xl p-8 text-center text-gray-400 md:col-span-4">አሁን የዝውውር ዜና አልተገኘም። <a href="transfers.html" class="text-green-400 font-bold">ሁሉንም ይመልከቱ →</a></div>';
+    }
+
+
       console.log(
         "VibeSport: API news loaded:",
         posts.length

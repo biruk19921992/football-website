@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeSport | Transfers</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: #07090d;
+      color: white;
+    }
+
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .news-card {
+      transition: 0.25s ease;
+    }
+
+    .news-card:hover {
+      transform: translateY(-4px);
+    }
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    #newsList { width: 100%; min-width: 0; }
+    .news-card { width: 100%; min-width: 0; overflow: hidden; }
+    .news-card img { display: block; max-width: 100%; }
+    .news-card h3, .news-card p { overflow-wrap: anywhere; }
+    @media (max-width: 640px) {
+      main { width: 100%; min-width: 0; }
+      #newsList { grid-template-columns: minmax(0, 1fr) !important; gap: 16px !important; }
+      .news-card img, .news-card > div:first-child { max-width: 100%; }
+    }
+
+
+  /* VIBESPORT PREMIUM NEWS UI */
+  body {
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(34,197,94,.09), transparent 38%),
+      #07090d !important;
+    color: #f8fafc;
+  }
+
+  main {
+    padding-top: 28px !important;
+    padding-bottom: 36px !important;
+  }
+
+  main > div:first-child {
+    position: relative;
+    padding: 22px 20px;
+    margin-bottom: 26px !important;
+    overflow: hidden;
+    border: 1px solid rgba(74,222,128,.16);
+    border-radius: 22px;
+    background: linear-gradient(125deg, rgba(34,197,94,.10), rgba(255,255,255,.025) 58%, rgba(255,255,255,.01));
+  }
+
+  main > div:first-child > p:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+    letter-spacing: .18em;
+  }
+
+  main > div:first-child > p:first-child::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 12px rgba(74,222,128,.7);
+  }
+
+  main > div:first-child h2 {
+    font-size: clamp(30px, 5vw, 44px);
+    line-height: 1.12;
+    letter-spacing: -.045em;
+    font-weight: 900;
+  }
+
+  main > div:first-child > p:last-child {
+    max-width: 520px;
+    line-height: 1.7;
+    color: #9ca3af;
+  }
+
+  #newsList {
+    align-items: stretch;
+    gap: 20px !important;
+  }
+
+  #newsList > .news-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,.085);
+    border-radius: 21px;
+    background: linear-gradient(155deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+    box-shadow: 0 8px 28px rgba(0,0,0,.16);
+    text-decoration: none;
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+
+  #newsList > .news-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(74,222,128,.42);
+    box-shadow: 0 14px 36px rgba(0,0,0,.32), 0 0 18px rgba(34,197,94,.06);
+  }
+
+  .news-card > div:first-child {
+    flex-shrink: 0;
+    aspect-ratio: 16 / 10;
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 15px !important;
+    background: #111820 !important;
+  }
+
+  .news-card > div:first-child img,
+  .news-card > div:first-child > div {
+    width: 100%;
+    height: 100% !important;
+    min-height: 0;
+    border-radius: 15px;
+  }
+
+  .news-card > div:first-child img {
+    object-fit: cover;
+    transition: transform .45s ease, filter .3s ease;
+  }
+
+  .news-card:hover > div:first-child img {
+    transform: scale(1.045);
+    filter: brightness(1.08);
+  }
+
+  .news-card > div:first-child > span {
+    max-width: 46%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    backdrop-filter: blur(8px);
+  }
+
+  .news-card > div:first-child > span:first-of-type {
+    background: #4ade80;
+    color: #07110a;
+    letter-spacing: .06em;
+  }
+
+  .news-card > div:first-child > span:last-of-type {
+    background: rgba(7,9,13,.86);
+    color: #e5e7eb;
+    border: 1px solid rgba(255,255,255,.13);
+  }
+
+  .news-card > div:last-child {
+    flex: 1;
+    padding: 15px 5px 7px !important;
+  }
+
+  .news-card h3 {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.65;
+    letter-spacing: -.015em;
+    color: #f3f4f6;
+    transition: color .2s ease;
+  }
+
+  .news-card:hover h3 {
+    color: #4ade80 !important;
+  }
+
+  .news-card p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    margin-top: 8px;
+    color: #9ca3af;
+    font-size: 12px;
+    line-height: 1.75;
+  }
+
+  .news-card:focus-visible {
+    outline: 2px solid #4ade80;
+    outline-offset: 3px;
+  }
+
+  @media (min-width: 1280px) {
+    #newsList {
+      gap: 22px !important;
+    }
+  }
+
+  @media (max-width: 640px) {
+    main {
+      padding: 22px 14px 28px !important;
+    }
+
+    main > div:first-child {
+      padding: 20px 16px;
+      border-radius: 19px;
+      margin-bottom: 20px !important;
+    }
+
+    #newsList {
+      grid-template-columns: minmax(0, 1fr) !important;
+      gap: 16px !important;
+    }
+
+    #newsList > .news-card {
+      display: grid;
+      grid-template-columns: 42% minmax(0, 1fr);
+      align-items: stretch;
+      gap: 12px;
+      padding: 9px;
+      border-radius: 18px;
+    }
+
+    .news-card > div:first-child {
+      aspect-ratio: 4 / 5;
+      min-height: 125px;
+      height: 100%;
+    }
+
+    .news-card > div:first-child img,
+    .news-card > div:first-child > div {
+      height: 100% !important;
+      min-height: 125px;
+    }
+
+    .news-card > div:first-child > span {
+      top: 6px;
+      left: 6px;
+      right: auto;
+      max-width: calc(100% - 12px);
+      padding: 4px 6px;
+      font-size: 8px;
+    }
+
+    .news-card > div:first-child > span:last-of-type {
+      display: none;
+    }
+
+    .news-card > div:last-child {
+      align-self: center;
+      min-width: 0;
+      padding: 4px 2px !important;
+    }
+
+    .news-card h3 {
+      font-size: 13px;
+      line-height: 1.55;
+      -webkit-line-clamp: 4;
+    }
+
+    .news-card p {
+      font-size: 11px;
+      line-height: 1.6;
+      -webkit-line-clamp: 3;
+      margin-top: 6px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .news-card,
+    .news-card img,
+    .news-card h3 {
+      transition: none !important;
+    }
+  }
+
+
+/* VIBESPORT NEWS PREMIUM POLISH V2 */
+#newsList .news-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 22px;
+  background: linear-gradient(145deg,rgba(22,29,37,.96),rgba(9,13,19,.98));
+  box-shadow: 0 10px 28px rgba(0,0,0,.18);
+  transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+}
+#newsList .news-card img {
+  transition: transform .4s ease, filter .3s ease;
+}
+#newsList .news-card:hover img {
+  transform: scale(1.045);
+  filter: brightness(1.06);
+}
+#newsList .news-card h3 {
+  color: #f8fafc;
+  line-height: 1.45;
+  letter-spacing: -.02em;
+  transition: color .2s ease;
+}
+#newsList .news-card:hover h3 {
+  color: #86efac;
+}
+#newsList .news-card p {
+  color: #aab5c3;
+  line-height: 1.7;
+}
+#newsList .news-card:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 4px;
+}
+@media (min-width: 768px) {
+  #newsList .news-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(34,197,94,.4);
+    box-shadow: 0 18px 40px rgba(0,0,0,.3);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #newsList .news-card,
+  #newsList .news-card img,
+  #newsList .news-card h3 {
+    transition: none !important;
+  }
+}
+
+</style>
+</head>
+
+<body class="pb-20">
+
+<header class="sticky top-0 z-50 border-b border-white/10 bg-[#07090d]/90 backdrop-blur-xl">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="h-16 flex items-center justify-between">
+
+      <a href="index.html" class="flex items-center gap-2">
+        <div>
+          <h1 class="font-black text-xl tracking-tight">
+            Vibe<span class="text-green-400">Sport</span>
+          </h1>
+          <p class="text-[9px] text-gray-500 tracking-[3px]">
+            SPORTS NEWS
+          </p>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-7 text-sm font-semibold">
+        <a href="index.html" class="text-gray-300 hover:text-green-400">Home</a>
+        <a href="news.html" class="text-green-400">News</a>
+        <a href="scores.html" class="text-gray-300 hover:text-green-400">Scores</a>
+        <a href="fixtures.html" class="text-gray-300 hover:text-green-400">Fixtures</a>
+        <a href="transfers.html" class="text-green-400">Transfers</a>
+        <a href="videos.html" class="text-gray-300 hover:text-green-400">Videos</a>
+      </nav>
+
+
+
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-10">
+
+  <div class="mb-8">
+    <p class="text-green-400 text-xs font-black tracking-widest uppercase">
+      Stay updated
+    </p>
+
+    <h2 class="text-3xl md:text-4xl font-black mt-1">
+      Transfer News
+    </h2>
+
+    <p class="text-gray-500 mt-2">
+      Football transfer news, rumours and confirmed deals.
+    </p>
+  </div>
+
+  <div id="newsList"
+       class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+    <div class="col-span-full glass rounded-2xl p-10 text-center text-gray-500">
+      <i class="fa-solid fa-spinner fa-spin text-green-400 text-2xl mb-3"></i>
+      <p>Loading news...</p>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+const newsList = document.getElementById("newsList");
+
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function timeAgo(timestamp) {
+  if (!timestamp) return "Recently";
+
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return "Recently";
+
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+
+  if (seconds < 60) return "Just now";
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hours ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} days ago`;
+
+  return date.toLocaleDateString();
+}
+
+async function loadNews() {
+  try {
+    newsList.innerHTML = `
+      <div class="col-span-full glass rounded-2xl p-10 text-center text-gray-500">
+        <i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i>
+        <p>Loading transfer news...</p>
+      </div>
+    `;
+
+    const response = await fetch("https://footballxtra-website.onrender.com/api/news?refresh=" + Date.now(), { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error(`News API HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const news = Array.isArray(data.news)
+      ? data.news
+      : [];
+
+    const transferTerms = /transfer|transfers|signed|signing|loan deal|transfer fee|bid for|contract extension|departure|joins|joined|አዲስ ውል|ዝውውር|ፈረመ|ተፈራረመ/;
+
+    const transferNews = news.filter(item => {
+      const text = [
+        item.headline, item.titleAm, item.description,
+        item.descriptionAm, item.category
+      ].filter(Boolean).join(" ");
+      return transferTerms.test(text);
+    });
+
+    if (!transferNews.length) {
+      newsList.innerHTML = `
+        <div class="col-span-full glass rounded-2xl p-10 text-center text-gray-500">
+          <i class="fa-regular fa-newspaper text-3xl mb-3"></i>
+          <p>No transfer news found yet.</p>
+        </div>
+      `;
+      return;
+    }
+
+    newsList.innerHTML = transferNews.map(item => {
+      const title = item.titleAm || item.headline || "Untitled news";
+      const source = item.source || "Football";
+      const sourceUrl = item.link || "";
+
+      return `
+        <a
+          href="article.html?id=${encodeURIComponent(item.id)}"
+          class="news-card block group"
+          aria-label="Read ${escapeHTML(title)}"
+        >
+          <div class="relative overflow-hidden rounded-2xl bg-white/5">
+
+            ${
+              item.image
+              ? `
+                <img
+                  src="${escapeHTML(item.image)}"
+                  alt="${escapeHTML(title)}"
+                  class="w-full h-52 object-cover transition duration-300 group-hover:scale-105">
+              `
+              : `
+                <div class="w-full h-52 flex items-center justify-center text-green-400">
+                  <i class="fa-regular fa-newspaper text-4xl"></i>
+                </div>
+              `
+            }
+
+            <span class="absolute top-3 left-3 bg-green-500 text-black text-[10px] font-black px-2.5 py-1 rounded-md uppercase">
+              Football
+            </span>
+
+            <span class="absolute top-3 right-3 bg-white text-black text-[10px] font-black px-2.5 py-1 rounded-md uppercase shadow-lg">
+              ${escapeHTML(source)}
+            </span>
+
+          </div>
+
+          <div class="pt-4">
+
+            <h3 class="font-bold text-base leading-6 group-hover:text-green-400 transition">
+              ${escapeHTML(title)}
+            </h3>
+
+            ${
+              (item.descriptionAm || item.description)
+              ? `
+                <p class="text-sm text-gray-400 mt-2 line-clamp-2">
+                  ${escapeHTML(item.descriptionAm || item.description)}
+                </p>
+              `
+              : ""
+            }
+
+            <p class="text-xs text-gray-500 mt-2">
+              ${timeAgo(item.published)}
+            </p>
+
+            <div class="flex items-center justify-between gap-3 mt-4">
+
+              <span class="inline-flex items-center gap-2 text-sm font-bold text-green-400">
+                Read full story
+                <span class="transition-transform duration-200 group-hover:translate-x-1">→</span>
+              </span>
+
+              ${
+                sourceUrl
+                ? `
+                  <span class="text-[10px] font-bold text-gray-500 uppercase">
+                    Source: ${escapeHTML(source)}
+                  </span>
+                `
+                : ""
+              }
+
+            </div>
+
+          </div>
+        </a>
+      `;
+    }).join("");
+
+  } catch (error) {
+    console.error("News loading error:", error); document.getElementById("debugError").textContent = error.message;
+
+    newsList.innerHTML = `
+      <div class="col-span-full glass rounded-2xl p-10 text-center text-red-400">
+        <i class="fa-solid fa-triangle-exclamation text-2xl mb-3"></i>
+        <p>Failed to load football news.</p><p id="debugError" class="text-xs mt-2 text-yellow-400"></p>
+        <p class="text-xs text-gray-500 mt-2">
+          Please try again.
+        </p>
+      </div>
+    `;
+  }
+}
+
+loadNews();
+
+setInterval(loadNews, 60 * 1000);
+</script>
+
+<nav class="bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0b0f15]/95 backdrop-blur-xl border-t border-white/10">
+  <div class="grid grid-cols-6 h-16">
+    <a href="index.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-house"></i>
+      <span class="text-[9px] mt-1">Home</span>
+    </a>
+    <a href="news.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-regular fa-newspaper"></i>
+      <span class="text-[9px] mt-1">News</span>
+    </a>
+    <a href="scores.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-futbol"></i>
+      <span class="text-[9px] mt-1">Soccer</span>
+    </a>
+    <a href="predictions.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-solid fa-ranking-star"></i>
+      <span class="text-[9px] mt-1">Predictions</span>
+    </a>
+    <a href="videos.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-brands fa-youtube"></i>
+      <span class="text-[9px] mt-1">Videos</span>
+    </a>
+    <a id="mobileAccountLink" href="login.html" class="flex flex-col items-center justify-center text-gray-500">
+      <i class="fa-regular fa-user"></i>
+      <span class="text-[9px] mt-1">Profile</span>
+    </a>
+  </div>
+</nav>
+<script src="./js/mini-player.js"></script>
+
+<style id="vibesport-nav-active-style">
+.bottom-nav a.nav-active {
+  color: #4ade80 !important;
+}
+</style>
+<!-- VIBESPORT NAV ACTIVE STATE -->
+<script>
+(function () {
+  function normalizePage(value) {
+    const parts = (value || '').split(/[?#]/)[0].split('/').filter(Boolean);
+    let page = (parts.length ? parts[parts.length - 1] : 'index.html').toLowerCase();
+    page = page.replace(/\.html$/, '');
+    return page || 'index';
+  }
+
+  function updateActiveNav() {
+    const nav = document.querySelector('.bottom-nav');
+    if (!nav) return;
+
+    const page = normalizePage(location.pathname);
+
+    nav.querySelectorAll('a').forEach(function (link) {
+      const href = normalizePage(link.getAttribute('href'));
+      const accountPage = link.id === 'mobileAccountLink' &&
+        ['profile', 'login', 'signup'].includes(page);
+      const active = href === page || accountPage;
+
+      link.classList.toggle('nav-active', active);
+      link.classList.toggle('text-gray-500', !active);
+      link.classList.toggle('text-green-400', active);
+
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateActiveNav);
+  } else {
+    updateActiveNav();
+  }
+})();
+</script>
+
+</body>
+</html>

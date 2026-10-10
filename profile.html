@@ -2086,6 +2086,11 @@ import { telegramNewsDb } from "./js/telegram-news-firebase.js";
 
     updatePremiumPaymentDetails();
 
+    if (new URLSearchParams(window.location.search).get("openPremium") === "1" && premiumModal) {
+      premiumModal.classList.remove("hidden");
+      updatePremiumPaymentDetails();
+    }
+
     // AUTH
     const profileUid = new URLSearchParams(window.location.search).get("uid");
     watchAuth(async (user) => {
