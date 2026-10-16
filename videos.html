@@ -613,6 +613,13 @@ function renderVideos() {
     videoSearch.value.trim().toLowerCase();
 
   const filtered = allVideos.filter(video => {
+    const rawDate = video.createdAt || video.updatedAt;
+    const videoDate = rawDate?.toDate ? rawDate.toDate() : new Date(rawDate);
+    const isRecent =
+      rawDate &&
+      !Number.isNaN(videoDate.getTime()) &&
+      videoDate.getTime() >= Date.now() - 14 * 24 * 60 * 60 * 1000;
+
 
 
     const title =
@@ -633,7 +640,7 @@ function renderVideos() {
       activeCategory === "all" ||
       category === activeCategory;
 
-    return matchesSearch && matchesCategory;
+    return isRecent && matchesSearch && matchesCategory;
 
   });
 
@@ -665,16 +672,26 @@ function renderVideos() {
   }
 
 
-  const sortedVideos = [...filtered].sort(
-    (a, b) =>
-      Number(b.viewsCount || 0) -
-      Number(a.viewsCount || 0)
-  );
+  const sortedVideos = [...filtered].sort((a, b) => {
+    const da = a.createdAt || a.updatedAt;
+    const db = b.createdAt || b.updatedAt;
+    const dateA = da?.toDate ? da.toDate() : new Date(da);
+    const dateB = db?.toDate ? db.toDate() : new Date(db);
+    return dateB - dateA;
+  });
 
   renderFeatured(sortedVideos[0]);
 
   videoList.innerHTML =
-    sortedVideos.slice(1).map(video => {
+    sortedVideos.slice(1).map((video, index, list) => {
+      const dayKey = item => {
+        const raw = item.createdAt || item.updatedAt;
+        const date = raw?.toDate ? raw.toDate() : new Date(raw);
+        return date.toLocaleDateString("en-CA");
+      };
+      const currentDay = dayKey(video);
+      const previousDay = index > 0 ? dayKey(list[index - 1]) : "";
+
 
       const youtubeId =
         video.youtubeId ||
@@ -686,7 +703,9 @@ function renderVideos() {
         `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
 
       return `
-
+        ${index === 0 || currentDay !== previousDay
+          ? `<div class="col-span-full text-sm font-bold text-gray-400 mt-5 mb-1">${escapeHTML(formatDate(video.createdAt || video.updatedAt))}</div>`
+          : ""}
         <article
           class="video-card overflow-hidden rounded-2xl"
         >
