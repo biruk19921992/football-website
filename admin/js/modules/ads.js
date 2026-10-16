@@ -163,6 +163,7 @@ export async function renderAdsModule(container) {
               <select id="placement"
                 class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 outline-none">
                 <option value="homepage">Homepage</option>
+                <option value="sidebar">Sidebar</option>
                 <option value="news">News</option>
                 <option value="videos">Videos</option>
                 <option value="scores">Live Scores</option>
@@ -179,6 +180,18 @@ export async function renderAdsModule(container) {
                 placeholder="0">
             </div>
 
+          </div>
+
+          <div class="mt-4">
+            <label class="block text-xs font-bold text-gray-400 mb-2">
+              Display Position
+            </label>
+            <select id="adPosition"
+              class="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 outline-none">
+              <option value="top">Top — ከላይ</option>
+              <option value="middle">Middle — መካከል</option>
+              <option value="bottom">Bottom — ከታች</option>
+            </select>
           </div>
 
           <div>
@@ -316,6 +329,7 @@ export async function renderAdsModule(container) {
       container.querySelector("#active").checked = true;
       container.querySelector("#adType").value = "image";
       container.querySelector("#placement").value = "homepage";
+      container.querySelector("#adPosition").value = "top";
       container.querySelector("#adEditorTitle").textContent = "Add Advertisement";
       resetPreview();
       return;
@@ -327,6 +341,7 @@ export async function renderAdsModule(container) {
     container.querySelector("#advertiser").value = ad.advertiser || "";
     container.querySelector("#adType").value = ad.type || "image";
     container.querySelector("#placement").value = ad.placement || "homepage";
+    container.querySelector("#adPosition").value = ad.position || "top";
     container.querySelector("#priority").value = ad.priority ?? 0;
     container.querySelector("#clickUrl").value = ad.clickUrl || "";
     container.querySelector("#active").checked = ad.active !== false;
@@ -378,6 +393,7 @@ export async function renderAdsModule(container) {
     const advertiser = container.querySelector("#advertiser").value.trim();
     const type = container.querySelector("#adType").value;
     const placement = container.querySelector("#placement").value;
+    const position = container.querySelector("#adPosition").value;
     const clickUrl = container.querySelector("#clickUrl").value.trim();
     const priority = Number(container.querySelector("#priority").value || 0);
     const active = container.querySelector("#active").checked;
@@ -407,6 +423,7 @@ export async function renderAdsModule(container) {
         mediaUrl: mediaUrl.value,
         clickUrl,
         placement,
+        position,
         active,
         priority,
         startAt: startAt.value ? new Date(startAt.value) : null,
