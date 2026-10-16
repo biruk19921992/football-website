@@ -325,7 +325,7 @@ document.addEventListener("click", async (event) => {
       console.log("❤️ Like updated:", id);
     } catch (error) {
       console.error("❌ Like update failed:", error);
-      alert("Like ማስቀመጥ አልተቻለም።");
+      alert("Like error: " + (error.code || error.message));
     }
 
     return;
@@ -442,7 +442,7 @@ document.addEventListener("click", async (event) => {
       console.log("🔁 Repost saved:", id);
     } catch (error) {
       console.error("❌ Repost failed:", error);
-      alert("Repost ማድረግ አልተቻለም።");
+      alert("Repost error: " + (error.code || error.message));
     }
 
     return;

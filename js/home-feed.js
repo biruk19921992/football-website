@@ -12,6 +12,7 @@ import {
   setDoc,
   deleteDoc,
   getDoc,
+  getDocs,
   addDoc,
   serverTimestamp,
   increment,
@@ -137,6 +138,8 @@ if (!feed) {
     return number;
   }
 
+  const apiNewsCache = new Map();
+
   function renderPost(post) {
 
     const isVideo =
@@ -146,6 +149,7 @@ if (!feed) {
       <article
         class="social-post glass rounded-2xl overflow-hidden border border-white/10"
         data-post-id="${escapeHTML(post.id)}">
+        ${post.repostedByName ? `<div class="px-4 pt-3 flex items-center gap-2 text-xs text-gray-400"><i class="fa-solid fa-retweet text-green-400"></i>${post.repostedByPhoto ? `<img src="${escapeHTML(post.repostedByPhoto)}" class="w-7 h-7 rounded-full object-cover border border-green-400/50" alt="${escapeHTML(post.repostedByName)}">` : `<div class="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-green-700 flex items-center justify-center text-black font-bold">${escapeHTML((post.repostedByName || "V").charAt(0).toUpperCase())}</div>`}<span><strong class="text-white">${escapeHTML(post.repostedByName)}</strong> reposted</span></div>` : ""}
 
         <!-- AUTHOR -->
 
@@ -402,7 +406,7 @@ if (!feed) {
       return;
     }
 
-    if (postId.startsWith("demo-")) {
+    if (postId.startsWith("demo-") || postId.startsWith("api-news-")) {
       button.classList.toggle("text-red-400");
 
       const icon =
@@ -599,7 +603,6 @@ if (!feed) {
 
 
   async function handleRepost(postId) {
-
     const user = auth.currentUser;
 
     if (!user) {
@@ -608,46 +611,73 @@ if (!feed) {
     }
 
     if (postId.startsWith("demo-")) {
-      alert("Demo repost. Firebase post required.");
+      alert("Demo posts cannot be reposted.");
       return;
     }
 
-    const repostRef =
-      doc(
-        db,
-        "posts",
-        postId,
-        "reposts",
-        user.uid
-      );
+    try {
+      if (postId.startsWith("api-news-")) {
+        const original = apiNewsCache.get(postId);
 
-    const existing =
-      await getDoc(repostRef);
+        if (!original) {
+          alert("News not found. Refresh the page and try again.");
+          return;
+        }
 
-    if (existing.exists()) {
+        const repostId = encodeURIComponent(postId + "__" + user.uid);
+        const repostRef = doc(db, "publicReposts", repostId);
+        const existing = await getDoc(repostRef);
 
-      alert("You already reposted this.");
+        if (existing.exists()) {
+          alert("You already reposted this.");
+          return;
+        }
 
-      return;
-    }
+        await setDoc(repostRef, {
+          uid: user.uid,
+          repostedByName: user.displayName || "VibeSport user",
+          repostedByPhoto: user.photoURL || "",
+          originalPostId: postId,
+          originalAuthorName: original.authorName || "VibeSport",
+          authorUsername: original.authorUsername || "@vibesport",
+          title: original.title || "",
+          content: original.content || "",
+          image: original.image || "",
+          sourceUrl: original.sourceUrl || "",
+          createdAt: serverTimestamp(),
+          likesCount: 0,
+          commentsCount: 0,
+          repostsCount: 0
+        });
 
-    await setDoc(repostRef, {
-      uid: user.uid,
-      createdAt: serverTimestamp()
-    });
-
-    await updateDoc(
-      doc(db, "posts", postId),
-      {
-        repostsCount:
-          increment(1)
+        alert("Reposted successfully 🔁");
+        await loadFirestorePosts();
+        return;
       }
-    );
 
-    alert("Reposted successfully 🔁");
+      const repostRef = doc(db, "posts", postId, "reposts", user.uid);
+      const existing = await getDoc(repostRef);
 
+      if (existing.exists()) {
+        alert("You already reposted this.");
+        return;
+      }
+
+      await setDoc(repostRef, {
+        uid: user.uid,
+        createdAt: serverTimestamp()
+      });
+
+      await updateDoc(doc(db, "posts", postId), {
+        repostsCount: increment(1)
+      });
+
+      alert("Reposted successfully 🔁");
+    } catch (error) {
+      console.error("Repost error:", error);
+      alert("Repost failed: " + (error.code || error.message || String(error)));
+    }
   }
-
 
   async function handleShare(postId) {
 
@@ -738,9 +768,7 @@ feed.addEventListener("click", async (event) => {
         error
       );
 
-      alert(
-        "Something went wrong. Please try again."
-      );
+      alert("Feed action error: " + (error.code || error.message || String(error)));
 
     }
 
@@ -789,16 +817,13 @@ feed.addEventListener("click", async (event) => {
 
 
   async function loadFirestorePosts() {
-    console.log("VibeSport: loadFirestorePosts STARTED");
-    console.log("VibeSport: loading latest news from API");
-
+    console.log("VibeSport: loading API news and public reposts");
     feed.innerHTML =
       '<div class="p-6 text-center text-gray-400">Loading latest news...</div>';
 
     try {
       const response = await fetch(
-        "https://footballxtra-website.onrender.com/api/news?refresh=" +
-        Date.now()
+        "https://footballxtra-website.onrender.com/api/news?refresh=" + Date.now()
       );
 
       if (!response.ok) {
@@ -807,68 +832,93 @@ feed.addEventListener("click", async (event) => {
 
       const data = await response.json();
       const news = Array.isArray(data.news) ? data.news : [];
+      const repostSnapshot = await getDocs(collection(db, "publicReposts"));
+      const repostCounts = new Map();
 
-      if (!news.length) {
-        feed.innerHTML =
-          '<div class="p-6 text-center text-gray-400">No news available.</div>';
-        return;
+      const repostPosts = repostSnapshot.docs.map((snap) => {
+        const item = snap.data();
+
+        if (item.originalPostId) {
+          repostCounts.set(
+            item.originalPostId,
+            (repostCounts.get(item.originalPostId) || 0) + 1
+          );
+        }
+
+        return {
+          id: item.originalPostId || "public-repost-" + snap.id,
+          type: "news",
+          authorName: item.originalAuthorName || "VibeSport",
+          authorUsername: item.authorUsername || "@vibesport",
+          authorPhoto: "",
+          verified: true,
+          title: item.title || "",
+          content: item.content || "",
+          image: item.image || "",
+          likesCount: Number(item.likesCount || 0),
+          commentsCount: Number(item.commentsCount || 0),
+          repostsCount: Number(item.repostsCount || 0),
+          createdAt: item.createdAt || null,
+          sourceUrl: item.sourceUrl || "",
+          repostedByName: item.repostedByName || "VibeSport user",
+          repostedByPhoto: item.repostedByPhoto || ""
+        };
+      });
+
+      const posts = news.slice(0, 20).map((item) => {
+        const id = "api-news-" + (item.id || crypto.randomUUID());
+        const post = {
+          id,
+          type: "news",
+          authorName: item.source || "VibeSport",
+          authorUsername: item.source
+            ? "@" + String(item.source).toLowerCase().replace(/[^a-z0-9]/g, "")
+            : "@vibesport",
+          authorPhoto: "",
+          verified: true,
+          title: item.titleAm || item.headline || item.title || "",
+          content: item.descriptionAm || item.description || "",
+          image: item.image || "",
+          likesCount: Number(item.likesCount || 0),
+          commentsCount: Number(item.commentsCount || 0),
+          repostsCount:
+            Number(item.repostsCount || 0) + (repostCounts.get(id) || 0),
+          createdAt: item.published || null,
+          sourceUrl: item.sourceUrl || item.link || ""
+        };
+
+        apiNewsCache.set(id, post);
+        return post;
+      });
+
+      const allPosts = [...repostPosts, ...posts];
+
+      feed.innerHTML = allPosts.length
+        ? allPosts.map(renderPost).join("")
+        : '<div class="p-6 text-center text-gray-400">No news available.</div>';
+
+      const transferFeed = document.getElementById("homeTransferFeed");
+      if (transferFeed) {
+        const transferPattern =
+          /transfer|transferred|transfer window|signing|signed|signs for|deal agreed|loan move|loan deal|bid accepted|contract extension|release clause|ዝውውር|ፈረመ|ፈርሟል|ውል|ተስማማ|ኪራይ/iu;
+
+        const transferPosts = posts.filter((post) =>
+          transferPattern.test([post.title, post.content, post.authorName].join(" "))
+        ).slice(0, 8);
+
+        transferFeed.innerHTML = transferPosts.length
+          ? transferPosts.map(renderPost).join("")
+          : '<div class="glass rounded-2xl p-8 text-center text-gray-400 md:col-span-4">አሁን የዝውውር ዜና አልተገኘም። <a href="transfers.html" class="text-green-400 font-bold">ሁሉንም ይመልከቱ →</a></div>';
       }
-
-      const posts = news.slice(0, 20).map((item) => ({
-        id: "api-news-" + (item.id || crypto.randomUUID()),
-        type: "news",
-        authorName: item.source || "VibeSport",
-        authorUsername: item.source
-          ? "@" + String(item.source).toLowerCase().replace(/[^a-z0-9]/g, "")
-          : "@vibesport",
-        authorPhoto: "",
-        verified: true,
-        title: item.titleAm || item.headline || item.title || "",
-        content:
-          item.descriptionAm ||
-          item.description ||
-          "",
-        image: item.image || "",
-        likesCount: Number(item.likesCount || 0),
-        commentsCount: Number(item.commentsCount || 0),
-        repostsCount: Number(item.repostsCount || 0),
-        createdAt: item.published || null,
-        sourceUrl: item.sourceUrl || item.link || ""
-      }));
-
-      feed.innerHTML = posts.map(renderPost).join("");
-
-    // VIBESPORT_HOME_TRANSFERS
-    const transferFeed = document.getElementById("homeTransferFeed");
-
-    if (transferFeed) {
-      const transferPattern =
-        /transfer|transferred|transfer window|signing|signed|signs for|deal agreed|loan move|loan deal|bid accepted|contract extension|release clause|ዝውውር|ፈረመ|ፈርሟል|ውል|ተስማማ|ኪራይ/iu;
-
-      const transferPosts = posts.filter(post =>
-        transferPattern.test([
-          post.title,
-          post.content,
-          post.authorName
-        ].join(" "))
-      ).slice(0, 8);
-
-      transferFeed.innerHTML = transferPosts.length
-        ? transferPosts.map(renderPost).join("")
-        : '<div class="glass rounded-2xl p-8 text-center text-gray-400 md:col-span-4">አሁን የዝውውር ዜና አልተገኘም። <a href="transfers.html" class="text-green-400 font-bold">ሁሉንም ይመልከቱ →</a></div>';
-    }
-
 
       console.log(
         "VibeSport: API news loaded:",
-        posts.length
+        posts.length,
+        "public reposts:",
+        repostPosts.length
       );
     } catch (error) {
-      console.error(
-        "News API loading error:",
-        error
-      );
-
+      console.error("News API loading error:", error);
       feed.innerHTML =
         '<div class="p-6 text-center text-red-400">Could not load latest news.</div>';
     }

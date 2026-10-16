@@ -77,6 +77,55 @@
   </style>
 <link rel="stylesheet" href="./css/vibesport-premium.css?v=1">
   <meta name="google-site-verification" content="c5XH7dCWKIZ8KqhAYLkvUkqsYV6tijswe3PFzVBTemA" />
+
+<style id="vibesport-homepage-polish">
+.hero {
+  isolation: isolate;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 85% 25%, rgba(34,197,94,.16), transparent 48%),
+    linear-gradient(110deg, rgba(7,9,13,.12), rgba(7,9,13,.48));
+}
+.hero > div {
+  position: relative;
+  z-index: 1;
+}
+.hero h2 {
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+.hero p {
+  max-width: 42rem;
+}
+#homeLiveScores > div,
+#homeSocialFeed > div,
+#homeLatestVideos > div,
+#homeHighlights > div {
+  transition: transform .2s ease, border-color .2s ease;
+}
+#homeLiveScores > div:hover,
+#homeSocialFeed > div:hover,
+#homeLatestVideos > div:hover,
+#homeHighlights > div:hover {
+  transform: translateY(-3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  #homeLiveScores > div,
+  #homeSocialFeed > div,
+  #homeLatestVideos > div,
+  #homeHighlights > div {
+    transition: none;
+  }
+}
+</style>
+
 </head>
 
 <body class="pb-20 md:pb-0">
@@ -257,7 +306,7 @@
 
 <!-- ================= HERO ================= -->
 
-<section class="hero min-h-[480px] flex items-center">
+<section class="hero min-h-[480px] flex items-center relative isolate overflow-hidden rounded-b-3xl">
 
   <div class="max-w-7xl mx-auto px-4 w-full">
 
@@ -266,7 +315,7 @@
       <span class="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full text-xs font-bold mb-5">
 
         <i class="fa-solid fa-fire"></i>
-        የዝውውር ዜናዎች
+        VibeSport • የእግር ኳስ ዜና
 
       </span>
 
@@ -391,24 +440,6 @@
 </section>
 
 
-<!-- ================= HOME TRANSFER NEWS ================= -->
-<section class="mt-14">
-  <div class="flex items-end justify-between mb-6 gap-3">
-    <div>
-      <p class="text-green-400 text-xs font-black tracking-widest">TRANSFER NEWS</p>
-      <h2 class="text-2xl md:text-3xl font-black mt-1">🔥 የዝውውር ዜናዎች</h2>
-    </div>
-    <a href="transfers.html" class="text-sm text-green-400 font-bold whitespace-nowrap">
-      ሁሉንም ይመልከቱ →
-    </a>
-  </div>
-  <div id="homeTransferFeed" class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-    <div class="glass rounded-2xl p-8 text-center text-gray-500 md:col-span-4">
-      የዝውውር ዜናዎች በመጫን ላይ...
-    </div>
-  </div>
-</section>
-
 <!-- ================= LATEST VIDEOS ================= -->
 <section class="mt-14">
   <div class="flex justify-between items-center mb-6">
@@ -477,8 +508,9 @@
       </div>
 
       <a
-        href="#"
-        class="bg-black text-white px-6 py-3 rounded-xl font-bold text-center">
+        href="https://t.me/FootballXtranews"
+        target="_blank" rel="noopener noreferrer"
+        class="bg-black text-white px-6 py-3 rounded-xl font-bold text-center transition hover:bg-gray-900">
 
         ቻናሉን ይቀላቀሉ
         <i class="fa-solid fa-arrow-right ml-2"></i>
@@ -718,6 +750,33 @@
 
 
 <!-- ================= FOOTER ================= -->
+
+<section id="vibesport-app-coming-soon" class="mx-auto max-w-6xl px-4 py-6">
+  <div class="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-5 text-gray-900 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white sm:flex-row sm:items-center">
+    <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-green-400 to-emerald-700 text-white shadow-md">
+      <i class="fa-solid fa-futbol text-4xl" aria-hidden="true"></i>
+    </div>
+
+    <div class="min-w-0 flex-1">
+      <h2 class="text-xl font-bold">VibeSport</h2>
+      <p class="mt-1 text-sm font-medium text-green-700 dark:text-green-400">Football News & Scores</p>
+      <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+        የእግር ኳስ ዜናዎችን፣ ውጤቶችንና የቀጥታ ዝመናዎችን በአንድ ቦታ ይከታተሉ።
+      </p>
+      <p class="mt-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        Sports · Coming soon
+      </p>
+    </div>
+
+    <div class="flex shrink-0 flex-col gap-2 sm:min-w-32">
+      <button type="button" disabled aria-disabled="true"
+        class="cursor-not-allowed rounded-full bg-gray-200 px-6 py-2.5 text-sm font-bold text-gray-500 dark:bg-gray-700 dark:text-gray-300">
+        Coming soon
+      </button>
+      <p class="text-center text-xs text-gray-500 dark:text-gray-400">በቅርቡ ይመጣል</p>
+    </div>
+  </div>
+</section>
 
 <footer class="border-t border-white/10 mt-10">
 
@@ -1216,6 +1275,9 @@
   }
 })();
 </script>
+
+
+
 
 </body>
 </html>

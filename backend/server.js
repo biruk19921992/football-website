@@ -1989,50 +1989,81 @@ app.get("/api/news", async (req, res) => {
 ========================= */
 app.get("/api/transfers", async (req, res) => {
   try {
-    const snapshot = await firestore.collection("news").limit(100).get();
-
+    const snapshot = await firestore.collection("news").limit(500).get();
     const hasAmharic = (value) =>
       typeof value === "string" && /[\u1200-\u137F]/.test(value.trim());
-
+    const hasEnglishWords = (value) =>
+      typeof value === "string" && /[A-Za-z]{3,}/.test(value);
+    const genericDescription = (value) =>
+      typeof value === "string" &&
+      /LiveScore|read the full story|full story on|ሙሉ ዜናውን/i.test(value);
     const transferTerms =
       /transfer|signed|signing|loan|bid|contract|joins|joined|departure|ዝውውር|ፈረመ|ተፈራረመ|አዲስ ውል/i;
 
-    const news = snapshot.docs
-      .map((doc) => {
-        const d = doc.data();
-        const published = d.publishedAt || d.createdAt;
-        return {
-          id: doc.id,
-          headline: d.title || "",
-          titleAm: d.titleAm || "",
-          description: d.description || "",
-          descriptionAm: d.descriptionAm || "",
-          source: d.source || d.author || "Football",
-          image: d.image || d.imageUrl || d.thumbnailUrl || "",
-          link: d.sourceUrl || d.originalUrl || "",
-          published: published && typeof published.toDate === "function"
-            ? published.toDate().toISOString()
-            : (published || null),
-          category: d.category || ""
-        };
-      })
-      .filter((item) =>
-        hasAmharic(item.titleAm) &&
-        hasAmharic(item.descriptionAm) &&
-        transferTerms.test([
-          item.headline,
-          item.titleAm,
-          item.description,
-          item.descriptionAm,
-          item.category
-        ].join(" "))
-      )
-      .sort((a, b) => {
-        const dateA = Date.parse(a.published || "") || 0;
-        const dateB = Date.parse(b.published || "") || 0;
-        return dateB - dateA;
-      });
+    const candidates = snapshot.docs.map((doc) => {
+      const d = doc.data();
+      const published = d.publishedAt || d.createdAt;
+      return {
+        id: doc.id,
+        headline: d.title || "",
+        titleAm: d.titleAm || "",
+        description: d.description || "",
+        descriptionAm: d.descriptionAm || "",
+        source: d.source || d.author || "Football",
+        image: d.image || d.imageUrl || d.thumbnailUrl || "",
+        link: d.sourceUrl || d.originalUrl || "",
+        published: published && typeof published.toDate === "function"
+          ? published.toDate().toISOString()
+          : (published || null),
+        category: d.category || ""
+      };
+    }).filter((item) =>
+      transferTerms.test([
+        item.headline, item.titleAm, item.description,
+        item.descriptionAm, item.category
+      ].join(" "))
+    ).sort((a, b) => {
+      const qualityA = Number(hasAmharic(a.titleAm) && hasAmharic(a.descriptionAm));
+      const qualityB = Number(hasAmharic(b.titleAm) && hasAmharic(b.descriptionAm));
+      if (qualityA !== qualityB) return qualityB - qualityA;
+      return (Date.parse(b.published || "") || 0) -
+        (Date.parse(a.published || "") || 0);
+    }).slice(0, 60);
 
+    const translated = await Promise.all(candidates.map(async (item) => {
+      const titleAm = hasAmharic(item.titleAm)
+        ? item.titleAm
+        : await translateToAmharic(item.headline);
+      const descriptionAm = hasAmharic(item.descriptionAm)
+        ? item.descriptionAm
+        : await translateToAmharic(item.description);
+
+      if (
+        !hasAmharic(titleAm) ||
+        titleAm.trim() === item.headline.trim() ||
+        !hasAmharic(descriptionAm) ||
+        genericDescription(descriptionAm) ||
+        descriptionAm.trim().length < 45
+      ) {
+        return null;
+      }
+      return {
+        id: item.id,
+        titleAm,
+        descriptionAm:
+          hasAmharic(descriptionAm) &&
+          descriptionAm.trim() !== item.description.trim()
+            ? descriptionAm
+            : "",
+        source: item.source,
+        image: item.image,
+        link: item.link,
+        published: item.published,
+        category: item.category
+      };
+    }));
+
+    const news = translated.filter(Boolean);
     res.json({ success: true, count: news.length, news });
   } catch (error) {
     console.error("Transfers API error:", error);
@@ -2722,11 +2753,21 @@ async function importBbcNews() {
         const newsRef = firestore.collection("news").doc(docId);
         const existing = await newsRef.get();
 
+        const oldData = existing.exists ? (existing.data() || {}) : {};
+        const titleAm = oldData.title === title && oldData.titleAm
+          ? oldData.titleAm
+          : await translateToAmharic(title);
+        const descriptionAm = oldData.description === description && oldData.descriptionAm
+          ? oldData.descriptionAm
+          : await translateToAmharic(description);
+
         const newsData = {
           title,
+          titleAm,
           type: "news",
           author: "BBC Sport",
           description,
+          descriptionAm,
           image,
           content: description,
           category: "Football",
@@ -2857,12 +2898,22 @@ async function importSkySportsNews() {
           }
         }
 
+        const oldData = existing.exists ? (existing.data() || {}) : {};
+        const titleAm = oldData.title === title && oldData.titleAm
+          ? oldData.titleAm
+          : await translateToAmharic(title);
+        const descriptionAm = oldData.description === description && oldData.descriptionAm
+          ? oldData.descriptionAm
+          : await translateToAmharic(description);
+
         const newsData = {
           title,
+          titleAm,
           type: "news",
           author: "Sky Sports",
           description,
-          content: description,
+          descriptionAm,
+          content: descriptionAm || description,
           image,
           category: "Football",
           source: "Sky Sports",
