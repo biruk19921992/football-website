@@ -626,6 +626,15 @@ if (!feed) {
 
         const repostId = encodeURIComponent(postId + "__" + user.uid);
         const repostRef = doc(db, "publicReposts", repostId);
+        const profileSnap = await getDoc(doc(db, "users", user.uid));
+        const profileData = profileSnap.exists() ? profileSnap.data() : {};
+        const repostedByPhoto =
+          user.photoURL ||
+          profileData.photoURL ||
+          profileData.photoUrl ||
+          profileData.profilePhoto ||
+          "";
+
         const existing = await getDoc(repostRef);
 
         if (existing.exists()) {
@@ -636,7 +645,7 @@ if (!feed) {
         await setDoc(repostRef, {
           uid: user.uid,
           repostedByName: user.displayName || "VibeSport user",
-          repostedByPhoto: user.photoURL || "",
+          repostedByPhoto,
           originalPostId: postId,
           originalAuthorName: original.authorName || "VibeSport",
           authorUsername: original.authorUsername || "@vibesport",
