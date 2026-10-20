@@ -739,6 +739,116 @@ app.post("/api/admins", verifyFirebaseUser, requireSuperAdmin, async (req, res) 
    News Firestore = footballxtra-telegram-news
 ========================= */
 
+
+/* =========================
+   NEWS DESK -> WEBSITE WEBHOOK
+========================= */
+
+app.post("/api/integrations/newsdesk/publish", async (req, res) => {
+  try {
+    const expected = String(process.env.NEWS_DESK_WEBHOOK_SECRET || "");
+    if (!expected) {
+      return res.status(503).json({
+        ok: false,
+        error: "News Desk webhook is not configured"
+      });
+    }
+
+    const auth = String(req.get("authorization") || "");
+    const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+    const supplied = String(req.get("x-newsdesk-secret") || bearer);
+    const crypto = require("crypto");
+    const a = Buffer.from(supplied);
+    const b = Buffer.from(expected);
+
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+      return res.status(401).json({ ok: false, error: "Unauthorized" });
+    }
+
+    const body = req.body || {};
+    const title = String(body.title || body.headline || "").trim();
+    const content = String(
+      body.content || body.description || body.summary || ""
+    ).trim();
+
+    if (!title) {
+      return res.status(400).json({
+        ok: false,
+        error: "title or headline is required"
+      });
+    }
+
+    const now = new Date();
+    const externalId = String(body.externalId || body.id || "").trim();
+    const safeId = /^[A-Za-z0-9_-]{1,100}$/.test(externalId)
+      ? "newsdesk_" + externalId
+      : "";
+
+    const newsData = {
+      type: "news",
+      title: title.slice(0, 500),
+      content: content.slice(0, 50000),
+      image: String(
+        body.image || body.imageUrl || body.thumbnailUrl || ""
+      ).trim().slice(0, 2000),
+      videoUrl: String(body.videoUrl || "").trim().slice(0, 2000),
+      originalUrl: String(
+        body.originalUrl || body.url || body.link || ""
+      ).trim().slice(0, 2000),
+      category: String(body.category || "Football").trim().slice(0, 100),
+      source: "VibeSport News Desk",
+      authorId: "newsdesk",
+      authorName: "VibeSport News Desk",
+      likesCount: 0,
+      commentsCount: 0,
+      repostsCount: 0,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    const posts = telegramNewsFirestore.collection("posts");
+
+    if (safeId) {
+      const ref = posts.doc(safeId);
+      const existing = await ref.get();
+
+      if (existing.exists) {
+        const old = existing.data() || {};
+        newsData.createdAt = old.createdAt || now;
+        newsData.likesCount = old.likesCount || 0;
+        newsData.commentsCount = old.commentsCount || 0;
+        newsData.repostsCount = old.repostsCount || 0;
+        await ref.set(newsData, { merge: true });
+        return res.json({
+          ok: true,
+          updated: true,
+          id: ref.id
+        });
+      }
+
+      await ref.set(newsData);
+      return res.status(201).json({
+        ok: true,
+        created: true,
+        id: ref.id
+      });
+    }
+
+    const ref = await posts.add(newsData);
+    return res.status(201).json({
+      ok: true,
+      created: true,
+      id: ref.id
+    });
+  } catch (error) {
+    console.error("News Desk webhook error:", error.message);
+    return res.status(500).json({
+      ok: false,
+      error: "Failed to publish news"
+    });
+  }
+});
+
 async function requireNewsAdmin(req, res, next) {
   try {
     const userSnap = await firestore
