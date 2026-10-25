@@ -32,7 +32,7 @@ function renderNews(item) {
   const data = item.data;
   return `
     <article class="glass rounded-2xl overflow-hidden hover:border-green-400/30 transition">
-<a href="article.html?id=${encodeURIComponent(item.id)}" class="block group">
+<a href="/article/${encodeURIComponent(item.id)}" class="block group">
       <div class="relative overflow-hidden bg-black/20">
         <div class="news-image-loading absolute inset-0 flex items-center justify-center text-gray-400 text-xs">
           <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading photo...
@@ -668,7 +668,7 @@ async function checkEspnNotifications() {
       notification.onclick = () => {
         window.focus();
         window.location.href =
-          `article.html?id=${encodeURIComponent(item.id)}`;
+          `/article/${encodeURIComponent(item.id)}`;
       };
     }
 

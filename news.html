@@ -482,7 +482,7 @@ async function loadNews() {
 
       return `
         <a
-          href="article.html?id=${encodeURIComponent(item.id)}"
+          href="/article/${encodeURIComponent(item.id)}"
           class="news-card block group"
           aria-label="Read ${escapeHTML(title)}"
         >
