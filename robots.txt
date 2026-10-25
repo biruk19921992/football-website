@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /login.html
+Disallow: /signup.html
+Disallow: /profile.html
 
 Sitemap: https://vibesport.vercel.app/sitemap.xml
