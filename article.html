@@ -308,7 +308,7 @@
     } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
     const params = new URLSearchParams(window.location.search);
-    const articleId = params.get("id");
+    const articleId = params.get("id") || (location.pathname.indexOf("/article/") === 0 ? decodeURIComponent(location.pathname.slice(9)) : null);
     let firestoreArticleId = articleId;
     console.log("ARTICLE URL:", window.location.href); console.log("ARTICLE ID:", articleId);
 

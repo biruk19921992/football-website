@@ -5,3 +5,4 @@ Disallow: /signup.html
 Disallow: /profile.html
 
 Sitemap: https://vibesport.vercel.app/sitemap.xml
+Sitemap: https://vibesport.vercel.app/sitemap-news.xml

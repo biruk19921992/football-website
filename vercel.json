@@ -1,0 +1,9 @@
+{
+  "functions": {
+    "api/article.js": { "includeFiles": "article.html" }
+  },
+  "rewrites": [
+    { "source": "/article/:id", "destination": "/api/article?id=:id" },
+    { "source": "/sitemap-news.xml", "destination": "/api/sitemap" }
+  ]
+}
